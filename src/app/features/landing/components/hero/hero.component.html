@@ -1,0 +1,52 @@
+<section class="hero">
+    <div class="hero-container">
+
+        <!-- IZQUIERDA -->
+        <div class="hero-content">
+            <h1>
+                El directorio oficial del <br />
+                <span class="text-primary">talento científico</span> del Perú
+            </h1>
+
+            <p class="hero-desc">
+                Explora la producción académica y tecnológica del país. Conecta con
+                investigadores calificados y verifica su nivel RENACYT.
+            </p>
+
+            <!-- BUSCADOR -->
+            <div class="search-box">
+                <div class="search-input-wrapper">
+                    <input type="text" placeholder="Buscar por nombre o especialidad..." aria-label="Buscar">
+                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </div>
+            </div>
+
+            <a class="advanced-link" routerLink="/search">
+                ¿Necesitas filtros específicos? <span class="link-highlight">Usar Buscador Avanzado</span>
+            </a>
+        </div>
+
+        <!-- DERECHA (Full Height Image) -->
+        <div class="hero-image-wrapper">
+            <img src="{{investigador}}" alt="Investigador" class="hero-img">
+
+            <!-- Overlay Badge Top Left -->
+            <div class="hero-badge">
+                Investigador Nivel I
+            </div>
+
+            <!-- Overlay Card Bottom Left -->
+            <div class="hero-card">
+                <div class="card-name">Dr. Juan Campos Tallido</div>
+                <div class="card-role">Genética Molecular - UNMSM</div>
+                <div class="card-stat"><strong>12</strong> Publicaciones Scopus</div>
+            </div>
+        </div>
+
+    </div>
+</section>

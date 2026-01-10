@@ -1,0 +1,168 @@
+/* Tabs Navigation - Matching Profile System */
+.tabs-nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 0px;
+    border-bottom: 2px solid var(--g-200);
+    white-space: nowrap;
+
+    /* Hide scrollbar */
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tab-btn {
+        background: transparent;
+        border: none;
+
+        /* Matching .tab-item styles */
+        padding: 0.85rem 1rem;
+        color: var(--g-500);
+        font-weight: 500;
+        position: relative;
+        cursor: pointer;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: all 0.2s;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        /* Overlap border */
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: 0;
+        /* Reset previous */
+
+        &:hover {
+            color: var(--primary-600);
+            background-color: var(--g-50);
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+        }
+
+        &.active {
+            color: var(--primary-800);
+            font-weight: 700;
+            border-bottom-color: var(--primary-600);
+            background-color: transparent;
+            /* Ensure overrides previous styles */
+            box-shadow: none;
+            /* Reset */
+        }
+    }
+
+    &.sticky-tabs {
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 20;
+        padding-top: 1rem;
+    }
+}
+
+/* Table Sections */
+.cv-section {
+    margin-bottom: 2rem;
+
+    /* Section Title within the content area if distinct from tab */
+    .section-title {
+        background-color: #004E5A;
+        color: white;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 6px 6px 0 0;
+        margin-bottom: 0;
+    }
+
+    .table-responsive {
+        border: 1px solid #ddd;
+        border-top: none;
+        border-radius: 0 0 6px 6px;
+        overflow-x: auto;
+    }
+
+    .cv-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 700px;
+        font-size: 0.9rem;
+
+        thead {
+            tr {
+                border-bottom: 2px solid #eee;
+            }
+
+            th {
+                background-color: #f8f9fa;
+                color: #004E5A;
+                font-weight: 700;
+                text-transform: uppercase;
+                font-size: 0.75rem;
+                padding: 1rem;
+                text-align: left;
+                border-bottom: 1px solid #ddd;
+            }
+        }
+
+        tbody {
+            tr {
+                background: white;
+                border-bottom: 1px solid #eee;
+                transition: background 0.1s;
+
+                &:hover {
+                    background-color: #fcfcfc;
+                }
+
+                &:last-child {
+                    border-bottom: none;
+                }
+            }
+
+            td {
+                padding: 1rem;
+                color: #444;
+                vertical-align: top;
+                line-height: 1.5;
+            }
+        }
+
+        .badge-source {
+            background: #e0f2f1;
+            color: #00695c;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-status {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

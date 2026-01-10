@@ -1,0 +1,752 @@
+/* education.component.scss */
+
+.education-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding-bottom: 4rem;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem;
+}
+
+.mb-5 {
+    margin-bottom: 3rem;
+}
+
+/* ACTIONS CARD */
+.actions-card {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+    .card-header {
+        margin-bottom: 1.5rem;
+
+        h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            font-size: 0.9rem;
+            color: #6B7280;
+        }
+    }
+}
+
+.buttons-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.btn-action {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    height: 36px;
+
+    .plus {
+        font-size: 1.1rem;
+        line-height: 1;
+    }
+
+    &.btn-filled {
+        background-color: #065F46;
+        /* Deep Green */
+        color: white;
+        border: none;
+
+        &:hover {
+            background-color: #047857;
+        }
+    }
+
+    /* .btn-outline style removed to use global styles.scss definition */
+}
+
+/* TABS */
+.tabs-container {
+    display: flex;
+    gap: 2rem;
+    border-bottom: 1px solid #E5E7EB;
+    overflow-x: auto;
+
+    /* Hide scrollbar */
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.tab-item {
+    background: none;
+    border: none;
+    padding: 0.75rem 0;
+    font-size: 0.9rem;
+    color: #6B7280;
+    cursor: pointer;
+    position: relative;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+
+    &:hover {
+        color: #1F2937;
+    }
+
+    &.active {
+        color: #065F46;
+        font-weight: 600;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #065F46;
+        }
+    }
+}
+
+.badge {
+    background-color: #D1FAE5;
+    color: #065F46;
+    font-size: 0.75rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+}
+
+/* SECTIONS & TABLES */
+.section-container {
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    overflow: hidden;
+    /* For header radius */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    /* Subtle shadow */
+    background: white;
+    margin-bottom: 3rem;
+}
+
+.card-header-simple {
+    background-color: var(--primary-600);
+    /* Dark header color from screenshots (approx) */
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    h3 {
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        i {
+            margin-left: 0.5rem;
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+    }
+}
+
+.table-card {
+    border: none;
+    /* Container handles border */
+    border-radius: 0;
+    box-shadow: none;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-top: none;
+    /* Connect to header */
+    padding: 0;
+    /* Let table fill card */
+    overflow: hidden;
+    /* For radius */
+}
+
+.table-responsive {
+    width: 100%;
+    /* overflow-x: auto; Removed as requested */
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0 !important;
+    /* Force remove bootstrap margin */
+
+    thead {
+        background-color: #F9FAFB;
+        /* Light header inside the card */
+        color: #374151;
+        border-bottom: 1px solid #E5E7EB;
+
+        th {
+            text-align: left;
+            padding: 0.85rem 1rem;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            /* Standard table header style */
+            letter-spacing: 0.025em;
+            font-weight: 600;
+            color: #4B5563;
+            /* Ensure text matches darken background */
+            white-space: nowrap;
+
+            &.text-center {
+                text-align: center;
+            }
+        }
+    }
+
+    tbody {
+        tr {
+            border-bottom: 1px solid #E5E7EB;
+            transition: background-color 0.15s;
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            &:hover {
+                background-color: #F9FAFB;
+            }
+
+            td {
+                padding: 1rem 1rem;
+                font-size: 0.9rem;
+                color: #374151;
+                vertical-align: middle;
+
+                &.actions {
+                    display: flex;
+                    justify-content: center;
+                    gap: 0.5rem;
+                }
+
+                &.text-center {
+                    text-align: center;
+                }
+            }
+        }
+    }
+}
+
+.link-view {
+    color: #059669;
+    text-decoration: underline;
+    font-weight: 500;
+
+    &:hover {
+        color: #047857;
+    }
+}
+
+.sunedu-badge {
+    display: inline-block;
+    background-color: #22D3EE;
+    /* Cyan-ish for Sunedu logo placeholder */
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 4px 6px;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    line-height: 24px;
+    /* Center vert */
+    text-align: center;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+
+    &:hover {
+        opacity: 1;
+    }
+
+    &.edit {
+        color: #4B5563;
+    }
+
+    &.delete {
+        color: #EF4444;
+    }
+}
+
+/* --- MODAL STYLES (Reused & Adapted) --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.modal-container {
+    background: white;
+    width: 650px;
+    /* Slightly wider for the fields */
+    height: 100vh;
+    padding: 2.5rem;
+    box-shadow: -4px 0 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+.modal-header {
+    margin-bottom: 2rem;
+
+    h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1F2937;
+        margin-bottom: 0.5rem;
+    }
+
+    p {
+        font-size: 0.85rem;
+        color: #6B7280;
+        line-height: 1.4;
+    }
+}
+
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* Form Layouts */
+.form-row {
+    display: grid;
+    gap: 1.5rem;
+
+    &.two-col {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    &.three-col {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #374151;
+    }
+}
+
+.form-input {
+    padding: 0.65rem 0.85rem;
+    border: 1px solid #D1D5DB;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: #1F2937;
+    outline: none;
+    background: white;
+
+    &:focus {
+        border-color: #065F46;
+    }
+
+    &::placeholder {
+        color: #9CA3AF;
+    }
+}
+
+/* File Upload Section */
+.file-upload-section {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-upload {
+    background: white;
+    border: 1px solid #D1D5DB;
+    color: #374151;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &:hover {
+        background-color: #F9FAFB;
+    }
+}
+
+.files-table {
+    width: 100%;
+    margin-top: 1rem;
+    border: 1px solid #E5E7EB;
+    border-radius: 6px;
+    border-collapse: collapse;
+
+    th,
+    td {
+        padding: 0.75rem;
+        text-align: left;
+        font-size: 0.85rem;
+        border-bottom: 1px solid #E5E7EB;
+    }
+
+    th {
+        background-color: #F9FAFB;
+        color: #4B5563;
+        font-weight: 600;
+    }
+
+    td {
+        color: #1F2937;
+    }
+
+    .btn-trash {
+        background: none;
+        border: none;
+        color: #EF4444;
+        cursor: pointer;
+        padding: 4px;
+
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+}
+
+/* Actions */
+.modal-actions {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.btn-cancel {
+    background: white;
+    border: 1px solid #D1D5DB;
+    color: #374151;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+        background: #F9FAFB;
+    }
+}
+
+.btn-save {
+    background-color: var(--primary-600);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+        background-color: #004663;
+    }
+}
+
+@media (max-width: 768px) {
+    .modal-container {
+        width: 100%;
+    }
+
+    .form-row.two-col,
+    .form-row.three-col {
+        grid-template-columns: 1fr;
+    }
+
+    .tabs-container {
+        overflow-x: scroll;
+    }
+}
+
+/* --- CENTER MODAL (SUNEDU IMPORT) --- */
+.modal-center-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+
+.modal-center-container {
+    background: white;
+    width: 900px;
+    max-width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    animation: zoomIn 0.2s ease-out;
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.modal-center-header {
+    margin-bottom: 2rem;
+
+    .header-title-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+
+        h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1F2937;
+            margin: 0;
+        }
+    }
+
+    p {
+        font-size: 0.9rem;
+        color: #6B7280;
+    }
+}
+
+.badge-dni {
+    background-color: #DBEAFE;
+    color: #2563EB;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-family: inherit;
+}
+
+.import-table-wrapper {
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+}
+
+.import-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th {
+        background-color: #F9FAFB;
+        color: #4B5563;
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #E5E7EB;
+    }
+
+    td {
+        padding: 1rem;
+        border-bottom: 1px solid #E5E7EB;
+        color: #1F2937;
+        font-size: 0.9rem;
+        vertical-align: middle;
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Column Widths */
+    .w-10 {
+        width: 10%;
+        text-align: center;
+    }
+
+    .w-30 {
+        width: 30%;
+    }
+
+    .w-40 {
+        width: 40%;
+    }
+
+    .w-20 {
+        width: 20%;
+    }
+}
+
+/* Custom Checkbox in Table */
+.custom-chk {
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+
+    input {
+        display: none;
+    }
+
+    .checkmark {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 20px;
+        width: 20px;
+        background-color: white;
+        border: 2px solid #D1D5DB;
+        border-radius: 4px;
+        transition: all 0.2s;
+
+        &::after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: 6px;
+            top: 2px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+    }
+
+    input:checked~.checkmark {
+        background-color: var(--primary-600);
+        border-color: var(--primary-600);
+        /* Green */
+        display: block;
+    }
+
+    input:checked~.checkmark:after {
+        display: block;
+    }
+}
+
+.modal-center-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.btn-import {
+    background-color: #065F46;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+        background-color: #047857;
+    }
+}
+
+/* TABLES */
+.table-card {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    //margin-bottom: 2.5rem;
+
+    .card-header {
+        background-color: var(--primary-600);
+        /* Deep Teal */
+        color: white;
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-bottom: 1px solid #064E3B;
+        /* primary-900 approx */
+
+        h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            display: flex;
+            align-items: center;
+            letter-spacing: 0.02em;
+
+            i {
+                margin-left: 0.75rem;
+                font-size: 1.1rem;
+                opacity: 0.9;
+            }
+        }
+    }
+}

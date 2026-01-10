@@ -1,0 +1,342 @@
+<div class="general-info-container">
+
+    <!-- SECTION 1: General Information -->
+    <div class="profile-section">
+        <!-- Left: Info -->
+        <div class="section-info">
+            <h3>Datos Personales</h3>
+            <p>Actualiza tu foto de perfil, resumen profesional y los datos de contacto para tu ficha pública.</p>
+        </div>
+
+        <!-- Right: Form Card -->
+        <div class="section-content card">
+
+            <!-- Top Grid: Avatar + Summary -->
+            <form [formGroup]="infoForm" class="info-form">
+
+                <div class="top-grid-layout">
+                    <!-- Avatar Column -->
+                    <div class="avatar-column">
+                        <div class="avatar-box-large" style="overflow: hidden;">
+                            <img *ngIf="photoPreview" [src]="photoPreview" alt="Profile Photo"
+                                style="width: 100%; height: 100%; object-fit: cover;">
+                            <span *ngIf="!photoPreview">JA</span>
+                        </div>
+
+                        <!-- Hidden File Input -->
+                        <input type="file" #fileInput (change)="onFileSelected($event)"
+                            accept="image/png, image/jpeg, image/webp" style="display: none;">
+
+                        <div class="avatar-actions-row">
+                            <button type="button" class="btn btn-outline btn-sm" (click)="fileInput.click()"
+                                [disabled]="isUploadingPhoto">
+                                {{ isUploadingPhoto ? 'Subiendo...' : 'Cambiar Fotografía' }}
+                            </button>
+                            <button type="button" class="btn-icon-trash">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                    fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path
+                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                    </path>
+                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <span class="hint">JPG, GIF, PNG or WEBP. 20MB max.</span>
+                    </div>
+
+                    <!-- Summary Column -->
+                    <div class="summary-column">
+                        <div class="form-group">
+                            <label class="form-label">
+                                Resumen Ejecutivo <span class="required">*</span>
+                                <span class="icon-tooltip-container" data-tooltip="Visible en su Ficha Pública">
+                                    <svg class="icon-globe" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                                        <path
+                                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                        </path>
+                                    </svg>
+                                </span>
+                            </label>
+                            <textarea class="form-input" rows="8" formControlName="summary"
+                                placeholder="Escribe aquí un breve resumen de tu trayectoria profesional y logros más destacados. Este texto será visible en tu ficha pública."></textarea>
+                            <div class="field-hint">Visible en su Ficha Pública. Esta será tu carta de presentación ante
+                                la comunidad científica.</div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <div class="row-2-col">
+                    <!-- Fecha Nacimiento -->
+                    <div class="form-group">
+                        <label class="form-label">Fecha de Nacimiento <span class="required">*</span>
+                            <span class="icon-tooltip-container" data-tooltip="No visible en su Ficha Pública">
+                                <svg class="icon-lock" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                            </span>
+                        </label>
+                        <div class="input-with-icon">
+                            <input type="date" formControlName="fechaNacimiento" placeholder="DD/MM/AAAA"
+                                class="form-input" style="background: #F3F4F6;">
+                            <!-- <svg class="input-icon-right" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg> -->
+                        </div>
+                    </div>
+
+                    <!-- Sexo -->
+                    <div class="form-group">
+                        <label class="form-label">Sexo <span class="required">*</span>
+                            <span class="icon-tooltip-container" data-tooltip="No visible en su Ficha Pública">
+                                <svg class="icon-lock" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                            </span>
+                        </label>
+                        <div class="radio-group-inline">
+                            <label *ngFor="let option of sexOptions">
+                                <input type="radio" [value]="option.id" formControlName="sexo"> {{ option.nombre }}
+                            </label>
+                            <!-- Fallback if loading -->
+                            <ng-container *ngIf="sexOptions.length === 0">
+                                <span style="font-size: 0.9em; color: #6b7280; font-style: italic;">Cargando...</span>
+                            </ng-container>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row-2-col">
+                    <!-- Telefono Contacto -->
+                    <div class="form-group">
+                        <label class="form-label">Teléfono de contacto <span class="required">*</span>
+                            <span class="icon-tooltip-container" data-tooltip="No visible en su Ficha Pública">
+                                <svg class="icon-lock" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                            </span>
+                        </label>
+                        <input type="text" class="form-input" formControlName="telefono"
+                            placeholder="Ej. +51 9876543121">
+                    </div>
+
+                    <!-- Celular -->
+                    <div class="form-group">
+                        <label class="form-label">Celular
+                            <span class="icon-tooltip-container" data-tooltip="No visible en su Ficha Pública">
+                                <svg class="icon-lock" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                            </span>
+                        </label>
+                        <input type="text" class="form-input" formControlName="celular"
+                            placeholder="Ej. +51 9876543121">
+                    </div>
+                </div>
+
+                <div class="row-2-col">
+                    <!-- Email Lock -->
+                    <div class="form-group">
+                        <label class="form-label">Email <span class="required">*</span>
+                            <span class="icon-tooltip-container" data-tooltip="No visible en su Ficha Pública">
+                                <svg class="icon-lock" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                            </span>
+                        </label>
+                        <input type="email" class="form-input" formControlName="email" readonly
+                            placeholder="Ej. josephalex@gmail.com">
+                    </div>
+
+                    <!-- Email Public (Globe) -->
+                    <div class="form-group">
+                        <label class="form-label">Email público <span class="required">*</span>
+                            <span class="icon-tooltip-container" data-tooltip="Visible en su Ficha Pública">
+                                <svg class="icon-globe" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                                    <path
+                                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                    </path>
+                                </svg>
+                            </span>
+                        </label>
+                        <input type="email" class="form-input" formControlName="emailAlternativo"
+                            placeholder="Ej. josephalex@gmail.com">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Web personal:
+                        <span class="icon-tooltip-container" data-tooltip="Visible en su Ficha Pública">
+                            <svg class="icon-globe" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path
+                                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                </path>
+                            </svg>
+                        </span>
+                    </label>
+                    <input type="text" class="form-input" placeholder="Pega la URL aquí" formControlName="webPersonal">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-save" (click)="saveProfile('general')"
+                        [disabled]="savingSource !== null">
+                        <ng-container *ngIf="savingSource === 'general'; else defaultText">
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
+                                style="margin-right: 5px;"></span>
+                            Actualizando...
+                        </ng-container>
+                        <ng-template #defaultText>Actualizar</ng-template>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SECTION 2: Location -->
+    <div class="profile-section">
+        <!-- Left: Info -->
+        <div class="section-info">
+            <h3>Ubicación Actual</h3>
+            <p>Indica el lugar donde vives actualmente para fines estadísticos y de contacto, independientemente de tu
+                dirección legal.</p>
+        </div>
+
+        <!-- Right: Form Card -->
+        <div class="section-content card" [formGroup]="infoForm">
+            <div class="grid-form">
+                <div class="row-2-col">
+                    <div class="form-group">
+                        <label class="form-label">País <span class="required">*</span>
+                            <span class="icon-tooltip-container" data-tooltip="Visible en su Ficha Pública">
+                                <svg class="icon-globe" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                                    <path
+                                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                    </path>
+                                </svg>
+                            </span>
+                        </label>
+                        <select class="form-input" formControlName="paisResidencia" (change)="onCountryChange($event)">
+                            <option [ngValue]="null">Elige un País</option>
+                            <option *ngFor="let country of countries" [ngValue]="country.id">{{ country.nombre }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Departamento <span class="required">*</span>
+                            <span class="icon-tooltip-container" data-tooltip="Visible en su Ficha Pública">
+                                <svg class="icon-globe" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                                    <path
+                                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                    </path>
+                                </svg>
+                            </span>
+                        </label>
+                        <select class="form-input" formControlName="departamento" (change)="onDepartmentChange($event)">
+                            <option [ngValue]="undefined">Selecciona primero el pais</option>
+                            <option *ngFor="let dept of departments" [ngValue]="dept.id">{{ dept.nombre }}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row-2-col">
+                    <div class="form-group">
+                        <label class="form-label">Provincia <span class="required">*</span>
+                            <span class="icon-tooltip-container" data-tooltip="Visible en su Ficha Pública">
+                                <svg class="icon-globe" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                                    <path
+                                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                    </path>
+                                </svg>
+                            </span>
+                        </label>
+                        <select class="form-input" formControlName="provincia" (change)="onProvinceChange($event)">
+                            <option [ngValue]="undefined">Selecciona primero el departamento</option>
+                            <option *ngFor="let prov of provinces" [ngValue]="prov.id">{{ prov.nombre }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Distrito <span class="required">*</span>
+                            <span class="icon-tooltip-container" data-tooltip="Visible en su Ficha Pública">
+                                <svg class="icon-globe" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                                    <path
+                                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                    </path>
+                                </svg>
+                            </span>
+                        </label>
+                        <select class="form-input" formControlName="distrito">
+                            <option [ngValue]="undefined">Selecciona primero la provincia</option>
+                            <option *ngFor="let dist of districts" [ngValue]="dist.id">{{ dist.nombre }}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-save" (click)="saveProfile('location')"
+                        [disabled]="savingSource !== null">
+                        <ng-container *ngIf="savingSource === 'location'; else defaultText">
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
+                                style="margin-right: 5px;"></span>
+                            Actualizando...
+                        </ng-container>
+                        <ng-template #defaultText>Actualizar</ng-template>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+    </div>

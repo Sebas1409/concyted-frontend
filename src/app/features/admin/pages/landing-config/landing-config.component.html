@@ -1,0 +1,800 @@
+<div class="landing-config-page">
+    <app-intro-card title="Gestión de Landing Page"
+        subtitle="Administra la información, imágenes y estructura visual de la página de inicio pública del portal CTI Vitae.">
+    </app-intro-card>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+        <button class="tab-btn" [class.active]="activeTab === 'hero'" (click)="toggleTab('hero')">Hero</button>
+        <button class="tab-btn" [class.active]="activeTab === 'aliados'" (click)="toggleTab('aliados')">Aliados
+            Institucionales</button>
+        <button class="tab-btn" [class.active]="activeTab === 'beneficios'" (click)="toggleTab('beneficios')">Beneficios
+            y Ventajas</button>
+        <button class="tab-btn" [class.active]="activeTab === 'publico'" (click)="toggleTab('publico')">Público
+            Objetivo</button>
+        <button class="tab-btn" [class.active]="activeTab === 'testimonios'"
+            (click)="toggleTab('testimonios')">Testimonios (Voces)</button>
+        <button class="tab-btn" [class.active]="activeTab === 'metricas'" (click)="toggleTab('metricas')">Métricas de
+            Impacto</button>
+        <button class="tab-btn" [class.active]="activeTab === 'notificacion'"
+            (click)="toggleTab('notificacion')">Notificación Hoja de Vida</button>
+    </div>
+
+    <!-- Hero Tab Content -->
+    <div class="tab-content" *ngIf="activeTab === 'hero'">
+        <!-- Section 1: Texto Principal -->
+        <div class="config-section">
+            <div class="section-info">
+                <h3>Texto Principal</h3>
+                <p>Personaliza el título destacado y el mensaje de bienvenida que los usuarios ven en primer plano al
+                    ingresar al portal.</p>
+            </div>
+            <div class="section-card">
+                <div class="form-group">
+                    <label>Título <span class="required">*</span></label>
+                    <input type="text" placeholder='Ej: "El directorio oficial del talento...'
+                        [(ngModel)]="headerForm.title">
+                </div>
+                <div class="form-group">
+                    <label>Subtítulo <span class="required">*</span></label>
+                    <textarea rows="3" placeholder="Únete a la red más grande..."
+                        [(ngModel)]="headerForm.subtitle"></textarea>
+                </div>
+                <div class="card-footer">
+                    <button class="btn-primary-dark" (click)="updateHeader()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        Actualizar Encabezado
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Carrusel -->
+        <div class="config-section">
+            <div class="section-info">
+                <h3>Carrusel de Perfiles Destacados</h3>
+                <p>Gestiona las diapositivas (slides) rotativas de fondo. Cada slide destaca a un investigador con su
+                    imagen y datos clave.</p>
+            </div>
+            <div class="section-card">
+                <div class="card-header-actions">
+                    <button class="btn-primary-dark" (click)="openSlideModal()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Agregar Slide
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">Nº ⇅</th>
+                                <th>Imagen ⇅</th>
+                                <th>Nombre del Investigador ⇅</th>
+                                <th>Especialidad/Institución ⇅</th>
+                                <th style="width: 80px; text-align: center;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="slides.length === 0">
+                                <td colspan="5" class="no-records"
+                                    style="text-align: center; padding: 24px; color: #6B7280;">
+                                    No hay registros disponibles
+                                </td>
+                            </tr>
+                            <tr *ngFor="let item of slides">
+                                <td>{{ item.id }}</td>
+                                <td style="text-align: center;">
+                                    <div class="file-info" *ngIf="item.image; else noImage"
+                                        style="justify-content: center;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#005470"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            title="Imagen cargada">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                            <polyline points="21 15 16 10 5 21"></polyline>
+                                        </svg>
+                                    </div>
+                                    <ng-template #noImage>
+                                        <span style="color: #6B7280; font-weight: 500;">-</span>
+                                    </ng-template>
+                                </td>
+                                <td>{{ item.researcherName }}</td>
+                                <td>{{ item.specialty }}</td>
+                                <td class="action-cell">
+                                    <button class="btn-icon" (click)="openSlideModal(item)">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="btn-icon delete" (click)="deleteSlide(item.id)">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path
+                                                d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6M5 6l1 14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-14"
+                                                stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination-container">
+                    <div class="items-per-page">
+                        <span>Mostrar</span>
+                        <select [(ngModel)]="pageSize">
+                            <option [value]="10">10</option>
+                            <option [value]="20">20</option>
+                            <option [value]="50">50</option>
+                        </select>
+                        <span>elementos</span>
+                    </div>
+                    <div class="page-controls">
+                        <button class="btn-page text">Anterior</button>
+                        <button class="btn-page number active">1</button>
+                        <button class="btn-page number">2</button>
+                        <span class="dots">...</span>
+                        <button class="btn-page number">5</button>
+                        <button class="btn-page text">Siguiente</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aliados Institucionales Tab Content -->
+    <div class="tab-content" *ngIf="activeTab === 'aliados'">
+        <div class="config-section">
+            <div class="section-info">
+                <h3>Galería de Instituciones Aliadas</h3>
+                <p>Gestiona los logotipos de las universidades y centros de investigación que se visualizan en la
+                    sección de aliados.</p>
+            </div>
+            <div class="section-card">
+                <div class="card-header-actions">
+                    <button class="btn-primary-dark" (click)="openAllyModal()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Agregar Aliado
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">Nº ⇅</th>
+                                <th>Logotipo ⇅</th>
+                                <th>Nombre de Institución ⇅</th>
+                                <th style="width: 140px;">Estado ⇅</th>
+                                <th style="width: 80px; text-align: center;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="allies.length === 0">
+                                <td colspan="5" class="no-records"
+                                    style="text-align: center; padding: 24px; color: #6B7280;">
+                                    No hay registros disponibles
+                                </td>
+                            </tr>
+                            <tr *ngFor="let item of allies">
+                                <td>{{ item.id }}</td>
+                                <td style="text-align: center;">
+                                    <div class="file-info" *ngIf="item.logo; else noLogo"
+                                        style="justify-content: center;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#005470"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            title="Logotipo cargado">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                            <polyline points="21 15 16 10 5 21"></polyline>
+                                        </svg>
+                                    </div>
+                                    <ng-template #noLogo>
+                                        <span style="color: #6B7280; font-weight: 500;">-</span>
+                                    </ng-template>
+                                </td>
+                                <td>{{ item.name }}</td>
+                                <td>
+                                    <div class="toggle-row table-toggle">
+                                        <label class="checkbox-container"
+                                            style="cursor: default; pointer-events: none;">
+                                            <input type="checkbox" [checked]="item.published" tabindex="-1"
+                                                onclick="return false;">
+                                            <span class="checkmark"></span>
+                                        </label>
+                                        <span class="toggle-label" style="vertical-align: middle;">{{ item.published ?
+                                            'Publicado' : 'No Publicado' }}</span>
+                                    </div>
+                                </td>
+                                <td class="action-cell">
+                                    <button class="btn-icon" (click)="openAllyModal(item)">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="btn-icon delete" (click)="deleteAlly(item.id)">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path
+                                                d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6M5 6l1 14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-14"
+                                                stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-container">
+                    <div class="items-per-page">
+                        <span>Mostrar</span>
+                        <select [(ngModel)]="alliesPageSize">
+                            <option [value]="10">10</option>
+                            <option [value]="20">20</option>
+                            <option [value]="50">50</option>
+                        </select>
+                        <span>elementos</span>
+                    </div>
+                    <div class="page-controls">
+                        <button class="btn-page text">Anterior</button>
+                        <button class="btn-page number active">1</button>
+                        <button class="btn-page number">2</button>
+                        <span class="dots">...</span>
+                        <button class="btn-page number">5</button>
+                        <button class="btn-page text">Siguiente</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Beneficios y Ventajas Tab Content -->
+    <div class="tab-content" *ngIf="activeTab === 'beneficios'">
+        <div class="config-section full-width">
+            <div class="section-info">
+                <h3>Beneficios Clave del Ecosistema</h3>
+                <p>Gestiona el contenido de las tres tarjetas principales que destacan las ventajas de usar la
+                    plataforma CTI Vitae.</p>
+            </div>
+        </div>
+
+        <div class="publico-layout">
+            <div class="cards-grid" style="grid-template-columns: 1fr;">
+                <div class="card-large" *ngFor="let item of benefits">
+                    <div style="display: flex; gap: 32px; align-items: stretch;">
+                        <!-- Column 1: Image -->
+                        <div style="width: 300px; flex-shrink: 0; height: 230px;">
+                            <app-single-image-upload [currentToken]="item.image" placeholderText="IMG"
+                                accept=".webp,.jpg,.jpeg,.png,.svg" [maxSizeBytes]="512000"
+                                hintText="JPG, PNG, SVG o WEBP (300px). Máx 500KB." module="ADMIN" category="LANDING"
+                                section="BENVTJ" [type]="FileType.PHOTO" [isPublic]="true"
+                                (tokenChange)="item.image = $event" style="height: 100%; display: block;">
+                            </app-single-image-upload>
+                        </div>
+
+                        <!-- Column 2: Inputs -->
+                        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 16px;">
+
+                            <div class="form-group">
+                                <label>Título de la Tarjeta *</label>
+                                <input type="text" [(ngModel)]="item.title" required
+                                    style="width: 100%; border: 1px solid #D1D5DB; padding: 10px; border-radius: 6px;">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Descripción Corta *</label>
+                                <textarea rows="4" [(ngModel)]="item.description" required
+                                    style="width: 100%; border: 1px solid #D1D5DB; padding: 10px; border-radius: 6px; resize: vertical;"></textarea>
+                            </div>
+
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto;">
+                                <div class="form-group state-group" style="margin-bottom: 0;">
+                                    <label>Estado de Visualización</label>
+                                    <div class="toggle-row">
+                                        <label class="switch">
+                                            <input type="checkbox" [(ngModel)]="item.published">
+                                            <span class="slider round"></span>
+                                        </label>
+                                        <span class="toggle-label">{{ item.published ? 'Publicado' : 'No Publicado'
+                                            }}</span>
+                                    </div>
+                                </div>
+                                <button class="btn-primary" (click)="updateBenefit(item)">Actualizar Encabezado</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Publico Objetivo Tab Content -->
+    <div class="tab-content" *ngIf="activeTab === 'publico'">
+        <div class="publico-layout">
+
+            <!-- Intro / Header Card -->
+            <div class="config-section full-width">
+                <div class="section-info">
+                    <h3>Gestión de Perfiles (Carrusel)</h3>
+                    <p>Administra las tarjetas informativas que describen a los diferentes actores del ecosistema CTI
+                        (Investigadores, Empresas, Gobierno).</p>
+                    <div class="top-action-mt">
+                        <button class="btn-primary-dark" (click)="addPublicProfile()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Agregar Nuevo Perfil
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Title Section Card -->
+            <div class="card-large">
+                <div class="form-group">
+                    <label>Título Principal *</label>
+                    <input type="text" placeholder="Un ecosistema conectado..." [(ngModel)]="publicHeader.title"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label>Descripción Corta *</label>
+                    <textarea rows="3" placeholder="Breve descripción que aparecerá en la tarjeta..."
+                        [(ngModel)]="publicHeader.description" required></textarea>
+                </div>
+                <div class="card-footer">
+                    <button class="btn-primary" (click)="savePublicHeader()">Guardar Título de Sección</button>
+                </div>
+            </div>
+
+            <!-- Profile Cards Grid -->
+            <div class="cards-grid">
+                <!-- Loop through mock items -->
+                <div class="card-large" *ngFor="let item of publicItems; let i = index">
+                    <div class="card-header-flex" style="margin-bottom: 16px;">
+                        <app-single-image-upload [currentToken]="item.image" placeholderText="IMG"
+                            accept=".webp,.jpg,.jpeg,.png,.svg" [maxSizeBytes]="512000"
+                            hintText="JPG, PNG, SVG o WEBP (600x400px). Máx 500KB." module="ADMIN" category="LANDING"
+                            section="PUBOBJ" [type]="FileType.PHOTO" [isPublic]="true"
+                            (tokenChange)="item.image = $event">
+                        </app-single-image-upload>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Título del Público *</label>
+                        <input type="text" [(ngModel)]="item.title" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descripción Corta *</label>
+                        <textarea rows="3" [(ngModel)]="item.description" required></textarea>
+                    </div>
+
+                    <div class="grid-row-custom">
+                        <div class="form-group">
+                            <label>Etiquetas (Subtítulo)</label>
+                            <input type="text" [(ngModel)]="item.tags">
+                            <span class="hint-text-sm">Separa las etiquetas usando una barra vertical ( | ). Ej:
+                                Investigadores | Estudiantes</span>
+                        </div>
+                        <div class="form-group state-group">
+                            <label>Estado de Visualización</label>
+                            <div class="toggle-row">
+                                <label class="switch">
+                                    <input type="checkbox" [(ngModel)]="item.published">
+                                    <span class="slider round"></span>
+                                </label>
+                                <span class="toggle-label">Publicado</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer"
+                        style="display: flex; justify-content: space-between; align-items: center;">
+                        <button *ngIf="i >= 3" class="btn-icon delete" (click)="removePublicProfile(i)"
+                            style="padding: 8px; border: 1px solid #EF4444; border-radius: 6px; background: #FEF2F2; cursor: pointer;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444"
+                                stroke-width="2">
+                                <path
+                                    d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6M5 6l1 14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-14"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </button>
+                        <button class="btn-primary" (click)="savePublicItem(item)"
+                            [style.margin-left]="i >= 3 ? 'auto' : '0'">Guardar Cambios</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- Testimonios (Voces) Tab Content -->
+    <div class="tab-content" *ngIf="activeTab === 'testimonios'">
+        <div class="config-section">
+            <div class="section-info">
+                <h3>Voces que Impulsan la Ciencia</h3>
+                <p>Administra las citas y experiencias destacadas de investigadores. Se recomienda mantener entre 3 y 6
+                    testimonios activos para no saturar el carrusel.</p>
+            </div>
+            <div class="section-card">
+                <div class="card-header-actions">
+                    <button class="btn-primary-dark" (click)="openTestimonyModal()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Agregar Testimonio
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">Nº ⇅</th>
+                                <th>Foto ⇅</th>
+                                <th>Logo ⇅</th>
+                                <th>Nombre del Investigador ⇅</th>
+                                <th>Cargo / Institución ⇅</th>
+                                <th style="width: 140px;">Estado ⇅</th>
+                                <th style="width: 80px; text-align: center;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="testimonies.length === 0">
+                                <td colspan="7" class="no-records"
+                                    style="text-align: center; padding: 24px; color: #6B7280;">
+                                    No hay registros disponibles
+                                </td>
+                            </tr>
+                            <tr *ngFor="let item of testimonies">
+                                <td>{{ item.id }}</td>
+                                <td style="text-align: center;">
+                                    <div class="file-info" *ngIf="item.image; else noPhoto"
+                                        style="justify-content: center;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#005470"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            title="Foto cargada">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                            <polyline points="21 15 16 10 5 21"></polyline>
+                                        </svg>
+                                    </div>
+                                    <ng-template #noPhoto>
+                                        <span style="color: #6B7280; font-weight: 500;">-</span>
+                                    </ng-template>
+                                </td>
+                                <td style="text-align: center;">
+                                    <div class="file-info" *ngIf="item.logo; else noLogo"
+                                        style="justify-content: center;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#005470"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            title="Logo cargado">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                            <polyline points="21 15 16 10 5 21"></polyline>
+                                        </svg>
+                                    </div>
+                                    <ng-template #noLogo>
+                                        <span style="color: #6B7280; font-weight: 500;">-</span>
+                                    </ng-template>
+                                </td>
+                                <td>{{ item.researcherName }}</td>
+                                <td>{{ item.role }}</td>
+                                <td>
+                                    <div class="toggle-row table-toggle">
+                                        <label class="checkbox-container">
+                                            <input type="checkbox" [(ngModel)]="item.published">
+                                            <span class="checkmark"></span>
+                                        </label>
+                                        <span class="toggle-label" style="vertical-align: middle;">Publicado</span>
+                                    </div>
+                                </td>
+                                <td class="action-cell">
+                                    <button class="btn-icon" (click)="openTestimonyModal(item)">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="btn-icon delete" (click)="deleteTestimony(item.id)">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path
+                                                d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6M5 6l1 14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-14"
+                                                stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination-container">
+                    <!-- Reuse pagination -->
+                    <div class="items-per-page">
+                        <span>Mostrar</span>
+                        <select [(ngModel)]="testimoniesPageSize">
+                            <option [value]="10">10</option>
+                            <option [value]="20">20</option>
+                        </select>
+                        <span>elementos</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metricas Tab Content -->
+    <div class="tab-content" *ngIf="activeTab === 'metricas'">
+        <div class="config-section full-width">
+            <div class="section-info">
+                <h3>Indicadores de Impacto</h3>
+                <p>Configura las cifras clave que demuestran el alcance de CTI Vitae. Puedes vincular indicadores
+                    automáticos del sistema o ingresar cifras manuales fijas.</p>
+            </div>
+        </div>
+
+        <div class="cards-grid">
+            <div class="card-large" *ngFor="let item of metrics; let i = index">
+                <div class="form-group">
+                    <label>Etiqueta (Título)</label>
+                    <input type="text" [(ngModel)]="item.title">
+                </div>
+                <div class="grid-2-col">
+                    <div class="form-group">
+                        <label>Valor Actual</label>
+                        <input type="text" [(ngModel)]="item.value">
+                    </div>
+                    <div class="form-group">
+                        <label>Fuente de Datos</label>
+                        <div class="radio-group">
+                            <label class="radio" style="display: none;">
+                                <input type="radio" name="source-{{i}}" value="db" [(ngModel)]="item.source">
+                                <span class="radio-mark"></span>
+                                DB_Users
+                            </label>
+                            <label class="radio">
+                                <input type="radio" name="source-{{i}}" value="manual" [(ngModel)]="item.source">
+                                <span class="radio-mark"></span>
+                                Manual
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Estado</label>
+                    <div class="toggle-row">
+                        <label class="switch">
+                            <input type="checkbox" [(ngModel)]="item.published">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="toggle-label">Publicado</span>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <button class="btn-primary" (click)="updateMetric(item)">Actualizar Encabezado</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notificación Hoja de Vida Tab Content -->
+    <div class="tab-content" *ngIf="activeTab === 'notificacion'">
+        <div class="config-section">
+            <div class="section-info">
+                <h3>Banner de Notificación Hoja de Vida</h3>
+                <p>Configura el banner de notificación que aparecerá en la parte superior para alertas relacionadas con
+                    la hoja de vida.</p>
+            </div>
+            <div class="section-card">
+                <div class="form-group">
+                    <label>Descripción (Mensaje) <span class="required">*</span></label>
+                    <textarea rows="3" [(ngModel)]="notificationForm.description"
+                        placeholder="Ej: Actualiza tus datos antes del 31 de Diciembre..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Título del Botón <span class="required">*</span></label>
+                    <input type="text" [(ngModel)]="notificationForm.buttonTitle" placeholder="Ej: Actualizar Datos">
+                </div>
+                <div class="form-group">
+                    <label>Link a Redireccionar <span class="required">*</span></label>
+                    <input type="text" [(ngModel)]="notificationForm.url"
+                        placeholder="Ej: https://ctivitae.concytec.gob.pe/app/profile">
+                </div>
+                <div class="grid-2-col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label>Fecha de Inicio</label>
+                        <input type="date" [(ngModel)]="notificationForm.startDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de Fin</label>
+                        <input type="date" [(ngModel)]="notificationForm.endDate">
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn-primary" (click)="saveNotification()">Guardar Configuración</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Popups/Modals -->
+<app-form-modal *ngIf="showSlideModal" title="Gestionar Slide del Carrusel Principal" (close)="showSlideModal = false">
+    <!-- Existing Slide Modal Body -->
+    <p class="modal-description">Sube la fotografía de fondo y configura los datos destacados del investigador que
+        aparecerán superpuestos en la sección Hero</p>
+    <app-single-image-upload [currentToken]="slideForm.image" [minWidth]="1920" [minHeight]="1080" placeholderText="JA"
+        accept=".webp,.jpg,.jpeg,.png,.svg" [maxSizeBytes]="5242880"
+        hintText="JPG, PNG, SVG o WEBP (Alta Calidad). Resolución mínima: 1920x1080px. Peso máximo: 5MB." module="ADMIN"
+        category="LANDING" section="HERO01" [type]="FileType.PHOTO" (tokenChange)="onSlideImageUploaded($event)"
+        [isPublic]="true" style="margin-bottom: 24px; display: block;">
+    </app-single-image-upload>
+    <div class="form-grid single-col">
+        <div class="form-group">
+            <label>Nombre del Investigador *</label>
+            <input type="text" placeholder="Ej: Convocatoria de Becas 2025" [(ngModel)]="slideForm.researcherName">
+        </div>
+        <div class="grid-2-col">
+            <div class="form-group">
+                <label>Especialidad / Institución *</label>
+                <input type="text" placeholder="Ej: Bioingeniería - UTEC" [(ngModel)]="slideForm.specialty">
+            </div>
+            <div class="form-group">
+                <label>Métrica de Publicaciones *</label>
+                <input type="text" placeholder="Ej: 45 Publicaciones" [(ngModel)]="slideForm.metrics">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Nivel / Distinción *</label>
+            <input type="text" placeholder='Ej: "Investigador Distinguido"' [(ngModel)]="slideForm.level">
+        </div>
+        <div class="form-group">
+            <label>Estado de Visualización</label>
+            <div class="toggle-row">
+                <label class="switch">
+                    <input type="checkbox" [(ngModel)]="slideForm.published">
+                    <span class="slider round"></span>
+                </label>
+                <span class="toggle-label">Publicado</span>
+            </div>
+        </div>
+    </div>
+    <div class="modal-actions">
+        <button class="btn-cancel" (click)="showSlideModal = false">Cancelar</button>
+        <button class="btn-save" (click)="saveSlide()">Guardar Slide</button>
+    </div>
+</app-form-modal>
+
+<app-form-modal *ngIf="showAllyModal" title="Agregar Institución Aliada" (close)="showAllyModal = false">
+    <!-- Existing Ally Modal Body -->
+    <p class="modal-description">Sube el logotipo oficial en formato transparente para garantizar una correcta
+        visualización sobre fondos de color.</p>
+    <div class="form-grid single-col">
+        <div class="form-group">
+            <label>Nombre de la Institución *</label>
+            <input type="text" placeholder="Ej: Convocatoria de Becas 2025" [(ngModel)]="allyForm.name">
+            <span class="hint-text">(Este texto se usará como etiqueta de accesibilidad)</span>
+        </div>
+        <app-single-image-upload [currentToken]="allyForm.logo" placeholderText="IMG"
+            accept=".webp,.jpg,.jpeg,.png,.svg" [maxSizeBytes]="153600"
+            hintText="JPG, PNG, SVG o WEBP (Sin fondo). / Ancho máx 300px. Peso máx: 150KB." module="ADMIN"
+            category="LANDING" section="ALIINS" [type]="FileType.PHOTO" [isPublic]="true"
+            (tokenChange)="onAllyImageUploaded($event)" style="margin-bottom: 24px; display: block;">
+        </app-single-image-upload>
+        <div class="form-group">
+            <label>Estado de Visualización</label>
+            <div class="toggle-row">
+                <label class="switch">
+                    <input type="checkbox" [(ngModel)]="allyForm.published">
+                    <span class="slider round"></span>
+                </label>
+                <span class="toggle-label">Publicado</span>
+            </div>
+        </div>
+    </div>
+    <div class="modal-actions">
+        <button class="btn-cancel" (click)="showAllyModal = false">Cancelar</button>
+        <button class="btn-save" (click)="saveAlly()">Guardar Aliado</button>
+    </div>
+</app-form-modal>
+
+
+<!-- Modal: Testimonios -->
+<!-- Modal: Testimonios -->
+<app-form-modal *ngIf="showTestimonyModal" title="Gestionar Testimonio" (close)="showTestimonyModal = false">
+    <p class="modal-description">Carga la fotografía y la cita textual del investigador.</p>
+
+    <div class="form-grid single-col">
+        <div class="form-group">
+            <label>Nombre del Investigador *</label>
+            <input type="text" placeholder="Ej: Dra. María Rostworowski" [(ngModel)]="testimonyForm.researcherName"
+                required>
+        </div>
+        <div class="form-group">
+            <label>Cargo / Institución</label>
+            <input type="text" placeholder="Ej: Historiadora - IEP" [(ngModel)]="testimonyForm.role">
+        </div>
+
+
+        <div class="form-group">
+            <label>Fotografía del Investigador</label>
+            <div class="upload-area sm" style="border: none; padding: 0;">
+                <app-single-image-upload [currentToken]="testimonyForm.image" placeholderText="IMG"
+                    accept=".webp,.jpg,.jpeg,.png,.svg" [maxSizeBytes]="512000"
+                    hintText="JPG, PNG, SVG o WEBP (1:1). Máx 500KB." module="ADMIN" category="LANDING" section="TESTVO"
+                    [type]="FileType.PHOTO" [isPublic]="true" (tokenChange)="onTestimonyImageUploaded($event)"
+                    style="display: block; height: 300px;">
+                </app-single-image-upload>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Cita / Testimonio *</label>
+            <textarea rows="3" placeholder="Breve descripción que aparecerá en la tarjeta..."
+                [(ngModel)]="testimonyForm.quote" required></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="form-group" style="width: 250px; margin-bottom: 0;">
+                <label style="font-size: 13px; margin-bottom: 8px; display: block;">Logotipo Institucional</label>
+                <div class="upload-area sm" style="border: none; padding: 0;">
+                    <app-single-image-upload [currentToken]="testimonyForm.logo" placeholderText="LOGO"
+                        accept=".webp,.jpg,.jpeg,.png,.svg" [maxSizeBytes]="512000" hintText="Máx 500KB." module="ADMIN"
+                        category="LANDING" section="TESTVO" [type]="FileType.PHOTO" [isPublic]="true"
+                        (tokenChange)="onTestimonyLogoUploaded($event)" style="display: block; height: 180px;">
+                    </app-single-image-upload>
+                </div>
+            </div>
+
+            <div class="form-group state-group" style="margin-bottom: 0;">
+                <label>Estado de Visualización</label>
+                <div class="toggle-row">
+                    <label class="switch">
+                        <input type="checkbox" [(ngModel)]="testimonyForm.published">
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="toggle-label">Publicado</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-actions">
+        <button class="btn-cancel" (click)="showTestimonyModal = false">Cancelar</button>
+        <button class="btn-save" (click)="saveTestimony()">Guardar Testimonio</button>
+    </div>
+</app-form-modal>

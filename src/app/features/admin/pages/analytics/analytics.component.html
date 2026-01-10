@@ -1,0 +1,252 @@
+<div class="analytics-dashboard">
+    <div class="page-header">
+        <h1>Dashboard</h1>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-grid">
+        <app-stats-card *ngFor="let stat of stats" [title]="stat.title" [value]="stat.value" [label]="stat.label"
+            [icon]="stat.icon">
+        </app-stats-card>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="charts-grid">
+        <!-- 1. Academic Level -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="header-text">
+                    <h3>Nivel Académico</h3>
+                    <span class="subtitle">Distribución por grados obtenidos</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon" (click)="downloadChart('academic', 'pdf')"
+                        title="Descargar gráfico en PDF">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </button>
+                    <button class="btn-icon" (click)="downloadChart('academic', 'excel')"
+                        title="Descargar datos en Excel">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="8" y1="13" x2="16" y2="13"></line>
+                            <line x1="8" y1="17" x2="16" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="chart-body">
+                <apx-chart [series]="academicLevelChart.series" [chart]="academicLevelChart.chart"
+                    [plotOptions]="academicLevelChart.plotOptions" [xaxis]="academicLevelChart.xaxis"
+                    [colors]="academicLevelChart.colors" [dataLabels]="academicLevelChart.dataLabels">
+                </apx-chart>
+            </div>
+        </div>
+
+        <!-- 2. Gender Distribution -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="header-text">
+                    <h3>Distribución por Género</h3>
+                    <span class="subtitle">Paridad en la investigación</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon" (click)="downloadChart('gender', 'pdf')" title="Descargar gráfico en PDF">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </button>
+                    <button class="btn-icon" (click)="downloadChart('gender', 'excel')"
+                        title="Descargar datos en Excel">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="8" y1="13" x2="16" y2="13"></line>
+                            <line x1="8" y1="17" x2="16" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="chart-body donut-chart">
+                <apx-chart [series]="genderChart.series" [chart]="genderChart.chart" [labels]="genderChart.labels"
+                    [colors]="genderChart.colors" [legend]="genderChart.legend" [plotOptions]="genderChart.plotOptions">
+                </apx-chart>
+                <div class="donut-center-text">100%</div>
+            </div>
+        </div>
+
+        <!-- 3. Age Range -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="header-text">
+                    <h3>Rango de Edades</h3>
+                    <span class="subtitle">Perfil demográfico por edad</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon" (click)="downloadChart('age', 'pdf')" title="Descargar gráfico en PDF">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </button>
+                    <button class="btn-icon" (click)="downloadChart('age', 'excel')" title="Descargar datos en Excel">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="8" y1="13" x2="16" y2="13"></line>
+                            <line x1="8" y1="17" x2="16" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="chart-body">
+                <apx-chart [series]="ageChart.series" [chart]="ageChart.chart" [plotOptions]="ageChart.plotOptions"
+                    [xaxis]="ageChart.xaxis" [colors]="ageChart.colors" [grid]="ageChart.grid"
+                    [dataLabels]="ageChart.dataLabels">
+                </apx-chart>
+            </div>
+        </div>
+
+        <!-- 4. Verification Status -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="header-text">
+                    <h3>Estado de Verificación</h3>
+                    <span class="subtitle">Calidad de la base de datos</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon" (click)="downloadChart('verification', 'pdf')"
+                        title="Descargar gráfico en PDF">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </button>
+                    <button class="btn-icon" (click)="downloadChart('verification', 'excel')"
+                        title="Descargar datos en Excel">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="8" y1="13" x2="16" y2="13"></line>
+                            <line x1="8" y1="17" x2="16" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="chart-body">
+                <apx-chart [series]="verificationChart.series" [chart]="verificationChart.chart"
+                    [labels]="verificationChart.labels" [colors]="verificationChart.colors"
+                    [legend]="verificationChart.legend">
+                </apx-chart>
+            </div>
+        </div>
+
+        <!-- 5. Growth -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="header-text">
+                    <h3>Crecimiento de Registros</h3>
+                    <span class="subtitle">Evolución de nuevos usuarios por año</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon" (click)="downloadChart('growth', 'pdf')" title="Descargar gráfico en PDF">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </button>
+                    <button class="btn-icon" (click)="downloadChart('growth', 'excel')"
+                        title="Descargar datos en Excel">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="8" y1="13" x2="16" y2="13"></line>
+                            <line x1="8" y1="17" x2="16" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="chart-body">
+                <apx-chart [series]="growthChart.series" [chart]="growthChart.chart" [xaxis]="growthChart.xaxis"
+                    [stroke]="growthChart.stroke" [colors]="growthChart.colors" [markers]="growthChart.markers"
+                    [grid]="growthChart.grid">
+                </apx-chart>
+            </div>
+        </div>
+
+        <!-- 6. Scientific Production -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="header-text">
+                    <h3>Producción Científica</h3>
+                    <span class="subtitle">Comparativa anual por tipo</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon" (click)="downloadChart('production', 'pdf')"
+                        title="Descargar gráfico en PDF">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </button>
+                    <button class="btn-icon" (click)="downloadChart('production', 'excel')"
+                        title="Descargar datos en Excel">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="8" y1="13" x2="16" y2="13"></line>
+                            <line x1="8" y1="17" x2="16" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="chart-body">
+                <apx-chart [series]="productionChart.series" [chart]="productionChart.chart"
+                    [xaxis]="productionChart.xaxis" [plotOptions]="productionChart.plotOptions"
+                    [colors]="productionChart.colors" [legend]="productionChart.legend"
+                    [stroke]="productionChart.stroke" [dataLabels]="productionChart.dataLabels">
+                </apx-chart>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,55 @@
+<div class="admin-profile-container">
+
+    <!-- Top Bar: Back Button -->
+    <div class="top-bar">
+        <button class="btn-back" (click)="goBack()">
+            <span class="icon">‹</span> Volver a busqueda
+        </button>
+    </div>
+
+    <!-- Admin Header Card -->
+    <div class="header-card">
+        <div class="profile-main-info">
+            <div class="avatar-box">{{ researcherHeader.initials }}</div>
+            <div class="name-box">
+                <div class="name-row">
+                    <h1 class="researcher-name">{{ researcherHeader.name }}</h1>
+                    <span class="badge-renacyt">RENACYT: {{ researcherHeader.renacytLevel }}</span>
+                </div>
+                <p class="email-text">{{ researcherHeader.email }}</p>
+            </div>
+        </div>
+
+        <div class="profile-meta-info">
+            <div class="meta-item">
+                <span class="label">Ficha Publica CTI</span>
+                <a [href]="researcherHeader.fichaUrl" class="value-link">
+                    <span class="icon">🔗</span> Joseph.ficha <span class="icon-copy">❐</span>
+                </a>
+            </div>
+
+            <div class="meta-item">
+                <span class="label">DNI / C.E</span>
+                <span class="value">{{ researcherHeader.dni }}</span>
+            </div>
+
+            <div class="meta-item">
+                <span class="label">Ubicación</span>
+                <span class="value">{{ researcherHeader.location }}</span>
+            </div>
+
+            <div class="meta-item">
+                <span class="label">ORCID ID</span>
+                <span class="value">{{ researcherHeader.orcid }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reusable Tabs Content -->
+    <div class="content-wrapper">
+        <app-researcher-tabs [workExperience]="workExperience" [academicFormation]="academicFormation"
+            [projects]="projects" [scientificProduction]="scientificProduction"
+            [languages]="languages"></app-researcher-tabs>
+    </div>
+
+</div>

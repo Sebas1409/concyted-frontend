@@ -1,0 +1,16 @@
+<app-landing-header></app-landing-header>
+<div class="page-container">
+    <div class="breadcrumb-row">
+        <a routerLink="/search" class="back-link">
+            <span class="icon">‹</span> Ir al buscador
+        </a>
+    </div>
+
+    <!-- Reusable CV Component -->
+    <app-researcher-cv [researcher]="researcher" [generalData]="generalData" [academicFormation]="academicFormation"
+        [technicalFormation]="technicalFormation" [workExperience]="workExperience"
+        [docenteExperience]="docenteExperience" [ctiManagementExperience]="ctiManagementExperience"
+        [boardExperience]="boardExperience" [projects]="projects" [scientificProduction]="scientificProduction"
+        [languages]="languages" [thesisAdvisory]="thesisAdvisory" [thesisJury]="thesisJury"></app-researcher-cv>
+</div>
+<app-footer></app-footer>

@@ -1,0 +1,217 @@
+/* src/app/landing/hero/hero.component.scss */
+
+.hero {
+    min-height: calc(100vh - 120px);
+    background: var(--color-white);
+    display: flex;
+    align-items: center;
+}
+
+.hero-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    /* Vertically center left content */
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* LEFT CONTENT */
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2rem 5rem 2rem 8%;
+    max-width: 750px;
+    margin-left: auto;
+}
+
+h1 {
+    font-size: 3.5rem;
+    line-height: 1.1;
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+
+    .text-primary {
+        color: #1a202c;
+    }
+}
+
+.hero-desc {
+    font-size: 1.125rem;
+    color: #64748b;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    max-width: 500px;
+}
+
+/* SEARCH */
+.search-box {
+    margin-bottom: 1rem;
+    max-width: 500px;
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    input {
+        width: 100%;
+        padding: 1rem 3rem 1rem 1.5rem;
+        font-size: 1rem;
+        border: 1px solid #3b82f6;
+        border-radius: 999px;
+        outline: none;
+        color: #334155;
+
+        &::placeholder {
+            color: #94a3b8;
+        }
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 1.5rem;
+        color: #3b82f6;
+        pointer-events: none;
+    }
+}
+
+.advanced-link {
+    font-size: 0.95rem;
+    color: #64748b;
+    text-decoration: none;
+
+    .link-highlight {
+        color: #0f766e;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        font-weight: 500;
+    }
+}
+
+/* RIGHT IMAGE & OVERLAYS */
+.hero-image-wrapper {
+    position: relative;
+    width: 100%;
+    /* Figma Aspect Ratio: 635 / 811.28 */
+    aspect-ratio: 635 / 811.28;
+
+    /* Using Flexbox to position overlays as requested by "gap" snippet */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 32px;
+
+    .hero-img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        z-index: 0;
+    }
+}
+
+.hero-badge {
+    position: relative;
+    z-index: 10;
+    background: white;
+    display: flex;
+    padding: 16px 24px;
+    flex-direction: column;
+    align-items: flex-start;
+
+    font-weight: 600;
+    color: #0f172a;
+    font-size: 0.9rem;
+    border-radius: 2px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.hero-card {
+    position: relative;
+    z-index: 10;
+    color: white;
+    border-radius: 2px;
+
+    display: flex;
+    width: 345px;
+    max-width: 100%;
+    padding: 32px;
+    flex-direction: column;
+    align-items: flex-start;
+
+    background: rgba(0, 0, 0, 0.30);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+
+    .card-name {
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .card-role {
+        font-size: 0.85rem;
+        color: #cbd5e1;
+        margin-bottom: 1rem;
+    }
+
+    .card-stat {
+        font-size: 0.9rem;
+
+        strong {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+    }
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    h1 {
+        font-size: 2.5rem;
+    }
+
+    .hero-content {
+        padding: 2rem 3rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero {
+        min-height: auto;
+    }
+
+    .hero-container {
+        grid-template-columns: 1fr;
+    }
+
+    .hero-content {
+        padding: 3rem 1.5rem;
+        max-width: 100%;
+        text-align: center;
+        align-items: center;
+        order: 1;
+        /* Content after image on mobile often looks better, or keep as is */
+    }
+
+    .hero-image-wrapper {
+        aspect-ratio: auto;
+        /* Reset for mobile */
+        height: 500px;
+        /* Fixed height for mobile */
+    }
+
+    .search-input-wrapper {
+        width: 100%;
+    }
+}

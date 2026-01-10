@@ -1,0 +1,53 @@
+<!-- src/app/landing/header/header.component.html -->
+<div class="top-bar">
+    <div class="container">
+        <p>Necesitas actualizar tu Hoja de Vida? Revisa nuestra guía rápida de usuario. <a href="#">Aprende más <span
+                    class="arrow">→</span></a></p>
+    </div>
+</div>
+
+<header class="header">
+    <div class="container header-inner">
+        <a class="brand" routerLink="/">
+            <img src="assets/images/landing/logo.png" alt="CTI Vitae" class="logo">
+        </a>
+
+        <!-- center nav -->
+        <nav class="menu" role="navigation" aria-label="Main menu">
+            <a class="menu-item">Guía de calificación</a>
+            <a class="menu-item">Renacyt</a>
+            <a class="menu-item">Manual de uso</a>
+        </nav>
+
+        <!-- right actions -->
+        <div class="actions">
+            <a class="contact-link">Contactanos</a>
+            <a routerLink="/auth/login" class="btn-login">
+                Iniciar sesion
+                <svg xmlns="http://www.w3.org/2000/svg" width="7" height="11" viewBox="0 0 7 11" fill="none">
+                    <path
+                        d="M4.12478 5.30333L0 1.1785L1.17851 0L6.48188 5.30333L1.17851 10.6065L0 9.42803L4.12478 5.30333Z"
+                        fill="currentColor" />
+                </svg>
+            </a>
+            <button class="hamburger" (click)="openMobile = !openMobile" aria-label="Abrir menú">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </div>
+
+    <!-- mobile drawer -->
+    <div class="mobile-drawer" [class.open]="openMobile" (click)="openMobile=false">
+        <div class="drawer-inner" (click)="$event.stopPropagation()">
+            <nav class="drawer-nav">
+                <a>Guía de calificación</a>
+                <a>Renacyt</a>
+                <a>Manual de uso</a>
+                <a>Contactanos</a>
+            </nav>
+            <div class="drawer-actions">
+                <a routerLink="/auth/login" class="btn-login">Iniciar sesión</a>
+            </div>
+        </div>
+    </div>
+</header>

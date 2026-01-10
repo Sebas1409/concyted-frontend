@@ -1,0 +1,180 @@
+<div class="research-container">
+
+    <!-- HEADER CARD -->
+    <div class="card actions-card mb-4">
+        <div class="card-header">
+            <h3>Líneas de Investigación</h3>
+            <p>Registra tus áreas de especialización según la clasificación OCDE y las temáticas nacionales asociadas
+                (MINAM/INS).</p>
+        </div>
+
+        <div class="buttons-row">
+            <button class="btn-action btn-outline" (click)="openModal()">
+                <span class="plus">+</span> Agregar Línea de Investigación
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN TABLE SECTION -->
+    <div class="section-container mb-5">
+
+        <div class="table-card">
+            <div class="table-header-stripe">
+                <h3>Líneas de Investigación</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th class="w-5 text-center">Principal</th>
+                            <th class="w-5">Código</th>
+                            <th class="w-15">Área</th>
+                            <th class="w-20">Sub área</th>
+                            <th class="w-15">Disciplina</th>
+                            <th class="w-20">Temática Ambiental</th>
+                            <th class="w-15">Temática Médica y de la Salud</th>
+                            <th class="w-5 text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of researchList; let i = index; trackBy: trackByFn">
+                            <td class="text-center">
+                                <label class="custom-chk">
+                                    <input type="checkbox" [checked]="item.principal" disabled>
+                                    <span class="checkmark"></span>
+                                </label>
+                            </td>
+                            <td>{{ item.id }}</td>
+                            <td>{{ item.areaOcdeNombre }}</td>
+                            <td>{{ item.subareaOcdeNombre }}</td>
+                            <td>{{ item.disciplinaOcdeNombre }}</td>
+                            <td>{{ item.tematicaAmbientalNombre || item.tematicaAmbientalCodigo }}</td>
+                            <td>{{ item.tematicaSaludNombre || item.tematicaSaludCodigo }}</td>
+                            <td class="actions">
+                                <app-action-buttons (edit)="editResearchLine(item)"
+                                    (delete)="deleteResearchLine(item.id)"></app-action-buttons>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL: Agregar/Editar Línea de Investigación -->
+<!-- MODAL: Agregar/Editar Línea de Investigación -->
+<app-form-modal *ngIf="showModal"
+    [title]="isEditMode ? 'Editar Línea de Investigación' : 'Agregar Línea de Investigación'"
+    [subtitle]="'Selecciona la jerarquía OCDE. Si corresponde, se habilitarán los campos de temáticas específicas.'"
+    (close)="closeModal()">
+
+    <form [formGroup]="researchForm" (ngSubmit)="saveResearchLine()" class="form-content-wrapper">
+
+        <!-- Row: Area & Sub-area -->
+        <div class="form-row two-col">
+            <!-- Area -->
+            <div class="form-group">
+                <label>Área OCDE *</label>
+                <select formControlName="area" class="form-input" (change)="onAreaChange($event)">
+                    <option value="">Selecione el área...</option>
+                    <option *ngFor="let area of areas" [value]="area.idArea">{{ area.descripcion }}</option>
+                </select>
+                <div *ngIf="researchForm.get('area')?.touched && researchForm.get('area')?.invalid"
+                    class="text-red-500 text-xs mt-1">
+                    El área es requerida.
+                </div>
+            </div>
+
+            <!-- Sub-area -->
+            <div class="form-group">
+                <label>Sub-área *</label>
+                <select formControlName="subArea" class="form-input" (change)="onSubAreaChange($event)">
+                    <option value="">Selecione el sub-área...</option>
+                    <option *ngFor="let sub of subAreas" [value]="sub.id">{{ sub.descripcion }}</option>
+                </select>
+                <div *ngIf="researchForm.get('subArea')?.touched && researchForm.get('subArea')?.invalid"
+                    class="text-red-500 text-xs mt-1">
+                    La sub-área es requerida.
+                </div>
+            </div>
+        </div>
+
+        <!-- Disciplina -->
+        <div class="form-group">
+            <label>Disciplina *</label>
+            <select formControlName="discipline" class="form-input">
+                <option value="">Seleciona la disciplina...</option>
+                <option *ngFor="let d of disciplines" [value]="d.id" [title]="d.descripcion">{{ d.descripcion }}
+                </option>
+            </select>
+            <div *ngIf="researchForm.get('discipline')?.touched && researchForm.get('discipline')?.invalid"
+                class="text-red-500 text-xs mt-1">
+                La disciplina es requerida.
+            </div>
+        </div>
+
+        <!-- Temática Ambiental -->
+        <div class="form-group">
+            <label>Temática Ambiental *
+                <span class="inline-block ml-1 cursor-help"
+                    title="Se habilitará si el Área es Ciencias Naturales y la Sub-área es Ciencias de la Tierra y Medio Ambiente.">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="w-4 h-4 text-gray-500">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                    </svg>
+                </span>
+            </label>
+            <select formControlName="environmentalTheme" class="form-input">
+                <option value="" disabled>{{ environmentalThemePlaceholder }}</option>
+                <option *ngFor="let theme of environmentalThemes" [value]="theme.codigo">{{ theme.nombre }}</option>
+            </select>
+        </div>
+
+        <!-- Checkbox MINAM -->
+        <div class="form-group checkbox-row">
+            <label class="custom-chk-label">
+                <input type="checkbox" formControlName="shareMinam">
+                <span class="chk-box"></span>
+                <span class="label-text">Acepto compartir los Datos contenidos en la presente aplicación con el
+                    Directorio del Observatorio de Investigación Ambiental - MINAM</span>
+            </label>
+        </div>
+
+        <!-- Temática Médica -->
+        <div class="form-group mt-2">
+            <label>Temática Médica y de Salud *
+                <span class="inline-block ml-1 cursor-help"
+                    title="Se habilitará si el Área es Ciencias Médicas y de la Salud.">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="w-4 h-4 text-gray-500">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                    </svg>
+                </span>
+            </label>
+            <select formControlName="medicalTheme" class="form-input">
+                <option value="" disabled>{{ medicalThemePlaceholder }}</option>
+                <option *ngFor="let theme of medicalThemes" [value]="theme.codigo">{{ theme.nombre }}</option>
+            </select>
+        </div>
+
+        <!-- Checkbox INS -->
+        <div class="form-group checkbox-row">
+            <label class="custom-chk-label">
+                <input type="checkbox" formControlName="shareIns">
+                <span class="chk-box"></span>
+                <span class="label-text">Acepto compartir los Datos contenidos en la presente aplicación con el
+                    Directorio del Observatorio del Instituto Nacional de Salud - INS</span>
+            </label>
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="btn-save" [disabled]="researchForm.invalid">Guardar</button>
+        </div>
+
+    </form>
+</app-form-modal>

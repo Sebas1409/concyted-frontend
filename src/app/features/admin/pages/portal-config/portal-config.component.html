@@ -1,0 +1,245 @@
+<div class="portal-config-page">
+    <app-intro-card title="Configuración del Portal y Sistema"
+        subtitle="Administra los banners informativos visibles para los investigadores y gestiona los parámetros de integración con servicios externos.">
+    </app-intro-card>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+        <button class="tab-btn" [class.active]="activeTab === 'content'" (click)="toggleTab('content')">
+            Gestión de Contenidos
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'integrations'" (click)="toggleTab('integrations')">
+            Integraciones y Parámetros
+        </button>
+    </div>
+
+    <!-- Content Tab -->
+    <div class="tab-content" *ngIf="activeTab === 'content'">
+        <div class="config-section full-width">
+            <div class="section-card">
+                <div class="card-header-actions">
+                    <button class="btn-primary-dark" (click)="openNewsModal()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Nueva Novedad
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">Nº ⇅</th>
+                                <th>Imagen ⇅</th>
+                                <th>Información ⇅</th>
+                                <th style="width: 120px;">Vigencia ⇅</th>
+                                <th style="width: 80px; text-align: center;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let item of newsList">
+                                <td>{{ item.id }}</td>
+                                <td>
+                                    <div class="file-info">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                            <polyline points="21 15 16 10 5 21"></polyline>
+                                        </svg>
+                                        {{ item.imageName }}
+                                    </div>
+                                </td>
+                                <td>{{ item.description }}</td>
+                                <td>{{ item.validityDate }}</td>
+                                <td class="action-cell">
+                                    <button class="btn-icon" (click)="openNewsModal(item)">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="btn-icon delete" (click)="deleteNews(item.id)">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path
+                                                d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6M5 6l1 14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-14"
+                                                stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-container">
+                    <div class="items-per-page">
+                        <span>Mostrar</span>
+                        <select [(ngModel)]="pageSize">
+                            <option [value]="10">10</option>
+                            <option [value]="20">20</option>
+                            <option [value]="50">50</option>
+                        </select>
+                        <span>elementos</span>
+                    </div>
+                    <div class="page-controls">
+                        <button class="btn-page text">Anterior</button>
+                        <button class="btn-page number active">1</button>
+                        <button class="btn-page number">2</button>
+                        <span class="dots">...</span>
+                        <button class="btn-page number">5</button>
+                        <button class="btn-page text">Siguiente</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Integraciones Tab Content -->
+    <div class="tab-content" *ngIf="activeTab === 'integrations'">
+        <!-- Scopus -->
+        <div class="config-section integration-row">
+            <div class="section-info">
+                <h3>Integración Scopus</h3>
+                <p>Define el origen de datos para la importación de publicaciones científicas.</p>
+            </div>
+            <div class="section-card">
+                <div class="integration-card-content">
+                    <label class="field-label">Fuente de Datos</label>
+                    <div class="radio-group-row">
+                        <label class="radio-label">
+                            <input type="radio" name="scopusSource" [(ngModel)]="scopusConfig.source" value="api">
+                            API Scopus (Tiempo Real)
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="scopusSource" [(ngModel)]="scopusConfig.source" value="batch">
+                            Base de Datos Local (Importación Batch)
+                        </label>
+                    </div>
+                    <div class="action-footer">
+                        <button class="btn-save-sm primary" (click)="saveScopusConfig()">Guardar Configuración</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Servicio RENIEC (Validation) -->
+        <div class="config-section integration-row">
+            <div class="section-info">
+                <h3>Servicio RENIEC</h3>
+                <p>Controla el método de validación de nuevos registros y datos personales.</p>
+            </div>
+            <div class="section-card">
+                <div class="integration-card-content">
+                    <label class="field-label">Estado del Servicio</label>
+                    <div class="toggle-row">
+                        <label class="switch">
+                            <input type="checkbox" [(ngModel)]="reniecConfig.enabled">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="toggle-text">Conexión Web Service (Online)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Another RENIEC/Service block as per screenshot -->
+        <div class="config-section integration-row">
+            <div class="section-info">
+                <h3>Servicio RENIEC</h3>
+                <p>Controla el método de validación de nuevos registros y datos personales.</p>
+            </div>
+            <div class="section-card">
+                <div class="integration-card-content">
+                    <label class="field-label">Estado del Servicio</label>
+                    <div class="toggle-row">
+                        <label class="switch">
+                            <input type="checkbox" [(ngModel)]="reniecConfig2.enabled">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="toggle-text">Conexión Web Service (Online)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: News Registration -->
+<app-form-modal *ngIf="showNewsModal" title="Registrar Nueva Novedad" (close)="showNewsModal = false">
+    <p class="modal-description">Configura el contenido visual y textual del anuncio. Define la vigencia y el estado de
+        publicación para su visualización en el portal.</p>
+
+    <div class="form-grid single-col">
+        <!-- Title -->
+        <div class="form-group">
+            <label>Título de la Novedad</label>
+            <input type="text" [(ngModel)]="newsForm.title" placeholder="Ej: Convocatoria de Becas 2025">
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+            <label>Resumen / Descripción</label>
+            <textarea rows="3" [(ngModel)]="newsForm.description"
+                placeholder="Breve descripción que aparecerá en la tarjeta..."></textarea>
+        </div>
+
+        <!-- Image Upload -->
+        <div class="upload-row">
+            <div class="avatar-box">JA</div>
+            <div class="upload-actions">
+                <button type="button">Cambiar Imagen de Portada</button>
+                <span class="hint-text">JPG, GIF or PNG. 20MB max.</span>
+            </div>
+        </div>
+
+        <!-- CTA Text -->
+        <div class="form-group">
+            <label>Texto del Botón (CTA)</label>
+            <input type="text" [(ngModel)]="newsForm.ctaText"
+                placeholder="Ej: Ver Bases, Descargar PDF, Inscribirse...">
+        </div>
+
+        <!-- CTA Link -->
+        <div class="form-group">
+            <label>Enlace del Botón (CTA)</label>
+            <input type="text" [(ngModel)]="newsForm.ctaLink" placeholder="https://...">
+        </div>
+
+        <!-- Date Range Grid -->
+        <div class="grid-2-col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <div class="form-group">
+                <label>Fecha de Publicación</label>
+                <input type="date" [(ngModel)]="newsForm.startDate">
+            </div>
+            <div class="form-group">
+                <label>Fecha de Expiración</label>
+                <input type="date" [(ngModel)]="newsForm.endDate">
+            </div>
+        </div>
+
+        <!-- Published Toggle -->
+        <div class="form-group">
+            <label>Estado</label>
+            <div class="form-group-toggle">
+                <label class="switch">
+                    <input type="checkbox" [(ngModel)]="newsForm.published">
+                    <span class="slider round"></span>
+                </label>
+                <span>Publicado</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-actions">
+        <button class="btn-cancel" (click)="showNewsModal = false">Cancelar</button>
+        <button class="btn-save" (click)="saveNews()">Guardar Novedad</button>
+    </div>
+</app-form-modal>

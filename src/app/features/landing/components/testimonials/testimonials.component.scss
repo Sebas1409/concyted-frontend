@@ -1,0 +1,286 @@
+/* src/app/landing/testimonials/testimonials.component.scss */
+
+.voices-section {
+    padding: 112px 0;
+    background: var(--color-white);
+    /* Section background is white */
+    overflow: hidden;
+    /* For side scrolling effect if needed, or just containment */
+}
+
+.voices-wrapper {
+    max-width: 1280px;
+    /* Wider container */
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+}
+
+.voices-title {
+    font-size: 2.8rem;
+    /* Large title */
+    font-weight: 500;
+    color: #0F172A;
+    /* Dark text for title on white bg */
+    line-height: 1.1;
+    max-width: 620px;
+}
+
+/* SCROLLABLE HORIZONTAL OR GRID */
+.voices-grid {
+    display: flex;
+    gap: 32px;
+    width: 100%;
+    /* Allow horizontal scroll if desired or keep grid? Image shows a card cut off on right, implying carousel/scroll */
+    overflow-x: auto;
+    padding-bottom: 2rem;
+    /* Space for scrollbar or shadow */
+
+    /* Hide scrollbar */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+/* CARD STYLES */
+.voice-card {
+    flex: 0 0 900px;
+    /* Wide card */
+    max-width: 90%;
+    /* background: #02051A; */
+    /* Dark Navy Background */
+    border-radius: 4px;
+    /* Small radius as requested */
+    overflow: hidden;
+    /* Clip image */
+    display: flex;
+    height: 500px;
+    padding: 24px 32px 24px 24px;
+    /* Fixed height for consistent look */
+    transition: background-color 0.4s ease, color 0.4s ease;
+
+    /* DEFAULT STATE: SECONDARY / LIGHT (#ECEEF0) */
+    background: #ECEEF0;
+    color: #0F172A;
+
+    .voice-quote {
+        color: #1E293B;
+    }
+
+    .voice-logo {
+        filter: invert(1) brightness(0);
+    }
+
+    .voice-footer {
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .author-info strong {
+        color: #0F172A;
+    }
+
+    .author-info span {
+        color: #64748B;
+    }
+
+    .redirect-icon {
+        background: rgba(0, 0, 0, 0.05);
+
+        svg {
+            stroke: #0F172A;
+        }
+
+        &:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+    }
+
+    /* ACTIVE STATE: PRIMARY / DARK (#02051A) */
+    &.active {
+        background: #02051A;
+        color: white;
+
+        .voice-quote {
+            color: #F1F5F9;
+        }
+
+        .voice-logo {
+            filter: brightness(0) invert(1);
+            /* Reset/Ensure white */
+        }
+
+        .voice-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .author-info strong {
+            color: white;
+        }
+
+        .author-info span {
+            color: #94A3B8;
+        }
+
+        .redirect-icon {
+            background: rgba(255, 255, 255, 0.1);
+
+            svg {
+                stroke: white;
+            }
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.2);
+            }
+        }
+    }
+}
+
+/* IMAGE LEFT */
+.voice-image {
+    width: 45%;
+    /* Nearly half width */
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 2px;
+}
+
+/* CONTENT RIGHT */
+.voice-content {
+    flex: 1;
+    padding: 2rem 0 2rem 3rem;
+    /* Spacious padding */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    /* color: white; */
+    position: relative;
+
+    /* Decoration logo top center? Or just top left of content area */
+}
+
+.voice-logo-wrapper {
+    margin-bottom: 2rem;
+
+    .voice-logo {
+        height: 32px;
+        /* filter: brightness(0) invert(1); */
+        /* Make white */
+        transition: filter 0.4s ease;
+    }
+}
+
+.voice-quote {
+    font-size: 1.4rem;
+    line-height: 1.4;
+    font-weight: 400;
+    /* color: #F1F5F9; */
+    flex-grow: 1;
+    /* Take available space */
+    display: flex;
+    align-items: center;
+    /* Center text vertically in its space? */
+    transition: color 0.4s ease;
+}
+
+/* FOOTER: Author + Arrow */
+.voice-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 20px;
+    /* border-top: 1px solid rgba(255, 255, 255, 0.1); */
+    padding-top: 1.5rem;
+    transition: border-color 0.4s ease;
+}
+
+.voice-author {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+
+    .author-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .author-info {
+        display: flex;
+        flex-direction: column;
+
+        strong,
+        span {
+            transition: color 0.4s ease;
+        }
+
+        strong {
+            display: block;
+            font-size: 1rem;
+            font-weight: 600;
+            /* color: white; */
+        }
+
+        span {
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            /* color: #94A3B8; */
+        }
+    }
+}
+
+.redirect-icon {
+    width: 48px;
+    height: 48px;
+    /* background: rgba(255, 255, 255, 0.1); */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, stroke 0.4s;
+    cursor: pointer;
+
+    /* &:hover {
+        background: rgba(255, 255, 255, 0.2);
+    } */
+
+    svg {
+        width: 20px;
+        height: 20px;
+        /* stroke: white; */
+        transition: stroke 0.4s;
+    }
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+    .voice-card {
+        flex-direction: column;
+        height: auto;
+        flex: 0 0 350px;
+        /* Narrower card on mobile */
+        padding: 0;
+    }
+
+    .voice-image {
+        width: 100%;
+        height: 250px;
+        border-radius: 0;
+    }
+
+    .voice-content {
+        padding: 2rem;
+    }
+
+    .voice-quote {
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+}

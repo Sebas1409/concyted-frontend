@@ -1,0 +1,22 @@
+<section class="user-logos-section">
+    <div class="container user-logos-grid">
+
+        <!-- TEXTO IZQUIERDA -->
+        <div class="left-text">
+            <h3>
+                Más de <span>120,000</span> usuarios <br>
+                registrados.
+            </h3>
+        </div>
+
+        <!-- LOGOS DERECHA -->
+        <div class="logos-carousel">
+            <div class="track" #track>
+                <div class="logo" *ngFor="let l of logosToShow">
+                    <img [src]="l" alt="logo" />
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>

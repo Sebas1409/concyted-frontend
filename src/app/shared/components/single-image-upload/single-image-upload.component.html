@@ -1,0 +1,49 @@
+<div *ngIf="mode === 'default'" class="upload-area" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)" [class.dragging]="isDragging" [class.has-error]="uploadError"
+    [class.has-preview]="!!previewUrl">
+
+    <input type="file" #fileInput (change)="onFileSelected($event)" [accept]="accept" style="display: none;">
+
+    <!-- State 1: No Image (Placeholder) -->
+    <div *ngIf="!previewUrl" class="upload-placeholder">
+        <div class="avatar-placeholder">{{ placeholderText }}</div>
+        <div class="upload-text">
+            <button class="btn-upload" (click)="fileInput.click()">Arrastra y suelta tu imagen aquí o haz clic para
+                examinar</button>
+            <span class="hint">{{ hintText }}</span>
+        </div>
+    </div>
+
+    <!-- State 2: Image Preview -->
+    <div *ngIf="previewUrl" class="image-preview">
+        <img [src]="previewUrl" alt="Vista previa">
+        <div class="preview-actions">
+            <button class="btn-change-image" (click)="fileInput.click()">Cambiar Imagen</button>
+            <button class="btn-remove-image" (click)="removeImage()">Eliminar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Compact Mode -->
+<div *ngIf="mode === 'compact'" class="upload-compact-layout">
+    <input type="file" #fileInputCompact (change)="onFileSelected($event)" [accept]="accept" style="display: none;">
+
+    <div class="avatar-compact" [class.has-image]="!!previewUrl">
+        <img *ngIf="previewUrl" [src]="previewUrl" class="avatar-img">
+        <span *ngIf="!previewUrl">{{ placeholderText || 'IMG' }}</span>
+    </div>
+
+    <div class="compact-info">
+        <button type="button" class="btn-outline-xs" (click)="fileInputCompact.click()">Imagen Destacada</button>
+        <span class="hint">{{ hintText }}</span>
+        <div *ngIf="previewUrl" style="margin-top: 4px;">
+            <button (click)="removeImage()"
+                style="color: #EF4444; font-size: 12px; border: none; background: none; cursor: pointer;">Eliminar
+                imagen</button>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="uploadError" class="error-message">
+    {{ uploadError }}
+</div>

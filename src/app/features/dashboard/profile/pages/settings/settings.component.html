@@ -1,0 +1,226 @@
+<div class="settings-container">
+    <div class="intro-section">
+        <div class="header-content">
+            <div class="user-badge">JA</div>
+            <div class="user-info">
+                <h3>Joseph Alex <span class="renacyt-badge">RENACYT: NIVEL I</span></h3>
+                <span>736251729</span>
+            </div>
+            <div class="meta-info">
+                <div class="item">
+                    <span class="label">Ficha Publica CTI</span>
+                    <a href="#" class="link">Ver ficha Publica <span class="icon">🔗</span></a>
+                </div>
+                <div class="item">
+                    <span class="label">Lugar de residencia</span>
+                    <span class="value">La Huaca, Piura</span>
+                </div>
+                <div class="item">
+                    <span class="label">ORCID ID</span>
+                    <span class="value">0000-0002-1825-0097</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="description-box">
+            <h4>Ajustes y Solicitudes</h4>
+            <p>En esta sección, puedes gestionar tus solicitudes y realizar ajustes importantes en tu cuenta, como
+                cambiar
+                tu contraseña, actualizar tu información de contacto, solicitar bajas o exportar tu currículum.</p>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs-container">
+        <button class="tab-btn" [class.active]="activeTab === 'settings'" (click)="setActiveTab('settings')">
+            Ajustes
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'export'" (click)="setActiveTab('export')">
+            Exportar CV
+        </button>
+    </div>
+
+    <!-- TAB: AJUSTES -->
+    <div class="tab-content settings-content" *ngIf="activeTab === 'settings'">
+
+        <!-- Section 1: Cambiar Contraseña -->
+        <div class="settings-card">
+            <div class="card-left">
+                <h3>Cambiar contraseña</h3>
+                <p>Datos de la cuenta de acceso al sistema</p>
+            </div>
+            <div class="card-right">
+                <form [formGroup]="passwordForm">
+                    <div class="form-group">
+                        <label>Contraseña * <span class="info-icon">?</span></label>
+                        <div class="input-with-icon">
+                            <input type="password" formControlName="password" placeholder="XXXXXXX">
+                            <span class="eye-icon">👁️</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirmar contraseña *</label>
+                        <div class="input-with-icon">
+                            <input type="password" formControlName="confirmPassword" placeholder="XXXXXXX">
+                            <span class="eye-icon">👁️</span>
+                        </div>
+                    </div>
+                </form>
+                <div class="password-requirements">
+                    <p>Utiliza al menos 8 caracteres para tu contraseña.</p>
+                    <p>Incluye una letra minúscula (a-z).</p>
+                    <p>Agrega una letra mayúscula (A-Z).</p>
+                    <p>Al menos 1 carácter especial (@, #, $, %, etc.).</p>
+                    <p>Incluye un número (0-9).</p>
+                </div>
+                <div class="form-actions">
+                    <button class="btn-cancel">Cancelar</button>
+                    <button class="btn-save" (click)="updatePassword()">Actualizar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Contáctenos -->
+        <div class="settings-card">
+            <div class="card-left">
+                <h3>Contáctenos</h3>
+                <p>Si desea alguna información adicional o reportar algún error, envíenos un mensaje a través de este
+                    formulario. Asegúrese de colocar correctamente su correo electrónico.</p>
+                <p class="sub-text">También puede escribirnos al correo soporte.cti@concytec.gob.pe, o llámenos al
+                    teléfono (01) 399-0030 opción 2:</p>
+            </div>
+            <div class="card-right">
+                <form [formGroup]="contactForm">
+                    <div class="form-row two-col">
+                        <div class="form-group">
+                            <label>Celular *</label>
+                            <input type="text" formControlName="phone">
+                        </div>
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" formControlName="email">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Mensaje *</label>
+                        <textarea formControlName="message" rows="4"
+                            placeholder="Escribe aquí un breve el mensaje que nos quieres compartir"></textarea>
+                    </div>
+                </form>
+                <div class="form-actions">
+                    <button class="btn-cancel">Cancelar</button>
+                    <button class="btn-save" (click)="sendMessage()">Actualizar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Solicitar Baja -->
+        <div class="settings-card">
+            <div class="card-left">
+                <h3 class="danger-text">Solicitar baja</h3>
+                <p>Si deseas realizar la baja de su cuenta, envíanos un mensaje a través de este formulario.</p>
+                <p class="sub-text">Luego el administrador del sistema le enviará a su cuenta de correo la url para la
+                    confirmación de la solicitud de la baja.</p>
+            </div>
+            <div class="card-right">
+                <form [formGroup]="deleteAccountForm">
+                    <div class="form-group">
+                        <label>Motivo de la solicitud de baja (opcional)</label>
+                        <textarea formControlName="reason" rows="4"
+                            placeholder="Escribe aquí un breve el mensaje del motivo de la baja"></textarea>
+                    </div>
+                </form>
+                <div class="form-actions">
+                    <button class="btn-cancel">Cancelar</button>
+                    <button class="btn-danger" (click)="requestDelete()">Solicitar Baja</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TAB: EXPORTAR CV -->
+    <div class="tab-content export-content" *ngIf="activeTab === 'export'">
+        <div class="export-header">
+            <div class="text">
+                <h3>Seleccione los datos a exportar</h3>
+                <p>Marca todas las opciones que se exportarán dentro de tu CV En formato PDF</p>
+            </div>
+            <button class="btn-export-pdf" (click)="exportPdf()">Exportar en formato PDF</button>
+        </div>
+
+        <div class="export-grid">
+            <!-- Card 1: Identidad -->
+            <div class="export-card">
+                <div class="card-header">
+                    <h4>Identidad y Contacto 🌐</h4>
+                </div>
+                <div class="card-body">
+                    <label class="checkbox-row main">
+                        <input type="checkbox" [checked]="exportSections.identity.all"
+                            (change)="toggleSection('identity')">
+                        Todas las opciones
+                    </label>
+                    <label class="checkbox-row" *ngFor="let opt of exportSections.identity.options; let i = index">
+                        <input type="checkbox" [checked]="opt.checked" (change)="toggleOption('identity', i)">
+                        {{ opt.label }}
+                    </label>
+                </div>
+            </div>
+
+            <!-- Card 2: Trayectoria -->
+            <div class="export-card">
+                <div class="card-header">
+                    <h4>Trayectoria Profesional 🌐</h4>
+                </div>
+                <div class="card-body">
+                    <label class="checkbox-row main">
+                        <input type="checkbox" [checked]="exportSections.trajectory.all"
+                            (change)="toggleSection('trajectory')">
+                        Todas las opciones
+                    </label>
+                    <label class="checkbox-row" *ngFor="let opt of exportSections.trajectory.options; let i = index">
+                        <input type="checkbox" [checked]="opt.checked" (change)="toggleOption('trajectory', i)">
+                        {{ opt.label }}
+                    </label>
+                </div>
+            </div>
+
+            <!-- Card 3: Formacion -->
+            <div class="export-card">
+                <div class="card-header">
+                    <h4>Formación Académica 🌐</h4>
+                </div>
+                <div class="card-body">
+                    <label class="checkbox-row main">
+                        <input type="checkbox" [checked]="exportSections.formation.all"
+                            (change)="toggleSection('formation')">
+                        Todas las opciones
+                    </label>
+                    <label class="checkbox-row" *ngFor="let opt of exportSections.formation.options; let i = index">
+                        <input type="checkbox" [checked]="opt.checked" (change)="toggleOption('formation', i)">
+                        {{ opt.label }}
+                    </label>
+                </div>
+            </div>
+
+            <!-- Card 4: Produccion -->
+            <div class="export-card">
+                <div class="card-header">
+                    <h4>Producción Científica e Innovación 🌐</h4>
+                </div>
+                <div class="card-body">
+                    <label class="checkbox-row main">
+                        <input type="checkbox" [checked]="exportSections.production.all"
+                            (change)="toggleSection('production')">
+                        Todas las opciones
+                    </label>
+                    <label class="checkbox-row" *ngFor="let opt of exportSections.production.options; let i = index">
+                        <input type="checkbox" [checked]="opt.checked" (change)="toggleOption('production', i)">
+                        {{ opt.label }}
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

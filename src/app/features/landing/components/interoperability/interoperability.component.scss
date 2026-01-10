@@ -1,0 +1,162 @@
+/* src/app/features/landing/components/interoperability/interoperability.component.scss */
+.interop-section {
+    padding: 80px 0;
+    background: #fff;
+    font-family: 'Inter', sans-serif;
+}
+
+.main-header {
+    text-align: center;
+    margin-bottom: 80px;
+
+    h2 {
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: #0F172A;
+        line-height: 1.2;
+        margin-bottom: 16px;
+    }
+
+    p {
+        color: #64748B;
+        font-size: 1rem;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+}
+
+.feature-row {
+    display: flex;
+    align-items: center;
+    gap: 64px;
+    margin-bottom: 80px;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 2rem;
+
+    /* Backgrounds if needed for the row blocks, but image implies full width container or large cards.
+       Actually, the image looks like big cards with gray background for the text side or image side?
+       "feature-row" 1: White background text, image on right.
+       "feature-row" 2: Image left, white background text?
+       Wait, let's look closer.
+       Top block: Text left (white bg), Image right.
+       Bottom block: Image left, Text right (white bg).
+    */
+
+    &.reverse {
+        flex-direction: row-reverse;
+    }
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.feature-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2rem;
+
+    /* Tag style */
+    .feature-tag {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 24px;
+        width: fit-content;
+        letter-spacing: 0.5px;
+
+        &.blue {
+            background: #EFF6FF;
+            /* Light blue bg */
+            color: #3B82F6;
+            /* Blue text */
+        }
+
+        &.purple {
+            background: #F5F3FF;
+            color: #8B5CF6;
+        }
+    }
+
+    h3 {
+        font-size: 2.25rem;
+        font-weight: 600;
+        color: #0F172A;
+        line-height: 1.2;
+        margin-bottom: 24px;
+    }
+
+    p {
+        font-size: 1rem;
+        color: #64748B;
+        line-height: 1.6;
+        margin-bottom: 32px;
+        max-width: 480px;
+    }
+
+    .feature-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #0F172A;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-decoration: none;
+        cursor: pointer;
+        transition: color 0.2s;
+
+        &:hover {
+            color: #3B82F6;
+        }
+
+        svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 2.5;
+        }
+    }
+}
+
+.feature-image-wrapper {
+    flex: 1;
+    height: 500px;
+    border-radius: 4px;
+    overflow: hidden;
+    /* Optional shadow or bg */
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+/* RESPONSIVE */
+@media (max-width: 960px) {
+
+    .feature-row,
+    .feature-row.reverse {
+        flex-direction: column-reverse;
+        /* Image on top usually looks better on mobile? Or text top? Image top. */
+        gap: 32px;
+    }
+
+    .feature-image-wrapper {
+        width: 100%;
+        height: 300px;
+    }
+
+    .feature-content {
+        padding: 0;
+        align-items: center;
+        text-align: center;
+    }
+}

@@ -1,0 +1,138 @@
+.file-uploader-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+}
+
+.upload-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+
+.error-message {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #EF4444;
+    /* Red-500 */
+    font-size: 0.875rem;
+    background-color: #FEF2F2;
+    /* Red-50 */
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid #FECACA;
+    /* Red-200 */
+    animation: fadeIn 0.3s ease-out;
+
+    svg {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-upload {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: white;
+    border: 1px solid #D1D5DB;
+    border-radius: 6px;
+    color: #111827;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background-color: #F9FAFB;
+        border-color: #9CA3AF;
+    }
+
+    svg {
+        width: 1.25rem;
+        height: 1.25rem;
+        color: #4B5563;
+    }
+}
+
+.table-responsive {
+    border: 1px solid #E5E7EB;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+
+    thead {
+        background-color: #F3F4F6;
+
+        th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 1px solid #E5E7EB;
+            border-right: 1px solid #E5E7EB;
+
+            &:last-child {
+                border-right: none;
+            }
+
+            &.text-center {
+                text-align: center;
+            }
+        }
+    }
+
+    tbody {
+        tr {
+            background-color: white;
+            border-bottom: 1px solid #E5E7EB;
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            td {
+                padding: 0.75rem 1rem;
+                color: #1F2937;
+                border-right: 1px solid #E5E7EB;
+
+                &:last-child {
+                    border-right: none;
+                }
+
+                &.text-center {
+                    text-align: center;
+                }
+            }
+        }
+    }
+}
+
+.w-code {
+    width: 80px;
+}
+
+.w-action {
+    width: 80px;
+}

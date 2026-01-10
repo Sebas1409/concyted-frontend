@@ -1,0 +1,114 @@
+<div class="privacy-container" style="padding: 1.5rem;">
+
+    <!-- Banner -->
+    <!-- Banner -->
+    <div class="alert-box-info mb-4" style="background-color: #E0F2F1; border: 1px solid #4DB6AC; color: #00695C;">
+        <div
+            style="background-color: #00897B; color: white; border-radius: 4px; padding: 2px; margin-right: 0.75rem; display: flex; align-items: center; justify-content: center; width: 20px; height: 20px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"
+                stroke-linejoin="round" style="width: 14px; height: 14px;">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        </div>
+        <span style="font-weight: 500;">He leído y acepto los Términos y Condiciones y la Política de Tratamiento de
+            Datos Personales del CONCYTEC.</span>
+    </div>
+
+    <!-- Grid -->
+    <div class="privacy-grid">
+
+        <!-- Parent Cards -->
+        <div *ngFor="let parent of visibilityModules" class="privacy-card">
+
+            <div class="card-header">
+                <h3>
+                    {{ parent.name }}
+                    <svg title="Público" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                        fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        style="margin-left: 0.5rem; vertical-align: middle;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path
+                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                        </path>
+                    </svg>
+                </h3>
+                <p>{{ getGroupDescription(parent.name) }}</p>
+            </div>
+
+            <div class="checklist">
+                <!-- Parent Checkbox: Renamed to "Todas las opciones" per mockup -->
+                <label class="check-item">
+                    <input type="checkbox" [(ngModel)]="parent.canView" (change)="toggleGroup(parent)">
+                    <span class="custom-check">✓</span>
+                    <span>Todas las opciones</span>
+                </label>
+
+                <!-- Children -->
+                <ng-container *ngIf="parent.children && parent.children.length > 0">
+                    <div style="padding-left: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label *ngFor="let child of parent.children" class="check-item">
+                            <input type="checkbox" [(ngModel)]="child.canView">
+                            <span class="custom-check">✓</span>
+                            <span>{{ child.name }}</span>
+                        </label>
+                    </div>
+                </ng-container>
+            </div>
+
+            <div class="card-footer-note">
+                <span [innerHTML]="getGroupFooterNote(parent.name)"></span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="visibilityModules.length === 0" style="text-align: center; color: gray; padding: 2rem;">
+        Cargando opciones...
+    </div>
+
+    <!-- Blue Info Banner (Bottom) -->
+    <div class="alert-box-info mt-4"
+        style="background-color: #EFF6FF; border-radius: 8px; padding: 1rem; display: flex; align-items: flex-start; gap: 1rem;">
+        <div class="info-icon"
+            style="background-color: #3B82F6; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">
+            i</div>
+        <span class="info-text" style="font-size: 0.9rem; color: #1F2937; line-height: 1.5;">
+            En cumplimiento de la Ley N° 29733 (Ley de Protección de Datos Personales), CONCYTEC garantiza que la
+            información que decidas no hacer pública se mantendrá confidencial y se utilizará únicamente para fines de
+            gestión interna y evaluación.
+        </span>
+    </div>
+
+    <!-- Actions -->
+    <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+        <button class="btn-save" (click)="saveVisibility()"
+            [disabled]="savingSource !== null || visibilityModules.length === 0">
+            <ng-container *ngIf="savingSource === 'visibility'">
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24"
+                    style="width: 1rem; height: 1rem; margin-right: 0.5rem; animation: spin 1s linear infinite;">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                Actualizando...
+            </ng-container>
+            <ng-container *ngIf="savingSource !== 'visibility'">Actualizar Privacidad</ng-container>
+        </button>
+        <style>
+            @keyframes spin {
+                from {
+                    transform: rotate(0deg);
+                }
+
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
+    </div>
+
+</div>

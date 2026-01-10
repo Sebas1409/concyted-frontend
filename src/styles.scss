@@ -1,0 +1,354 @@
+/* =========================================
+   SCSS VARIABLES & MIXINS
+   ========================================= */
+
+/* src/styles.scss (global) */
+:root {
+    /* BRAND */
+    --primary-500: #006C8F;
+    /* Lighter variant */
+    --primary-600: #005470;
+    /* Main Primary per User Request */
+    --primary-800: #004056;
+    /* Darker hover */
+    --primary-900: #002B3A;
+    --primary-50: #E6F5F6;
+
+    /* SECUNDARIOS */
+    --secondary-blue: #0ea5e9;
+    --accent-green: #22c55e;
+    --gold: #fbbf24;
+
+    /* GRAYS (PDF EXACTOS) */
+    --g-50: #f8fafc;
+    --g-100: #f1f5f9;
+    --g-200: #e2e8f0;
+    --g-300: #cbd5e1;
+    --g-400: #94a3b8;
+    --g-500: #64748b;
+    --g-600: #475569;
+    --g-700: #334155;
+    --g-800: #1e293b;
+    --g-900: #0f172a;
+
+    /* GENERALES */
+    --white: #ffffff;
+    --radius-card: 14px;
+    --radius-input: 8px;
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+
+    --font-base: 'Inter', sans-serif;
+}
+
+/* =========================================
+   RESET & BASE STYLES
+   ========================================= */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-base);
+    background: var(--g-50);
+    margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin: 0;
+    font-weight: 600;
+}
+
+a {
+    color: var(--color-primary-500);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+/* =========================================
+   UTILITY CLASSES (SCSS Compatible)
+   ========================================= */
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1.25rem;
+    font-weight: 500;
+    border-radius: var(--border-radius-input);
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+    font-size: 0.9rem;
+    gap: 0.5rem;
+
+    &.btn-primary {
+        background-color: var(--color-primary-500);
+        color: var(--color-white);
+
+        &:hover {
+            background-color: var(--color-primary-600);
+        }
+
+        &:disabled {
+            background-color: var(--color-gray-300);
+            cursor: not-allowed;
+        }
+    }
+
+    &.btn-success {
+        background-color: var(--color-success);
+        color: var(--color-white);
+
+        &:hover {
+            background-color: var(--color-success-hover);
+        }
+    }
+
+    &.btn-outline {
+        background-color: white;
+        border-color: var(--color-gray-300);
+        color: var(--color-gray-700);
+
+        &:hover {
+            border-color: var(--color-gray-400);
+            background-color: var(--color-gray-50);
+        }
+    }
+
+    &.btn-ghost {
+        background-color: transparent;
+        color: var(--color-gray-600);
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+    }
+
+    &.btn-sm {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+
+    &.w-100 {
+        width: 100%;
+    }
+}
+
+/* Cards */
+.card {
+    background: white;
+    border-radius: var(--border-radius-card);
+    box-shadow: var(--shadow-card);
+    padding: 1.5rem;
+    border: 1px solid var(--color-gray-100);
+}
+
+/* Forms */
+.form-group {
+    margin-bottom: 1.25rem;
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.35rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--color-gray-700);
+
+        .required {
+            color: var(--color-danger);
+            margin-left: 2px;
+        }
+
+        .required-asterisk {
+            color: var(--color-danger);
+            margin-left: 2px;
+        }
+    }
+
+    /* Move inputs outside to allow global usage if needed, but nesting is cleaner */
+}
+
+/* Global Input Styles (outside nesting for safety if needed) */
+.form-input,
+.form-select {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius-input);
+    font-size: 0.95rem;
+    color: var(--color-gray-900);
+    background-color: white;
+    transition: all 0.2s;
+
+    &:focus {
+        outline: none;
+        border-color: var(--color-primary-500);
+        box-shadow: 0 0 0 3px var(--color-primary-50);
+    }
+
+    &::placeholder {
+        color: var(--color-gray-400);
+    }
+
+    &:disabled,
+    &.readonly-field {
+        background-color: var(--color-gray-50);
+        cursor: not-allowed;
+    }
+}
+
+
+/* Helpers */
+.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.gap-4 {
+    gap: 1rem;
+}
+
+.w-full {
+    width: 100%;
+}
+
+.text-sm {
+    font-size: 0.875rem;
+}
+
+.text-xs {
+    font-size: 0.75rem;
+}
+
+.font-medium {
+    font-weight: 500;
+}
+
+
+/* =========================================
+   GLOBAL FORM BUTTONS (User Standardized 44px)
+   ========================================= */
+
+.btn-save {
+    background: #005470;
+    /* Updated from #005870 to #005470 per request */
+    color: white;
+    border: none;
+    min-height: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    gap: 10px;
+    justify-content: center;
+
+    /* Keep existing helpers */
+    font-family: 'Figtree', sans-serif;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background-color: #00384b;
+        /* Darker variant */
+    }
+
+    &:disabled {
+        background-color: #94a3b8;
+        cursor: not-allowed;
+    }
+}
+
+
+.btn-cancel {
+    min-height: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    gap: 10px;
+    justify-content: center;
+
+    /* Keep existing style */
+    border-radius: 6px;
+    border: 1px solid #E2E8F0;
+    background: #FFF;
+    color: #475569;
+    font-family: 'Figtree', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background-color: #F8FAFC;
+        border-color: #CBD5E1;
+        color: #1E293B;
+    }
+}
+
+/* User Standardized Outline Button (for buttons-row) */
+.btn-outline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    /* Base Colors */
+    background-color: white;
+    color: #00587C;
+    border: 1px solid #00587C;
+    box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.06), 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+
+    /* Dimensions requested in snippet */
+    height: 36px;
+
+    &:hover {
+        border-radius: 6px;
+        border: 1px solid #00587C;
+        background: #00587C;
+        color: white;
+    }
+
+    /* Ensure icon inherits color change on hover */
+    .plus,
+    i {
+        color: inherit;
+    }
+}

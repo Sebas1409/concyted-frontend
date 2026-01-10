@@ -1,0 +1,192 @@
+<div class="institution-management-page">
+    <app-intro-card title="Directorio de Instituciones Afiliadas"
+        subtitle="Administra las entidades habilitadas en la plataforma. Vincula nuevas instituciones mediante su RUC para permitir la afiliación de investigadores.">
+    </app-intro-card>
+
+    <div class="top-actions">
+        <button class="btn-primary-dark">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Registra de Institución
+        </button>
+        <button class="btn-outline" (click)="openLinkModal()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Vincular Nueva Institución
+        </button>
+    </div>
+
+    <div class="content-area">
+        <!-- Search -->
+        <div class="search-bar">
+            <div class="input-wrapper">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" placeholder="Buscar por Título, nombre etc" [(ngModel)]="searchTerm">
+            </div>
+            <button class="btn-search">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                Buscar
+            </button>
+        </div>
+
+        <!-- Export Actions -->
+        <div class="actions-row">
+            <div class="export-actions">
+                <button class="btn-outline">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    Copy
+                </button>
+                <button class="btn-outline">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="8" y1="13" x2="16" y2="13"></line>
+                        <line x1="8" y1="17" x2="16" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Excel
+                </button>
+                <button class="btn-outline">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="12" y1="18" x2="12" y2="12"></line>
+                        <line x1="9" y1="15" x2="15" y2="15"></line>
+                    </svg>
+                    CSV
+                </button>
+                <button class="btn-outline">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="12" y1="18" x2="12" y2="12"></line>
+                        <line x1="9" y1="15" x2="15" y2="15"></line>
+                    </svg>
+                    PDF
+                </button>
+            </div>
+
+            <!-- Currently no "Filtros Avanzados" in the screenshot for this module, but space is kept -->
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Seleccionar</th>
+                        <th>RUC ⇅</th>
+                        <th>Razón Social ⇅</th>
+                        <th>URL ⇅</th>
+                        <th style="width: 80px; text-align: center;">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let item of institutions">
+                        <td style="text-align: center;">
+                            <label class="checkbox-container">
+                                <input type="checkbox" [(ngModel)]="item.checked">
+                                <span class="checkmark"></span>
+                            </label>
+                        </td>
+                        <td>{{ item.id }}</td>
+                        <td class="name-cell">{{ item.name }}</td>
+                        <td class="url-cell">{{ item.url }}</td>
+                        <td class="action-cell">
+                            <button class="btn-delete" (click)="deleteInstitution(item.id)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path
+                                        d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6M5 6l1 14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-14"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="items-per-page">
+                <span>Mostrar</span>
+                <select [(ngModel)]="pageSize">
+                    <option [value]="10">10</option>
+                    <option [value]="20">20</option>
+                    <option [value]="50">50</option>
+                </select>
+                <span>elementos</span>
+            </div>
+
+            <div class="page-controls">
+                <button class="btn-page text">Anterior</button>
+                <button class="btn-page number active">1</button>
+                <button class="btn-page number">2</button>
+                <span class="dots">...</span>
+                <button class="btn-page number">5</button>
+                <button class="btn-page text">Siguiente</button>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Vincular Institución -->
+    <app-form-modal *ngIf="showLinkModal" title="Vincular Institución" (close)="showLinkModal = false">
+        <!-- Content... -->
+        <p class="modal-description">Ingresa el RUC para validar la existencia de la entidad en SUNAT y generar sus
+            credenciales de acceso.</p>
+
+        <div class="form-grid single-col">
+            <div class="form-group">
+                <label>RUC de la Institución *</label>
+                <div class="input-with-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        class="search-icon">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" placeholder="Escribe el RUC..." [(ngModel)]="linkForm.ruc">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Razón Social</label>
+                <input type="text" [(ngModel)]="linkForm.socialReason" disabled class="input-disabled filled-bg">
+            </div>
+            <div class="form-group">
+                <label>URL de Acceso (Encriptada)</label>
+                <div class="input-with-icon right">
+                    <input type="text" [(ngModel)]="linkForm.accessUrl" disabled class="input-disabled filled-bg">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        class="copy-icon">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-cancel" (click)="showLinkModal = false">Cancelar</button>
+            <button class="btn-save" (click)="confirmLink()">Confirmar Vinculación</button>
+        </div>
+    </app-form-modal>
+
+</div>

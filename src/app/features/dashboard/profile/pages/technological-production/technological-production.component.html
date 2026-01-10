@@ -1,0 +1,467 @@
+<div class="production-container">
+
+    <!-- Header / Intro -->
+    <!-- Header / Intro -->
+    <app-intro-card title="Producción Tecnológica e Industrial"
+        subtitle="Gestiona tu portafolio de propiedad intelectual, desarrollos industriales y actividades de transferencia tecnológica.">
+        <button class="btn-action btn-outline" (click)="openIntellectualModal()">
+            <span class="plus">+</span> Propiedad Intelectual
+        </button>
+        <button class="btn-action btn-outline" (click)="openIndustrialModal()">
+            <span class="plus">+</span> Desarrollo Industrial
+        </button>
+        <button class="btn-action btn-outline" (click)="openTransferModal()">
+            <span class="plus">+</span> Transferencia Tecnológica
+        </button>
+    </app-intro-card>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+        <button class="tab-btn" [class.active]="activeTab === 'all'" (click)="setActiveTab('all')">
+            Todas las producciones <span class="badge">{{ intellectualProperties.length + industrialDevelopments.length
+                + technologicalTransfers.length }}</span>
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'intellectual'" (click)="setActiveTab('intellectual')">
+            Propiedad Intelectual <span class="badge">{{ intellectualProperties.length }}</span>
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'industrial'" (click)="setActiveTab('industrial')">
+            Desarrollo Industrial <span class="badge">{{ industrialDevelopments.length }}</span>
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'transfer'" (click)="setActiveTab('transfer')">
+            Transferencia Tecnológica <span class="badge">{{ technologicalTransfers.length }}</span>
+        </button>
+    </div>
+
+    <!-- Table 1: Propiedad Intelectual -->
+    <div *ngIf="activeTab === 'all' || activeTab === 'intellectual'">
+        <div class="table-card">
+            <div class="card-header">
+                <h3>Propiedad Intelectual <i class="fas fa-file-contract ml-2"></i></h3>
+            </div>
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>N°</th>
+                            <th>Tipo de PI (Patente/Modelo)</th>
+                            <th>Estado (Solicitado/Otorgado)</th>
+                            <th>Título</th>
+                            <th>Rol de Participación</th>
+                            <th>País</th>
+                            <th>Adjuntos</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of intellectualProperties">
+                            <td>00{{ item.id }}</td>
+                            <td>{{ item.type }}</td>
+                            <td>{{ item.status }}</td>
+                            <td>{{ item.title }}</td>
+                            <td>{{ item.role }}</td>
+                            <td>{{ item.country }}</td>
+                            <td>
+                                <span class="link-action" (click)="openFileViewer(item, IP_SECTION)">Ver archivos</span>
+                            </td>
+                            <td class="actions">
+                                <app-action-buttons (edit)="editIntellectualProperty(item)"
+                                    (delete)="deleteIntellectualProperty(item)"></app-action-buttons>
+                            </td>
+                        </tr>
+                        <tr *ngIf="intellectualProperties.length === 0">
+                            <td colspan="8" class="text-gray-500" style="text-align: center; padding: 1rem;">No hay
+                                registros de propiedad intelectual.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table 2: Desarrollo Industrial -->
+    <div *ngIf="activeTab === 'all' || activeTab === 'industrial'">
+        <div class="table-card">
+            <div class="card-header">
+                <h3>Desarrollo Industrial</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>N°</th>
+                            <th>Denominación</th>
+                            <th>Tipo de desarrollo</th>
+                            <th>Tipo de Participación</th>
+                            <th>Estado del desarrollo</th>
+                            <th>Alcance</th>
+                            <th>Adjuntos</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of industrialDevelopments; let i = index">
+                            <td>{{ (i + 1).toString().padStart(3, '0') }}</td>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.productType }}</td>
+                            <td>{{ item.participationType }}</td>
+                            <td>{{ item.status }}</td>
+                            <td>{{ item.scope | date:'dd/MM/yyyy' }}</td>
+                            <td>
+                                <span class="link-action" (click)="openFileViewer(item, INDUSTRIAL_SECTION)">Ver
+                                    archivos</span>
+                            </td>
+                            <td class="actions">
+                                <app-action-buttons (edit)="editIndustrialDevelopment(item)"
+                                    (delete)="deleteIndustrialDevelopment(item)"></app-action-buttons>
+                            </td>
+                        </tr>
+                        <tr *ngIf="industrialDevelopments.length === 0">
+                            <td colspan="8" class="text-gray-500" style="text-align: center; padding: 1rem;">No hay
+                                registros de desarrollo industrial.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table 3: Transferencia Tecnológica -->
+    <div *ngIf="activeTab === 'all' || activeTab === 'transfer'">
+        <div class="table-card">
+            <div class="card-header">
+                <h3>Transferencia Tecnológica</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>N°</th>
+                            <th>Titulo de tecnológia</th>
+                            <th>Descripción</th>
+                            <th>Área OCDE</th>
+                            <th>Sub Área OCDE</th>
+                            <th>Tipo</th>
+                            <th>TRL</th>
+                            <th>Rol</th>
+                            <th>Fecha</th>
+                            <th>Adjuntos</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of technologicalTransfers">
+                            <td>00{{ item.id }}</td>
+                            <td>{{ item.title }}</td>
+                            <td>{{ item.description }}</td>
+                            <td>{{ item.oecdArea }}</td>
+                            <td>{{ item.oecdSubArea }}</td>
+                            <td>{{ item.type }}</td>
+                            <td>{{ item.trl }}</td>
+                            <td>{{ item.role }}</td>
+                            <td>{{ item.date | date:'dd/MM/yyyy' }}</td>
+                            <td>
+                                <span class="link-action" (click)="openFileViewer(item, TRANSFER_SECTION)">Ver
+                                    archivos</span>
+                            </td>
+                            <td class="actions">
+                                <app-action-buttons (edit)="editTransfer(item)"
+                                    (delete)="deleteTransfer(item)"></app-action-buttons>
+                            </td>
+                        </tr>
+                        <tr *ngIf="technologicalTransfers.length === 0">
+                            <td colspan="10" class="text-gray-500" style="text-align: center; padding: 1rem;">No hay
+                                registros de transferencia tecnológica.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+<!-- MODAL: Propiedad Intelectual -->
+<!-- MODAL: Propiedad Intelectual -->
+<app-form-modal *ngIf="showIntellectualModal" title="Agregar Propiedad Intelectual"
+    subtitle="Registra patentes, modelos de utilidad, diseños industriales o derechos de autor (Indecopi u otros)."
+    (close)="closeIntellectualModal()">
+
+    <form [formGroup]="intellectualForm" class="flex flex-col gap-5">
+        <!-- Title -->
+        <div class="form-group">
+            <label>Título de la PI obtenida y/o trámite <span>*</span></label>
+            <input type="text" formControlName="title" class="form-input"
+                placeholder="Ej. Sistema automatizado para el control de riego en zonas áridas...">
+        </div>
+
+        <!-- Type and Status -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label>Tipo de propiedad intelectual <span>*</span></label>
+                <select formControlName="type" class="form-select">
+                    <option value="" disabled selected>Seleccionar tipo...</option>
+                    <option *ngFor="let item of intellectualTypes" [value]="item.id">{{ item.descripcion }}</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Estado de la Patente <span>*</span></label>
+                <select formControlName="status" class="form-select">
+                    <option value="" disabled selected>Seleccionar estado...</option>
+                    <option *ngFor="let item of patentStatuses" [value]="item.id">{{ item.descripcion }}</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Code and Country -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label>N° de Registro o Solicitud</label>
+                <input type="text" formControlName="registrationNumber" class="form-input"
+                    placeholder="Ej. 001584-2023/DIN">
+            </div>
+            <div class="form-group">
+                <label>País <span>*</span></label>
+                <select formControlName="registrationCountry" class="form-select">
+                    <option value="" disabled selected>Seleccionar país...</option>
+                    <option *ngFor="let country of countries" [value]="country.id">{{ country.nombre }}</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Entity and Role -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label>Entidad donde se tramitó la PI <span>*</span></label>
+                <select formControlName="registrationEntity" class="form-select">
+                    <option value="" disabled selected>Seleccionar entidad...</option>
+                    <option *ngFor="let item of registrationEntities" [value]="item.id">{{ item.descripcion }}
+                    </option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Rol de participación <span>*</span></label>
+                <select formControlName="role" class="form-select">
+                    <option value="" disabled selected>Seleccionar rol...</option>
+                    <option *ngFor="let item of intellectualRoles" [value]="item.id">{{ item.descripcion }}</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Owner -->
+        <div class="form-group">
+            <label>Nombre del propietario de la PI <span>*</span></label>
+            <input type="text" formControlName="owner" class="form-input"
+                placeholder="Ej. Universidad Nacional de Ingeniería, Empresa X...">
+        </div>
+
+        <!-- Rights and PCT -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label>Participación en los derechos de la PI <span>*</span></label>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" formControlName="rightsParticipation" [value]="true"> SI
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" formControlName="rightsParticipation" [value]="false"> NO
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>¿Trámite vía PCT? <span>*</span></label>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" formControlName="isPct" [value]="true"> SI
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" formControlName="isPct" [value]="false"> NO
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- File Upload Component -->
+        <div class="mb-4">
+            <app-file-uploader [(files)]="intellectualFiles" (errorChange)="onUploadError($event)"></app-file-uploader>
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeIntellectualModal()">Cancelar</button>
+            <button type="button" class="btn-save" (click)="saveIntellectualProperty()"
+                [disabled]="intellectualForm.invalid || hasUploadError">Guardar Registro</button>
+        </div>
+    </form>
+</app-form-modal>
+
+<!-- MODAL: Desarrollo Industrial -->
+<app-form-modal *ngIf="showIndustrialModal" title="Agregar Desarrollo Industrial"
+    subtitle="Registra prototipos, plantas piloto, software o productos industriales generados."
+    (close)="closeIndustrialModal()">
+
+    <form [formGroup]="industrialForm" class="flex flex-col gap-5" (submit)="$event.preventDefault()">
+        <!-- Name -->
+        <div class="form-group">
+            <label>Denominación del desarrollo industrial logrado <span>*</span></label>
+            <input type="text" formControlName="name" class="form-input"
+                placeholder="Ej. Prototipo de planta automatizada para tratamiento de aguas...">
+        </div>
+
+        <!-- Type and Scope -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label>Tipo de desarrollo industrial <span>*</span></label>
+                <select formControlName="productType" class="form-select">
+                    <option value="" disabled selected>Seleccionar tipo...</option>
+                    <option *ngFor="let item of industrialTypes" [value]="item.id">{{ item.descripcion }}</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Alcance / Nivel de Novedad</label>
+                <select formControlName="noveltyLevel" class="form-select">
+                    <option value="" disabled selected>Seleccionar nivel...</option>
+                    <option *ngFor="let item of developmentScopes" [value]="item.id">{{ item.descripcion }}</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Phase and Status -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label>Estado del desarrollo industrial</label>
+                <select formControlName="developmentPhase" class="form-select">
+                    <option value="" disabled selected>Seleccionar fase...</option>
+                    <option *ngFor="let item of developmentStatuses" [value]="item.id">{{ item.descripcion }}
+                    </option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Estado del uso del desarrollo industrial <span>*</span></label>
+                <select formControlName="commercialStatus" class="form-select">
+                    <option value="" disabled selected>Seleccionar estado...</option>
+                    <option *ngFor="let item of industrialUseStatuses" [value]="item.id">{{ item.descripcion }}
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Owner -->
+        <div class="form-group">
+            <label>Propietario del desarrollo industrial obtenido</label>
+            <input type="text" formControlName="owner" class="form-input"
+                placeholder="Ej. Empresa Minera S.A. / Universidad Nacional...">
+        </div>
+
+        <!-- Role -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label>Tipo de participación en la actividad</label>
+                <select formControlName="role" class="form-select">
+                    <option value="" disabled selected>Seleccionar rol...</option>
+                    <option *ngFor="let item of participationTypes" [value]="item.id">{{ item.descripcion }}</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- File Upload Component -->
+        <div class="mb-4">
+            <app-file-uploader [(files)]="industrialFiles" (errorChange)="onUploadError($event)"></app-file-uploader>
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeIndustrialModal()">Cancelar</button>
+            <button type="button" class="btn-save" (click)="saveIndustrialDevelopment()"
+                [disabled]="industrialForm.invalid || hasUploadError">Guardar Desarrollo</button>
+        </div>
+    </form>
+</app-form-modal>
+
+<!-- MODAL: Transferencia Tecnológica -->
+<!-- MODAL: Transferencia Tecnológica -->
+<app-form-modal *ngIf="showTransferModal" title="Agregar Transferencia Tecnológica"
+    subtitle="Registra paquetes tecnológicos, secretos industriales o acuerdos de transferencia realizados."
+    (close)="closeTransferModal()">
+
+    <form [formGroup]="transferForm" class="flex flex-col gap-5" (submit)="$event.preventDefault()">
+        <!-- Name -->
+        <div class="form-group">
+            <label>Título de la Tecnología <span>*</span></label>
+            <input type="text" formControlName="technologyName" class="form-input"
+                placeholder="Ej. Nuevo proceso de lixiviación para minería de cobre...">
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+            <label>Descripción</label>
+            <textarea formControlName="description" class="form-textarea" rows="5"
+                placeholder="Breve descripción de los objetivos y resultados esperados..."></textarea>
+        </div>
+
+        <!-- Type and TRL -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label>Tipo de Tecnología <span>*</span></label>
+                <select formControlName="technologyType" class="form-select">
+                    <option value="">Seleccionar tipo...</option>
+                    <option *ngFor="let type of technologyTypes" [value]="type.id">{{ type.nombre }}</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Nivel TRL</label>
+                <select formControlName="trlLevel" class="form-select">
+                    <option value="">Seleccionar nivel...</option>
+                    <option *ngFor="let trl of trlLevels" [value]="trl.id">{{ trl.nombre }}</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- OECD Area -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label>Área OCDE (Selector)</label>
+                <select formControlName="oecdArea" class="form-select" (change)="onAreaChange($event)">
+                    <option value="">Seleccionar área...</option>
+                    <option *ngFor="let area of areas" [value]="area.idArea">{{ area.descripcion }}</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Sub-área OCDE</label>
+                <select formControlName="oecdSubArea" class="form-select">
+                    <option value="">Seleccionar sub-área...</option>
+                    <option *ngFor="let sub of subAreas" [value]="sub.id">{{ sub.descripcion }}</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Role and Date -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label>Rol</label>
+                <select formControlName="role" class="form-select">
+                    <option value="">Seleccionar rol...</option>
+                    <option *ngFor="let role of roles" [value]="role.id">{{ role.nombre }}</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Fecha de Registro</label>
+                <input type="date" formControlName="registrationDate" class="form-input" placeholder="dd/mm/aaaa">
+            </div>
+        </div>
+
+        <!-- File Upload Component -->
+        <div class="mb-4">
+            <app-file-uploader [(files)]="transferFiles" (errorChange)="onUploadError($event)"></app-file-uploader>
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeTransferModal()">Cancelar</button>
+            <button type="button" class="btn-save" (click)="saveTransfer()" [disabled]="transferForm.invalid">Guardar
+                Transferencia</button>
+        </div>
+    </form>
+</app-form-modal>
+
+<!-- File Viewer Modal -->
+<app-file-viewer-modal [isOpen]="showFileViewer" [files]="viewerFiles" (onClose)="showFileViewer = false">
+</app-file-viewer-modal>

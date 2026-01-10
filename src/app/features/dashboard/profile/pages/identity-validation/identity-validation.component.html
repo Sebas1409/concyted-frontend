@@ -1,0 +1,321 @@
+<div class="identity-grid">
+
+    <!-- LEFT COLUMN: Description Text -->
+    <div class="info-column">
+        <h3>Datos de Identificación Oficial</h3>
+        <p>
+            Visualiza tus datos legales sincronizados directamente con las entidades gubernamentales (RENIEC /
+            Migraciones).
+            Esta información certifica la autenticidad de tu perfil.
+        </p>
+    </div>
+
+    <!-- RIGHT COLUMN: Form Card -->
+    <div class="form-column card">
+        <!-- Status Badges positioned absolute -->
+        <div class="card-badges">
+            <span *ngIf="currentUserData?.validado" class="badge-reniec">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Validado por RENIEC
+            </span>
+            <span *ngIf="!currentUserData?.validado" class="badge-reniec badge-warning">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                Falta Validar
+            </span>
+        </div>
+
+        <form [formGroup]="identityForm" class="identity-form">
+
+            <div class="row-2-col">
+                <div class="form-group">
+                    <label class="form-label">Nombres
+                        <span class="icon-tooltip-container" data-tooltip="Visible en su Ficha Pública">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="inline-block ml-1 icon-globe">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path
+                                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                </path>
+                            </svg>
+                        </span>
+                    </label>
+                    <input type="text" class="form-input readonly-field" [value]="currentUserData?.nombres || ''"
+                        readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Apellido paterno
+                        <span class="icon-tooltip-container" data-tooltip="Visible en su Ficha Pública">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="inline-block ml-1 icon-globe">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path
+                                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                </path>
+                            </svg>
+                        </span>
+                    </label>
+                    <input type="text" class="form-input readonly-field"
+                        [value]="currentUserData?.apellidoPaterno || ''" readonly>
+                </div>
+            </div>
+
+            <div class="row-2-col">
+                <div class="form-group">
+                    <label class="form-label">Apellido materno
+                        <span class="icon-tooltip-container" data-tooltip="Visible en su Ficha Pública">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="inline-block ml-1 icon-globe">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path
+                                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                </path>
+                            </svg>
+                        </span>
+                    </label>
+                    <input type="text" class="form-input readonly-field"
+                        [value]="currentUserData?.apellidoMaterno || ''" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">DNI
+                        <span class="icon-tooltip-container" data-tooltip="No visible en su Ficha Pública">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"
+                                fill="none" class="inline-block ml-1 icon-lock">
+                                <path
+                                    d="M5.35714 6.44444V4.11111C5.35714 2.39222 6.76357 1 8.5 1C10.2364 1 11.6429 2.39222 11.6429 4.11111V6.44444M8.5 10.3333C8.70838 10.3333 8.90823 10.2514 9.05558 10.1055C9.20293 9.95967 9.28571 9.76184 9.28571 9.55556C9.28571 9.34928 9.20293 9.15145 9.05558 9.00558C8.90823 8.85972 8.70838 8.77778 8.5 8.77778C8.29162 8.77778 8.09177 8.85972 7.94442 9.00558C7.79707 9.15145 7.71429 9.34928 7.71429 9.55556C7.71429 9.76184 7.79707 9.95967 7.94442 10.1055C8.09177 10.2514 8.29162 10.3333 8.5 10.3333ZM8.5 10.3333V12.6667M4.25714 6.44444H12.7429C13.4343 6.44444 14 7.00444 14 7.68889V13.1333C14 14.16 13.1514 15 12.1143 15H4.88571C3.84857 15 3 14.16 3 13.1333V7.68889C3 7.00444 3.56571 6.44444 4.25714 6.44444Z"
+                                    stroke="black" stroke-miterlimit="10" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </span>
+                    </label>
+                    <input type="text" class="form-input readonly-field" [value]="currentUserData?.numDoc || ''"
+                        readonly>
+                </div>
+            </div>
+
+            <div class="row-2-col">
+                <div class="form-group">
+                    <label class="form-label">Domicilio
+                        <span class="icon-tooltip-container" data-tooltip="No visible en su Ficha Pública">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"
+                                fill="none" class="inline-block ml-1 icon-lock">
+                                <path
+                                    d="M5.35714 6.44444V4.11111C5.35714 2.39222 6.76357 1 8.5 1C10.2364 1 11.6429 2.39222 11.6429 4.11111V6.44444M8.5 10.3333C8.70838 10.3333 8.90823 10.2514 9.05558 10.1055C9.20293 9.95967 9.28571 9.76184 9.28571 9.55556C9.28571 9.34928 9.20293 9.15145 9.05558 9.00558C8.90823 8.85972 8.70838 8.77778 8.5 8.77778C8.29162 8.77778 8.09177 8.85972 7.94442 9.00558C7.79707 9.15145 7.71429 9.34928 7.71429 9.55556C7.71429 9.76184 7.79707 9.95967 7.94442 10.1055C8.09177 10.2514 8.29162 10.3333 8.5 10.3333ZM8.5 10.3333V12.6667M4.25714 6.44444H12.7429C13.4343 6.44444 14 7.00444 14 7.68889V13.1333C14 14.16 13.1514 15 12.1143 15H4.88571C3.84857 15 3 14.16 3 13.1333V7.68889C3 7.00444 3.56571 6.44444 4.25714 6.44444Z"
+                                    stroke="black" stroke-miterlimit="10" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </span>
+                    </label>
+                    <input type="text" class="form-input readonly-field" [value]="currentUserData?.direccion || ''"
+                        readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nacionalidad
+                        <span class="icon-tooltip-container" data-tooltip="Visible en su Ficha Pública">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="inline-block ml-1 icon-globe">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path
+                                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                </path>
+                            </svg>
+                        </span>
+                    </label>
+                    <input type="text" class="form-input readonly-field" [value]="resolvedLocationNames.pais" readonly>
+                </div>
+            </div>
+
+            <div class="row-2-col">
+                <div class="form-group">
+                    <label class="form-label">Departamento
+                        <span class="icon-tooltip-container" data-tooltip="No visible en su Ficha Pública">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"
+                                fill="none" class="inline-block ml-1 icon-lock">
+                                <path
+                                    d="M5.35714 6.44444V4.11111C5.35714 2.39222 6.76357 1 8.5 1C10.2364 1 11.6429 2.39222 11.6429 4.11111V6.44444M8.5 10.3333C8.70838 10.3333 8.90823 10.2514 9.05558 10.1055C9.20293 9.95967 9.28571 9.76184 9.28571 9.55556C9.28571 9.34928 9.20293 9.15145 9.05558 9.00558C8.90823 8.85972 8.70838 8.77778 8.5 8.77778C8.29162 8.77778 8.09177 8.85972 7.94442 9.00558C7.79707 9.15145 7.71429 9.34928 7.71429 9.55556C7.71429 9.76184 7.79707 9.95967 7.94442 10.1055C8.09177 10.2514 8.29162 10.3333 8.5 10.3333ZM8.5 10.3333V12.6667M4.25714 6.44444H12.7429C13.4343 6.44444 14 7.00444 14 7.68889V13.1333C14 14.16 13.1514 15 12.1143 15H4.88571C3.84857 15 3 14.16 3 13.1333V7.68889C3 7.00444 3.56571 6.44444 4.25714 6.44444Z"
+                                    stroke="black" stroke-miterlimit="10" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </span>
+                    </label>
+                    <input type="text" class="form-input readonly-field" [value]="resolvedLocationNames.departamento"
+                        readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Provincia
+                        <span class="icon-tooltip-container" data-tooltip="No visible en su Ficha Pública">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"
+                                fill="none" class="inline-block ml-1 icon-lock">
+                                <path
+                                    d="M5.35714 6.44444V4.11111C5.35714 2.39222 6.76357 1 8.5 1C10.2364 1 11.6429 2.39222 11.6429 4.11111V6.44444M8.5 10.3333C8.70838 10.3333 8.90823 10.2514 9.05558 10.1055C9.20293 9.95967 9.28571 9.76184 9.28571 9.55556C9.28571 9.34928 9.20293 9.15145 9.05558 9.00558C8.90823 8.85972 8.70838 8.77778 8.5 8.77778C8.29162 8.77778 8.09177 8.85972 7.94442 9.00558C7.79707 9.15145 7.71429 9.34928 7.71429 9.55556C7.71429 9.76184 7.79707 9.95967 7.94442 10.1055C8.09177 10.2514 8.29162 10.3333 8.5 10.3333ZM8.5 10.3333V12.6667M4.25714 6.44444H12.7429C13.4343 6.44444 14 7.00444 14 7.68889V13.1333C14 14.16 13.1514 15 12.1143 15H4.88571C3.84857 15 3 14.16 3 13.1333V7.68889C3 7.00444 3.56571 6.44444 4.25714 6.44444Z"
+                                    stroke="black" stroke-miterlimit="10" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </span>
+                    </label>
+                    <input type="text" class="form-input readonly-field" [value]="resolvedLocationNames.provincia"
+                        readonly>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Distrito
+                    <span class="icon-tooltip-container" data-tooltip="No visible en su Ficha Pública">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none"
+                            class="inline-block ml-1 icon-lock">
+                            <path
+                                d="M5.35714 6.44444V4.11111C5.35714 2.39222 6.76357 1 8.5 1C10.2364 1 11.6429 2.39222 11.6429 4.11111V6.44444M8.5 10.3333C8.70838 10.3333 8.90823 10.2514 9.05558 10.1055C9.20293 9.95967 9.28571 9.76184 9.28571 9.55556C9.28571 9.34928 9.20293 9.15145 9.05558 9.00558C8.90823 8.85972 8.70838 8.77778 8.5 8.77778C8.29162 8.77778 8.09177 8.85972 7.94442 9.00558C7.79707 9.15145 7.71429 9.34928 7.71429 9.55556C7.71429 9.76184 7.79707 9.95967 7.94442 10.1055C8.09177 10.2514 8.29162 10.3333 8.5 10.3333ZM8.5 10.3333V12.6667M4.25714 6.44444H12.7429C13.4343 6.44444 14 7.00444 14 7.68889V13.1333C14 14.16 13.1514 15 12.1143 15H4.88571C3.84857 15 3 14.16 3 13.1333V7.68889C3 7.00444 3.56571 6.44444 4.25714 6.44444Z"
+                                stroke="black" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </span>
+                </label>
+                <input type="text" class="form-input readonly-field" [value]="resolvedLocationNames.distrito" readonly>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-save" (click)="validateReniec()"
+                    [disabled]="isValidatingReniec || currentUserData?.validado">
+                    <span *ngIf="isValidatingReniec" class="spinner-border spinner-border-sm me-2" role="status"
+                        aria-hidden="true"></span>
+                    <span *ngIf="!isValidatingReniec">Validar datos Reniec</span>
+                    <span *ngIf="isValidatingReniec">Validando...</span>
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+
+<!-- SECCION 2: Carné de Extranjería -->
+<div class="identity-grid mt-8">
+    <!-- LEFT COLUMN: Description Text -->
+    <div class="info-column">
+        <h3>Carné de Extranjería (CE - Residentes)</h3>
+        <p>
+            Si resides en Perú, valida tu identidad conectando tu C.E. Los datos serán verificados automáticamente con
+            la Superintendencia Nacional de Migraciones.
+        </p>
+    </div>
+
+    <!-- RIGHT COLUMN: Form Card -->
+    <div class="form-column card">
+        <form [formGroup]="identityForm" class="identity-form">
+            <div class="row-2-col">
+                <div class="form-group">
+                    <label class="form-label">Número de C.E *
+                        <span class="icon-tooltip-container" data-tooltip="No visible en su Ficha Pública">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"
+                                fill="none" class="inline-block ml-1 icon-lock">
+                                <path
+                                    d="M5.35714 6.44444V4.11111C5.35714 2.39222 6.76357 1 8.5 1C10.2364 1 11.6429 2.39222 11.6429 4.11111V6.44444M8.5 10.3333C8.70838 10.3333 8.90823 10.2514 9.05558 10.1055C9.20293 9.95967 9.28571 9.76184 9.28571 9.55556C9.28571 9.34928 9.20293 9.15145 9.05558 9.00558C8.90823 8.85972 8.70838 8.77778 8.5 8.77778C8.29162 8.77778 8.09177 8.85972 7.94442 9.00558C7.79707 9.15145 7.71429 9.34928 7.71429 9.55556C7.71429 9.76184 7.79707 9.95967 7.94442 10.1055C8.09177 10.2514 8.29162 10.3333 8.5 10.3333ZM8.5 10.3333V12.6667M4.25714 6.44444H12.7429C13.4343 6.44444 14 7.00444 14 7.68889V13.1333C14 14.16 13.1514 15 12.1143 15H4.88571C3.84857 15 3 14.16 3 13.1333V7.68889C3 7.00444 3.56571 6.44444 4.25714 6.44444Z"
+                                    stroke="black" stroke-miterlimit="10" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </span>
+                    </label>
+                    <input type="text" class="form-input" formControlName="ceNumber" placeholder="Ej. 12712012">
+                    <span class="field-hint">No visible en su ficha publica</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Fecha de Nacimiento *
+                        <span class="icon-tooltip-container" data-tooltip="No visible en su Ficha Pública">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"
+                                fill="none" class="inline-block ml-1 icon-lock">
+                                <path
+                                    d="M5.35714 6.44444V4.11111C5.35714 2.39222 6.76357 1 8.5 1C10.2364 1 11.6429 2.39222 11.6429 4.11111V6.44444M8.5 10.3333C8.70838 10.3333 8.90823 10.2514 9.05558 10.1055C9.20293 9.95967 9.28571 9.76184 9.28571 9.55556C9.28571 9.34928 9.20293 9.15145 9.05558 9.00558C8.90823 8.85972 8.70838 8.77778 8.5 8.77778C8.29162 8.77778 8.09177 8.85972 7.94442 9.00558C7.79707 9.15145 7.71429 9.34928 7.71429 9.55556C7.71429 9.76184 7.79707 9.95967 7.94442 10.1055C8.09177 10.2514 8.29162 10.3333 8.5 10.3333ZM8.5 10.3333V12.6667M4.25714 6.44444H12.7429C13.4343 6.44444 14 7.00444 14 7.68889V13.1333C14 14.16 13.1514 15 12.1143 15H4.88571C3.84857 15 3 14.16 3 13.1333V7.68889C3 7.00444 3.56571 6.44444 4.25714 6.44444Z"
+                                    stroke="black" stroke-miterlimit="10" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </span>
+                    </label>
+                    <input type="date" class="form-input" formControlName="ceBirthDate" placeholder="DD/MM/AAAA">
+                    <span class="field-hint">No visible en su ficha publica</span>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-save">Validar con
+                    Migraciones</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SECCION 3: Pasaporte -->
+<div class="identity-grid mt-8">
+    <!-- LEFT COLUMN: Description Text -->
+    <div class="info-column">
+        <h3>Pasaporte (Internacional / Otros)</h3>
+        <p>
+            Registra tu pasaporte vigente si eres investigador internacional. Este documento servirá como tu
+            identificación global en la plataforma CTI Vitae.
+        </p>
+    </div>
+
+    <!-- RIGHT COLUMN: Form Card -->
+    <div class="form-column card">
+        <form [formGroup]="identityForm" class="identity-form">
+            <div class="row-2-col">
+                <div class="form-group">
+                    <label class="form-label">Número de Pasaporte *
+                        <span class="icon-tooltip-container" data-tooltip="No visible en su Ficha Pública">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"
+                                fill="none" class="inline-block ml-1 icon-lock">
+                                <path
+                                    d="M5.35714 6.44444V4.11111C5.35714 2.39222 6.76357 1 8.5 1C10.2364 1 11.6429 2.39222 11.6429 4.11111V6.44444M8.5 10.3333C8.70838 10.3333 8.90823 10.2514 9.05558 10.1055C9.20293 9.95967 9.28571 9.76184 9.28571 9.55556C9.28571 9.34928 9.20293 9.15145 9.05558 9.00558C8.90823 8.85972 8.70838 8.77778 8.5 8.77778C8.29162 8.77778 8.09177 8.85972 7.94442 9.00558C7.79707 9.15145 7.71429 9.34928 7.71429 9.55556C7.71429 9.76184 7.79707 9.95967 7.94442 10.1055C8.09177 10.2514 8.29162 10.3333 8.5 10.3333ZM8.5 10.3333V12.6667M4.25714 6.44444H12.7429C13.4343 6.44444 14 7.00444 14 7.68889V13.1333C14 14.16 13.1514 15 12.1143 15H4.88571C3.84857 15 3 14.16 3 13.1333V7.68889C3 7.00444 3.56571 6.44444 4.25714 6.44444Z"
+                                    stroke="black" stroke-miterlimit="10" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </span>
+                    </label>
+                    <input type="text" class="form-input" formControlName="passportNumber" placeholder="Ej. 18213DNB12">
+                    <span class="field-hint">No visible en su ficha publica</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Fecha de Vencimiento *
+                        <span class="icon-tooltip-container" data-tooltip="No visible en su Ficha Pública">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"
+                                fill="none" class="inline-block ml-1 icon-lock">
+                                <path
+                                    d="M5.35714 6.44444V4.11111C5.35714 2.39222 6.76357 1 8.5 1C10.2364 1 11.6429 2.39222 11.6429 4.11111V6.44444M8.5 10.3333C8.70838 10.3333 8.90823 10.2514 9.05558 10.1055C9.20293 9.95967 9.28571 9.76184 9.28571 9.55556C9.28571 9.34928 9.20293 9.15145 9.05558 9.00558C8.90823 8.85972 8.70838 8.77778 8.5 8.77778C8.29162 8.77778 8.09177 8.85972 7.94442 9.00558C7.79707 9.15145 7.71429 9.34928 7.71429 9.55556C7.71429 9.76184 7.79707 9.95967 7.94442 10.1055C8.09177 10.2514 8.29162 10.3333 8.5 10.3333ZM8.5 10.3333V12.6667M4.25714 6.44444H12.7429C13.4343 6.44444 14 7.00444 14 7.68889V13.1333C14 14.16 13.1514 15 12.1143 15H4.88571C3.84857 15 3 14.16 3 13.1333V7.68889C3 7.00444 3.56571 6.44444 4.25714 6.44444Z"
+                                    stroke="black" stroke-miterlimit="10" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </span>
+                    </label>
+                    <input type="date" class="form-input" formControlName="passportExpiryDate" placeholder="DD/MM/AAAA">
+                    <span class="field-hint">No visible en su ficha publica</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">País de Emisión *</label>
+                <select class="form-input" formControlName="passportCountry">
+                    <option value="" disabled selected>Selecciona el país....</option>
+                    <option value="US">Estados Unidos</option>
+                    <option value="ES">España</option>
+                    <option value="BR">Brasil</option>
+                    <option value="AR">Argentina</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-save">Registrar
+                    Pasaporte</button>
+            </div>
+        </form>
+    </div>
+</div>

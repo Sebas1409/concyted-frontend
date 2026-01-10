@@ -1,0 +1,553 @@
+<div class="work-container">
+
+    <!-- TOP ACTIONS -->
+    <app-intro-card title="Registrar Nueva Experiencia"
+        subtitle="Selecciona una categoría para añadir un nuevo registro a tu hoja de vida.">
+        <button class="btn-action btn-outline" (click)="openModal()">
+            <span class="plus">+</span> Laboral
+        </button>
+        <button class="btn-action btn-outline" (click)="openDocentModal()">
+            <span class="plus">+</span> Docente
+        </button>
+        <button class="btn-action btn-outline" (click)="openThesisAdvisorModal()">
+            <span class="plus">+</span> Asesor de tesis
+        </button>
+        <button class="btn-action btn-outline" (click)="openProjectModal()">
+            <span class="plus">+</span> Gestión I+D+i
+        </button>
+    </app-intro-card>
+
+    <!-- TABS -->
+    <div class="tabs-container mb-4">
+        <div class="tab-item" [class.active]="activeTab === 'all'" (click)="setActiveTab('all')">
+            Todas las experiencias <span class="badge" [class.green]="activeTab === 'all'">{{ workList.length +
+                docentList.length + thesisAdvisorList.length + projectList.length | number:'2.0-0' }}</span>
+        </div>
+        <div class="tab-item" [class.active]="activeTab === 'work'" (click)="setActiveTab('work')">
+            Experiencia laboral <span class="badge" [class.green]="activeTab === 'work'">{{ workList.length |
+                number:'2.0-0' }}</span>
+        </div>
+        <div class="tab-item" [class.active]="activeTab === 'docent'" (click)="setActiveTab('docent')">
+            Como docente <span class="badge" [class.green]="activeTab === 'docent'">{{ docentList.length |
+                number:'2.0-0' }}</span>
+        </div>
+        <div class="tab-item" [class.active]="activeTab === 'thesis'" (click)="setActiveTab('thesis')">
+            Como asesor de tesis <span class="badge" [class.green]="activeTab === 'thesis'">{{ thesisAdvisorList.length
+                | number:'2.0-0' }}</span>
+        </div>
+        <div class="tab-item" [class.active]="activeTab === 'project'" (click)="setActiveTab('project')">
+            Evaluador/Formulador de proyectos <span class="badge" [class.green]="activeTab === 'project'">{{
+                projectList.length | number:'2.0-0' }}</span>
+        </div>
+    </div>
+
+    <!-- MAIN TABLE SECTION -->
+
+    <!-- Experiencia Laboral Table -->
+    <div class="section-container mb-5" *ngIf="activeTab === 'all' || activeTab === 'work'">
+        <div class="card-header-simple">
+            <h3>Experiencia Laboral <i class="fas fa-briefcase ml-2"></i> <i class="fas fa-tools ml-2"></i></h3>
+        </div>
+        <div class="card table-card">
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th class="w-10 text-center">Institución<br>Principal</th>
+                            <th class="w-30">Institución</th>
+                            <th class="w-20">Cargo</th>
+                            <th class="w-10">Fecha inicio</th>
+                            <th class="w-10">Fecha fin</th>
+                            <th class="w-10">Adjuntos</th>
+                            <th class="w-10 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of workList; let i = index">
+                            <td class="text-center">
+                                <label class="custom-chk">
+                                    <input type="checkbox" [checked]="item.isPrincipal" disabled>
+                                    <span class="checkmark"></span>
+                                </label>
+                            </td>
+                            <td>{{ item.institution }}</td>
+                            <td>{{ item.position }}</td>
+                            <td>{{ item.startDate | dateDisplay }}</td>
+                            <td>{{ item.endDate | dateDisplay:item.current }}</td>
+                            <td><a href="#" class="link-view"
+                                    (click)="viewFiles(item, 'EXPLAB', 'EXPL02'); $event.preventDefault()">Ver
+                                    archivos</a></td>
+                            <td class="actions">
+                                <app-action-buttons (edit)="editWork(item)"
+                                    (delete)="deleteWork(i)"></app-action-buttons>
+                            </td>
+                        </tr>
+                        <tr *ngIf="workList.length === 0">
+                            <td colspan="7" class="text-center text-gray-500 py-4">No hay registros de experiencia
+                                laboral.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Experiencia como Docente Table -->
+    <div class="section-container mb-5" *ngIf="activeTab === 'all' || activeTab === 'docent'">
+        <div class="card-header-simple">
+            <h3>Experiencia como Docente</h3>
+        </div>
+        <div class="card table-card">
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Institución</th>
+                            <th>Tipo Docente</th>
+                            <th>Tipo Institución</th>
+                            <th>Fecha inicio</th>
+                            <th>Fecha fin</th>
+                            <th>Adjuntos</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of docentList; let i = index">
+                            <td>{{ item.institution }}</td>
+                            <td>{{ item.docentType }}</td>
+                            <td>{{ item.institutionType }}</td>
+                            <td>{{ item.startDate | dateDisplay }}</td>
+                            <td>{{ item.endDate | dateDisplay:item.currentlyTeaching }}</td>
+                            <td><a href="#" class="link-view"
+                                    (click)="viewFiles(item, 'EXPLAB', 'EXPL03'); $event.preventDefault()">Ver
+                                    archivos</a></td>
+                            <td class="actions">
+                                <app-action-buttons (edit)="editDocent(item)"
+                                    (delete)="deleteDocent(i)"></app-action-buttons>
+                            </td>
+                        </tr>
+                        <tr *ngIf="docentList.length === 0">
+                            <td colspan="7" class="text-center text-gray-500 py-4">No hay registros de experiencia
+                                docente.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Experiencia como Asesor de Tesis Table -->
+    <div class="section-container mb-5" *ngIf="activeTab === 'all' || activeTab === 'thesis'">
+        <div class="card-header-simple">
+            <h3>Experiencia como Asesor de Tesis <i class="fas fa-book ml-2"></i></h3>
+        </div>
+        <div class="card table-card">
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Universidad</th>
+                            <th>Tesis</th>
+                            <th>Tesista(s)</th>
+                            <th>Fecha Aceptación<br>de Tesis</th>
+                            <th>Adjuntos</th>
+                            <th>Repositorio</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of thesisAdvisorList; let i = index">
+                            <td>{{ item.code }}</td>
+                            <td>{{ item.university }}</td>
+                            <td>{{ item.thesis }}</td>
+                            <td>{{ item.students }}</td>
+                            <td>{{ item.acceptanceDate | dateDisplay }}</td>
+                            <td><a href="#" class="link-view"
+                                    (click)="viewFiles(item, 'EXPLAB', 'EXPL01'); $event.preventDefault()">Ver
+                                    archivos</a></td>
+                            <td><a [href]="getExternalLink(item.enlaceRepositorio)" target="_blank"
+                                    class="link-view">Ver Enlace </a>
+                            </td>
+                            <td class="actions">
+                                <app-action-buttons (edit)="editThesisAdvisor(item)"
+                                    (delete)="deleteThesisAdvisor(i)"></app-action-buttons>
+                            </td>
+                        </tr>
+                        <tr *ngIf="thesisAdvisorList.length === 0">
+                            <td colspan="8" class="text-center text-gray-500 py-4">No hay registros de asesoría de
+                                tesis.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Experiencia en Proyectos I+D+i Table -->
+    <div class="section-container mb-5" *ngIf="activeTab === 'all' || activeTab === 'project'">
+        <div class="card-header-simple">
+            <h3>Experiencia como Evaluador/Formulador de proyectos <i class="fas fa-tools ml-2"></i></h3>
+        </div>
+        <div class="card table-card">
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Año</th>
+                            <th>Tipo experiencia</th>
+                            <th>Tipo de proyecto</th>
+                            <th>Entidad financiadora</th>
+                            <th>Metodología de<br>evaluación</th>
+                            <th>Monto<br>proyecto (USD)</th>
+                            <th>Adjuntos</th>
+                            <th class="text-center">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of projectList; let i = index">
+                            <td>{{ item.code }}</td>
+                            <td>{{ item.executionYear }}</td>
+                            <td>{{ item.role }}</td>
+                            <td>{{ item.projectType }}</td>
+                            <td>{{ item.financingEntity }}</td>
+                            <td>Ver archivos</td> <!-- Placeholder col from screenshot? -->
+                            <td>{{ item.amount }}</td>
+                            <td><a href="#" class="link-view"
+                                    (click)="viewFiles(item, 'EXPLAB', 'EXPL04'); $event.preventDefault()">Ver
+                                    archivos</a></td>
+                            <td class="actions">
+                                <app-action-buttons (edit)="editProject(item)"
+                                    (delete)="deleteProject(i)"></app-action-buttons>
+                            </td>
+                        </tr>
+                        <tr *ngIf="projectList.length === 0">
+                            <td colspan="9" class="text-center text-gray-500 py-4">No hay registros de proyectos.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL: Agregar Experiencia Laboral -->
+<app-form-modal *ngIf="showModal" title="Agregar Experiencia Laboral"
+    subtitle="Registra tu historial profesional en empresas o instituciones, indicando el cargo y el periodo de actividad."
+    (close)="closeModal()">
+
+    <form [formGroup]="workForm" class="flex flex-col gap-5">
+
+        <!-- Cargo -->
+        <div class="form-group">
+            <label>Cargo desempeñado <span>*</span></label>
+            <input type="text" formControlName="position" class="form-input"
+                placeholder="Ej. Jefe de Proyectos, Analista Senior, Docente">
+        </div>
+
+        <!-- Rol I+D+i -->
+        <div class="form-group">
+            <label>Cargo en I+D+i</label>
+            <select formControlName="roleIdi" class="form-select">
+                <option value="">Selecciona un rol estandarizado</option>
+                <option *ngFor="let role of researchRoles" [value]="role.codigo">{{ role.nombre }}</option>
+            </select>
+        </div>
+
+        <!-- Institución -->
+        <div class="form-group">
+            <app-institution-select [control]="$any(workForm.get('institution'))" label="Institución o Empresa *"
+                placeholder="Buscar nombre de la institución..." (selectionChange)="selectInstitution($event)">
+            </app-institution-select>
+        </div>
+
+        <!-- Dates -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label>Fecha de inicio <span *ngIf="workForm.get('isCurrent')?.value">*</span></label>
+                <input type="date" formControlName="startDate" class="form-input">
+            </div>
+            <div class="form-group">
+                <label>Fecha de Fin</label>
+                <input type="date" formControlName="endDate" class="form-input">
+            </div>
+        </div>
+
+        <!-- Current Work and Principal Checkboxes -->
+        <div class="form-group checkbox-row"
+            style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: center;">
+            <label class="custom-chk-label" style="justify-content: flex-start;">
+                <input type="checkbox" formControlName="isPrincipal">
+                <span class="chk-box"></span>
+                <span class="label-text">Es principal</span>
+            </label>
+            <label class="custom-chk-label" style="justify-content: flex-start;">
+                <input type="checkbox" formControlName="isCurrent">
+                <span class="chk-box"></span>
+                <span class="label-text">Actualmente trabajo aquí</span>
+            </label>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+            <label>Descripción Cargo</label>
+            <textarea formControlName="description" class="form-textarea" rows="3"
+                placeholder="Describe brevemente tus responsabilidades, logros principales o tecnologías utilizadas..."></textarea>
+        </div>
+
+        <!-- File Upload -->
+        <div class="mb-4">
+            <app-file-uploader [(files)]="workFiles" (errorChange)="onUploadError($event)"></app-file-uploader>
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+            <button type="button" class="btn-save" (click)="saveWork()"
+                [disabled]="workForm.invalid || hasUploadError">Guardar Experiencia</button>
+        </div>
+
+    </form>
+</app-form-modal>
+
+
+
+<!-- MODAL: Docente -->
+<app-form-modal *ngIf="showDocentModal" title="Agregar Experiencia Docente"
+    subtitle="Registra tu trayectoria en cátedra universitaria o institutos de investigación, especificando tu categoría docente."
+    (close)="closeDocentModal()">
+
+    <form [formGroup]="docentForm" class="flex flex-col gap-4">
+
+        <!-- Institución -->
+        <div class="form-group">
+            <app-institution-select [control]="$any(docentForm.get('institution'))" label="Institución Educativa *"
+                placeholder="Buscar institución educativa..." (selectionChange)="selectDocentInstitution($event)">
+            </app-institution-select>
+        </div>
+
+        <!-- Tipos Row -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label class="form-label">Tipo de Institución <span class="required">*</span></label>
+                <select formControlName="institutionType" class="form-select">
+                    <option value="">Seleccionar tipo...</option>
+                    <option *ngFor="let type of institutionTypes" [value]="type.codigo">
+                        {{ type.nombre }}
+                    </option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tipo de Docente / Categoría <span class="required">*</span></label>
+                <select formControlName="docentType" class="form-select">
+                    <option value="">Seleccionar categoría...</option>
+                    <option *ngFor="let type of docentTypes" [value]="type.codigo">
+                        {{ type.nombre }}
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Fechas Row -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label class="form-label">Fecha de inicio <span
+                        *ngIf="docentForm.get('currentlyTeaching')?.value">*</span></label>
+                <input type="date" formControlName="startDate" class="form-input" placeholder="DD/MM/AAAA">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Fecha de Fin</label>
+                <input type="date" formControlName="endDate" class="form-input" placeholder="DD/MM/AAAA"
+                    [disabled]="docentForm.get('currentlyTeaching')?.value">
+            </div>
+        </div>
+
+        <!-- Checkbox Grid Row -->
+        <div class="form-row two-col">
+            <div></div> <!-- Spacer -->
+            <div class="form-group mt-2">
+                <label class="custom-chk-label">
+                    <input type="checkbox" formControlName="currentlyTeaching">
+                    <span class="chk-box"></span>
+                    <span class="label-text">Actualmente dicto cátedra aquí</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+            <label class="form-label">Descripción de cursos o asignaturas (Opcional)</label>
+            <textarea formControlName="courses" class="form-textarea" rows="3"
+                placeholder="Menciona las principales asignaturas o cátedras a tu cargo..."></textarea>
+        </div>
+
+        <!-- File Upload -->
+        <div class="mb-4 text-right">
+            <!-- Alignment for the button might be inside component, but wrapper helps -->
+            <app-file-uploader [(files)]="docentFiles" (errorChange)="onUploadError($event)"></app-file-uploader>
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeDocentModal()">Cancelar</button>
+            <button type="button" class="btn-save" (click)="saveDocent()"
+                [disabled]="docentForm.invalid || hasUploadError">Guardar Experiencia</button>
+        </div>
+
+    </form>
+</app-form-modal>
+
+<!-- Thesis Advisor Modal -->
+<app-form-modal *ngIf="showThesisAdvisorModal" title="Agregar Asesoría de Tesis"
+    subtitle="Registra las tesis que has asesorado y que han sido aceptadas o sustentadas."
+    (close)="closeThesisAdvisorModal()">
+
+    <form [formGroup]="thesisAdvisorForm" class="flex flex-col gap-5">
+        <!-- University -->
+        <div class="form-group">
+            <app-institution-select [control]="$any(thesisAdvisorForm.get('institution'))"
+                label="Universidad o Institución *" placeholder="Buscar universidad o institución..."
+                (selectionChange)="selectThesisInstitution($event)">
+            </app-institution-select>
+        </div>
+
+        <!-- Level & Date -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label class="form-label">Nivel Académico <span class="required">*</span></label>
+                <select formControlName="academicLevel" class="form-select">
+                    <option value="">Seleccionar nivel...</option>
+                    <option *ngFor="let level of academicLevels" [value]="level.codigo">
+                        {{ level.nombre }}
+                    </option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Fecha de Aceptación / Sustentación <span class="required">*</span></label>
+                <input type="date" formControlName="acceptanceDate" class="form-input" placeholder="DD/MM/AAAA">
+            </div>
+        </div>
+
+        <!-- Title -->
+        <div class="form-group">
+            <label class="form-label">Título de la Tesis <span class="required">*</span></label>
+            <input type="text" formControlName="title" class="form-input" placeholder="Ingrese el título de la tesis">
+        </div>
+
+        <!-- Student Name -->
+        <div class="form-group">
+            <label class="form-label">Nombre del Tesista(s) <span class="required">*</span></label>
+            <input type="text" formControlName="students" class="form-input"
+                placeholder="Nombre completo del alumno(s)">
+            <span class="helper-text" style="font-size: 12px; color: #666; margin-top: 4px; display: block;">Si son
+                varios, sepáralos por comas.</span>
+        </div>
+
+        <!-- Repo URL -->
+        <div class="form-group">
+            <label class="form-label">Enlace al Repositorio (URL) <span class="required">*</span></label>
+            <input type="text" formControlName="repositoryUrl" class="form-input"
+                placeholder="Ej. https://cybertesis.unmsm.edu.pe/...">
+        </div>
+
+        <!-- File Upload -->
+        <div class="mb-4">
+            <app-file-uploader [(files)]="thesisFiles" (errorChange)="onUploadError($event)"></app-file-uploader>
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeThesisAdvisorModal()">Cancelar</button>
+            <button type="button" class="btn-save" (click)="saveThesisAdvisor()"
+                [disabled]="thesisAdvisorForm.invalid">Guardar Asesoría</button>
+        </div>
+    </form>
+</app-form-modal>
+
+<!-- MODAL: Evaluador/Formulador de Proyectos -->
+<app-form-modal *ngIf="showProjectModal" title="Experiencia en Proyectos I+D+i"
+    subtitle="Registra tu participación en proyectos de investigación, desarrollo o innovación."
+    (close)="closeProjectModal()">
+
+    <form [formGroup]="projectForm" class="flex flex-col gap-5">
+
+        <!-- Row 1: Rol & Tipo -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label>Rol Desempeñado <span>*</span></label>
+                <select formControlName="role" class="form-select">
+                    <option value="">Seleccionar rol...</option>
+                    <option *ngFor="let role of projectRoles" [value]="role.codigo">{{ role.nombre }}</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Tipo de Proyecto CTI <span>*</span></label>
+                <select formControlName="projectType" class="form-select">
+                    <option value="">Seleccionar tipo...</option>
+                    <option *ngFor="let type of projectTypes" [value]="type.codigo">{{ type.nombre }}</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Row 2: Entidad Financiadora (Autocomplete) -->
+        <div class="form-group">
+            <app-institution-select [control]="$any(projectForm.get('financingEntity'))" label="Entidad Financiadora *"
+                placeholder="Buscar entidad..." (selectionChange)="selectProjectEntity($event)">
+            </app-institution-select>
+        </div>
+
+
+        <!-- Row 3: Concurso -->
+        <div class="form-group">
+            <label>Nombre del Concurso / Convocatoria <span>*</span></label>
+            <input type="text" formControlName="contestName" class="form-input"
+                placeholder="Ej. Proyectos de Investigación Aplicada 2024-I">
+        </div>
+
+        <!-- Row 4: Pais, Año, Monto -->
+        <div class="form-row three-col">
+            <div class="form-group">
+                <label>País del Proyecto <span>*</span></label>
+                <select formControlName="country" class="form-select">
+                    <option value="">Seleccionar el País</option>
+                    <option *ngFor="let country of countries" [value]="country.codigo">{{ country.nombre }}</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Año de Ejecución <span>*</span></label>
+                <select formControlName="executionYear" class="form-select">
+                    <option value="">Seleccionar año</option>
+                    <option *ngFor="let year of executionYears" [value]="year">{{ year }}</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Monto (USD) <span>*</span></label>
+                <input type="number" formControlName="amount" class="form-input" placeholder="0.00" step="0.01">
+            </div>
+        </div>
+
+        <!-- Row 5: URL -->
+        <div class="form-group">
+            <label>Enlace web del concurso (URL) <span>*</span></label>
+            <input type="text" formControlName="url" class="form-input" placeholder="https://...">
+        </div>
+
+        <!-- File Upload -->
+        <div class="mb-4">
+            <app-file-uploader [(files)]="projectFiles" (errorChange)="onUploadError($event)"></app-file-uploader>
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeProjectModal()">Cancelar</button>
+            <button type="button" class="btn-save" (click)="saveProject()"
+                [disabled]="projectForm.invalid || hasUploadError">Guardar Proyecto</button>
+        </div>
+    </form>
+</app-form-modal>
+
+<!-- File Viewer Modal -->
+<app-file-viewer-modal [isOpen]="showFileViewer" [files]="viewerFiles" (onClose)="closeFileViewer()">
+</app-file-viewer-modal>

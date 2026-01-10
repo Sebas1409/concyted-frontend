@@ -1,0 +1,70 @@
+<div class="languages-container">
+
+    <!-- Top Section: Add Language -->
+    <div class="info-card">
+        <div class="card-header">
+            <h3>Conocimiento de Idiomas</h3>
+            <p>Registra los idiomas que dominas, indicando tu nivel de competencia en lectura, escritura y conversación.
+            </p>
+        </div>
+
+        <button class="btn-action btn-outline" (click)="openModal()">
+            <span class="plus-icon">+</span>
+            Agregar Idioma
+        </button>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-card">
+        <div class="table-header-stripe">
+            <h3>Conocimiento de idiomas</h3>
+        </div>
+
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Idioma</th>
+                        <th>Lectura</th>
+                        <th>Escritura</th>
+                        <th>Conversación</th>
+                        <th>Materna</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let lang of languagesList; let i = index">
+                        <td>{{ lang.idioma }}</td>
+                        <td>{{ lang.idiomaNombre }}</td>
+                        <td>{{ lang.nivelLecturaNombre }}</td>
+                        <td>{{ lang.nivelEscrituraNombre }}</td>
+                        <td>{{ lang.nivelConversacionNombre }}</td>
+                        <td>{{ lang.esLenguaMaterna ? 'Sí' : 'No' }}</td>
+                        <td class="actions">
+                            <app-action-buttons (edit)="openModal(lang)"
+                                (delete)="deleteLanguage(lang)"></app-action-buttons>
+                        </td>
+                    </tr>
+                    <tr *ngIf="languagesList.length === 0">
+                        <td colspan="7" class="text-center p-4"
+                            style="text-align: center; padding: 2rem; color: var(--g-500);">
+                            No hay idiomas registrados.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL OVERLAY -->
+<div class="modal-overlay" *ngIf="showModal">
+    <!-- Updated Bindings for Distinct Outputs -->
+    <app-language-form [language]="selectedLanguage" [languagesOptions]="languagesOptions"
+        [learningMethodsOptions]="learningMethodsOptions" [levelsOptions]="levelsOptions" [userId]="userId"
+        [isSaving]="isSaving" (create)="handleCreateLanguage($event)" (update)="handleUpdateLanguage($event)"
+        (cancel)="closeModal()">
+    </app-language-form>
+</div>

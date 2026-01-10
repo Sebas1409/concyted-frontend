@@ -1,0 +1,41 @@
+<section class="audience-section">
+    <div class="container">
+
+        <div class="audience-header">
+            <h2 class="audience-title">
+                Nuestro Publico: Un ecosistema conectado para el desarrollo del país
+            </h2>
+
+            <div class="audience-nav">
+                <button class="nav-btn prev" (click)="prev()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15 18L9 12L15 6" stroke="#1F2937" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </button>
+
+                <button class="nav-btn next" (click)="next()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 18L15 12L9 6" stroke="#1F2937" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="audience-carousel" #carousel>
+            <div class="audience-card" *ngFor="let item of audienceList">
+                <div class="card-image-wrapper">
+                    <img [src]="item.image"
+                        onerror="this.src='https://images.unsplash.com/photo-1576086213369-97a306d36557?w=500&auto=format&fit=crop&q=60'"
+                        alt="{{item.title}}" class="card-image">
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">{{ item.title }}</h3>
+                    <p class="card-tags">{{ item.tags }}</p>
+                    <p class="card-desc">{{ item.description }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

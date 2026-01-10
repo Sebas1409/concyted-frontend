@@ -1,0 +1,343 @@
+<div class="register-container">
+    <!-- Left Panel: Branding & Info -->
+    <!-- Left Panel: Branding & Info -->
+    <app-auth-branding class="brand-container"></app-auth-branding>
+
+    <!-- Right Panel: Form Wizard -->
+    <div class="form-panel">
+        <!-- Top Navigation -->
+        <div class="top-bar">
+            <a routerLink="/" class="btn-home">
+                Volver a inicio
+                <svg width="6" height="10" viewBox="0 0 6 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 9L5 5L1 1" stroke="#1F2937" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+            </a>
+        </div>
+
+        <div class="form-wrapper">
+            <!-- Back button logic -->
+            <button *ngIf="currentStep > 0" class="btn-back-link" (click)="prevStep()">
+                <svg width="6" height="10" viewBox="0 0 6 10" fill="none" xmlns="http://www.w3.org/2000/svg"
+                    style="transform: rotate(180deg); margin-right: 5px;">
+                    <path d="M1 9L5 5L1 1" stroke="#4B5563" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                Volver
+            </button>
+
+            <!-- STEPPER (Only for Step 1 & 2) -->
+            <div class="stepper" *ngIf="currentStep > 0">
+                <div class="step-item" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
+                    <div class="step-circle">
+                        <span *ngIf="currentStep === 1">1</span>
+                        <span *ngIf="currentStep > 1">✓</span>
+                    </div>
+                    <div class="step-label">Datos<br>Personales</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item" [class.active]="currentStep === 2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Credenciales<br>de acceso</div>
+                </div>
+            </div>
+
+            <!-- HEADERS -->
+            <div class="form-header">
+                <h2 *ngIf="currentStep === 0">Registro de usuario</h2>
+                <h2 *ngIf="currentStep === 1">Datos Personales</h2>
+                <h2 *ngIf="currentStep === 2">Credenciales</h2>
+            </div>
+
+            <!-- STEP 0: VALIDATION -->
+            <form [formGroup]="step0Form" *ngIf="currentStep === 0" (ngSubmit)="onStep0Submit()">
+                <div class="form-group">
+                    <label class="form-label">Tipo de Documento <span class="required">*</span></label>
+                    <div class="radio-inline-group"
+                        style="padding: 0.6rem 0; display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <label class="radio-inline" *ngFor="let item of documentTypes">
+                            <input type="radio" [value]="item.nombre" formControlName="documentType"> {{ item.nombre }}
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Número de documento <span class="required">*</span></label>
+                    <input type="text" class="form-control" formControlName="documentNumber" placeholder="ej. 123456789"
+                        [class.is-invalid]="isFieldInvalid(step0Form, 'documentNumber')">
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid(step0Form, 'documentNumber')">
+                        <span *ngIf="step0Form.get('documentNumber')?.errors?.['required']">El número de documento es
+                            requerido</span>
+                        <span *ngIf="step0Form.get('documentNumber')?.errors?.['minlength']">Debe tener al menos 8
+                            caracteres</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Apellido Paterno <span class="required">*</span></label>
+                    <input type="text" class="form-control" formControlName="paternalSurname" placeholder="ej. Macalupu"
+                        [class.is-invalid]="isFieldInvalid(step0Form, 'paternalSurname')">
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid(step0Form, 'paternalSurname')">
+                        <span>El apellido paterno es requerido</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Apellido Materno <span class="required">*</span></label>
+                    <input type="text" class="form-control" formControlName="maternalSurname" placeholder="ej. Herrera"
+                        [class.is-invalid]="isFieldInvalid(step0Form, 'maternalSurname')">
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid(step0Form, 'maternalSurname')">
+                        <span>El apellido materno es requerido</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nombres <span class="required">*</span></label>
+                    <input type="text" class="form-control" formControlName="names" placeholder="ej. Enzo Francisco"
+                        [class.is-invalid]="isFieldInvalid(step0Form, 'names')">
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid(step0Form, 'names')">
+                        <span>Los nombres son requeridos</span>
+                    </div>
+                </div>
+
+
+
+                <button type="submit" class="btn btn-primary btn-block mt-4">
+                    {{ isForeignDocument ? 'Registrar' : 'Validar con Reniec' }}
+                </button>
+
+                <div class="divider">
+                    <span>o</span>
+                </div>
+
+                <div class="form-footer">
+                    ¿Ya tienes una cuenta? <a routerLink="/auth/login" class="link-teal">Iniciar Sesión</a>
+                </div>
+            </form>
+
+            <!-- STEP 1: PERSONAL DATA -->
+            <form [formGroup]="step1Form" *ngIf="currentStep === 1" (ngSubmit)="onStep1Submit()">
+
+                <div class="form-group">
+                    <label class="form-label">Fecha de nacimiento <span class="required">*</span></label>
+                    <input type="date" class="form-control" formControlName="birthDate"
+                        [class.is-invalid]="isFieldInvalid(step1Form, 'birthDate')">
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid(step1Form, 'birthDate')">
+                        <span>La fecha de nacimiento es requerida</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Genero <span class="required">*</span></label>
+                    <div class="radio-inline-group" style="padding: 0.6rem 0;">
+                        <label class="radio-inline">
+                            <input type="radio" value="M" formControlName="gender"> Masculino
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" value="F" formControlName="gender"> Femenino
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">{{ isForeignDocument ? 'País de Nacimiento' : 'País' }} <span
+                            class="required">*</span></label>
+                    <select class="form-control" formControlName="country"
+                        [class.is-invalid]="isFieldInvalid(step1Form, 'country')">
+                        <option value="">Selecciona un país</option>
+                        <option *ngFor="let c of countries" [ngValue]="c.id">{{ c.nombre }}</option>
+                    </select>
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid(step1Form, 'country')">
+                        <span>El país es requerido</span>
+                    </div>
+                </div>
+
+                <!-- Location fields only visible if not foreign doc and departments are loaded (implies Peru/Supported) -->
+                <ng-container *ngIf="!isForeignDocument && departments.length > 0">
+                    <div class="form-group">
+                        <label class="form-label">Departamento <span class="required">*</span></label>
+                        <select class="form-control" formControlName="department"
+                            [class.is-invalid]="isFieldInvalid(step1Form, 'department')">
+                            <option value="">Selecciona un departamento</option>
+                            <option *ngFor="let d of departments" [ngValue]="d.id">{{ d.nombre }}</option>
+                        </select>
+                        <div class="invalid-feedback" *ngIf="isFieldInvalid(step1Form, 'department')">
+                            <span>El departamento es requerido</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Provincia <span class="required">*</span></label>
+                        <select class="form-control" formControlName="province"
+                            [class.is-invalid]="isFieldInvalid(step1Form, 'province')">
+                            <option value="">Selecciona una provincia</option>
+                            <option *ngFor="let p of provinces" [ngValue]="p.id">{{ p.nombre }}</option>
+                        </select>
+                        <div class="invalid-feedback" *ngIf="isFieldInvalid(step1Form, 'province')">
+                            <span>La provincia es requerida</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Distrito <span class="required">*</span></label>
+                        <select class="form-control" formControlName="district"
+                            [class.is-invalid]="isFieldInvalid(step1Form, 'district')">
+                            <option value="">Selecciona un distrito</option>
+                            <option *ngFor="let d of districts" [ngValue]="d.id">{{ d.nombre }}</option>
+                        </select>
+                        <div class="invalid-feedback" *ngIf="isFieldInvalid(step1Form, 'district')">
+                            <span>El distrito es requerido</span>
+                        </div>
+                    </div>
+                </ng-container>
+
+                <div class="form-group" *ngIf="!isForeignDocument">
+                    <label class="form-label">Foto DNI ambas caras en PDF <span class="required">*</span></label>
+                    <div class="file-upload-box" (click)="fileInput.click()"
+                        [class.is-invalid]="isFieldInvalid(step1Form, 'dniFile')">
+                        <span class="file-placeholder" *ngIf="!step1Form.get('dniFile')?.value">Selecciona un archivo
+                            5mb max</span>
+                        <span class="file-placeholder" *ngIf="step1Form.get('dniFile')?.value"
+                            style="color: #0d9488; font-weight: 500;">
+                            {{ step1Form.get('dniFile')?.value?.name }}
+                        </span>
+                        <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)"
+                            accept=".pdf,image/*">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15"
+                                stroke="#4B5563" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M17 8L12 3L7 8" stroke="#4B5563" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path d="M12 3V15" stroke="#4B5563" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid(step1Form, 'dniFile')">
+                        <span *ngIf="step1Form.get('dniFile')?.errors?.['required']">El archivo del DNI es
+                            requerido</span>
+                        <span *ngIf="step1Form.get('dniFile')?.errors?.['maxSize']">El archivo excede el tamaño máximo
+                            permitido de 5MB</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block mt-4">Continuar</button>
+            </form>
+
+
+            <!-- STEP 2: CREDENTIALS -->
+            <form [formGroup]="step2Form" *ngIf="currentStep === 2" (ngSubmit)="onSubmit()">
+
+                <div class="form-group">
+                    <label class="form-label">Email personal <span class="required">*</span></label>
+                    <input type="email" class="form-control" formControlName="email" placeholder="ej. enzo@gmail.com"
+                        [class.is-invalid]="isFieldInvalid(step2Form, 'email')">
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid(step2Form, 'email')">
+                        <span *ngIf="step2Form.get('email')?.errors?.['required']">El email es requerido</span>
+                        <span *ngIf="step2Form.get('email')?.errors?.['email']">Ingrese un email válido</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Confirmar email <span class="required">*</span></label>
+                    <input type="email" class="form-control" formControlName="confirmEmail"
+                        placeholder="ej. enzo@gmail.com"
+                        [class.is-invalid]="isFieldInvalid(step2Form, 'confirmEmail') || (step2Form.errors?.['emailsNotSame'] && (step2Form.touched || step2Form.dirty))">
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid(step2Form, 'confirmEmail')">
+                        <span *ngIf="step2Form.get('confirmEmail')?.errors?.['required']">La confirmación de email es
+                            requerida</span>
+                        <span *ngIf="step2Form.get('confirmEmail')?.errors?.['email']">Ingrese un email válido</span>
+                    </div>
+                    <div class="invalid-feedback" style="display: block;"
+                        *ngIf="step2Form.errors?.['emailsNotSame'] && (step2Form.touched || step2Form.dirty) && !step2Form.get('confirmEmail')?.errors">
+                        <span>Los correos electrónicos no coinciden</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Celular <span class="required">*</span></label>
+                    <input type="tel" class="form-control" formControlName="phone" placeholder="ej. 987654378"
+                        [class.is-invalid]="isFieldInvalid(step2Form, 'phone')">
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid(step2Form, 'phone')">
+                        <span>El celular es requerido</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Contraseña <span class="required">*</span>
+                        <span class="info-icon" title="Ayuda">?</span>
+                    </label>
+                    <div style="position: relative;">
+                        <input [type]="showPassword ? 'text' : 'password'" class="form-control"
+                            formControlName="password" placeholder="XXXXXXX"
+                            [class.is-invalid]="isFieldInvalid(step2Form, 'password')">
+                        <button type="button" class="btn-eye" (click)="togglePasswordVisibility()">
+                            {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+                        </button>
+                    </div>
+
+                    <!-- Password Strength Checklist -->
+                    <ul class="password-requirements" *ngIf="step2Form.get('password')?.value">
+                        <li [class.completed]="step2Form.get('password')?.value?.length >= 8">
+                            Utiliza al menos 8 caracteres para tu contraseña.
+                        </li>
+                        <li [class.completed]="hasLowerCase(step2Form.get('password')?.value)">
+                            Incluye una letra minúscula (a-z).
+                        </li>
+                        <li [class.completed]="hasUpperCase(step2Form.get('password')?.value)">
+                            Agrega una letra mayúscula (A-Z).
+                        </li>
+                        <li [class.completed]="hasSpecialChar(step2Form.get('password')?.value)">
+                            Al menos 1 carácter especial (@, #, $, %, etc.).
+                        </li>
+                        <li [class.completed]="hasNumber(step2Form.get('password')?.value)">
+                            Incluye un número (0-9).
+                        </li>
+                    </ul>
+
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid(step2Form, 'password')">
+                        <span *ngIf="step2Form.get('password')?.errors?.['required']">La contraseña es requerida</span>
+                        <span *ngIf="step2Form.get('password')?.errors?.['minlength']">Mínimo 8 caracteres</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Confirmar contraseña <span class="required">*</span></label>
+                    <div style="position: relative;">
+                        <input [type]="showConfirmPassword ? 'text' : 'password'" class="form-control"
+                            formControlName="confirmPassword" placeholder="XXXXXXX"
+                            [class.is-invalid]="isFieldInvalid(step2Form, 'confirmPassword') || (step2Form.errors?.['notSame'] && (step2Form.touched || step2Form.dirty))">
+                        <button type="button" class="btn-eye" (click)="toggleConfirmPasswordVisibility()">
+                            {{ showConfirmPassword ? '👁️' : '👁️‍🗨️' }}
+                        </button>
+                    </div>
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid(step2Form, 'confirmPassword')">
+                        <span>La confirmación de contraseña es requerida</span>
+                    </div>
+                    <div class="invalid-feedback" style="display: block;"
+                        *ngIf="step2Form.errors?.['notSame'] && (step2Form.touched || step2Form.dirty) && !step2Form.get('confirmPassword')?.errors">
+                        <span>Las contraseñas no coinciden</span>
+                    </div>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="terms" formControlName="terms"
+                        [class.is-invalid]="isFieldInvalid(step2Form, 'terms')">
+                    <label for="terms">
+                        Acepto los términos y condiciones así como la política de privacidad.
+                        <a href="#" class="link-teal">Leer políticas de privacidad</a>
+                    </label>
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid(step2Form, 'terms')"
+                        style="margin-left: 0.5rem;">
+                        <span>Debe aceptar los términos</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block mt-4"
+                    [disabled]="step2Form.invalid">Registrarme</button>
+            </form>
+
+        </div>
+    </div>
+</div>

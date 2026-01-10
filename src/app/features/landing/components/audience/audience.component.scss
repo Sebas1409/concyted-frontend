@@ -1,0 +1,164 @@
+.audience-section {
+    padding: 80px 0;
+    background-color: #fff;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+
+    .container {
+        max-width: 1400px; // A bit wider to accommodate cards well
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+}
+
+/* HEADER */
+.audience-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+
+.audience-title {
+    font-size: 2.75rem;
+    font-weight: 600;
+    line-height: 1.1;
+    color: #111827; // Clean dark
+    max-width: 650px;
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.audience-nav {
+    display: flex;
+    gap: 16px;
+
+    .nav-btn {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background-color: #F3F4F6;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background-color: #E5E7EB;
+            transform: scale(1.05);
+        }
+
+        &:active {
+            transform: scale(0.95);
+        }
+
+        svg {
+            display: block;
+            width: 24px;
+            height: 24px;
+            stroke: #374151; // Dark grey for icon
+        }
+    }
+}
+
+/* CAROUSEL */
+.audience-carousel {
+    display: flex;
+    gap: 24px;
+    overflow-x: auto;
+    padding-bottom: 2rem;
+    scrollbar-width: none;
+    cursor: grab;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    &:active {
+        cursor: grabbing;
+    }
+
+    scroll-behavior: smooth;
+}
+
+.audience-card {
+    flex: 0 0 450px; // Similar width to design
+    max-width: 85vw;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-image-wrapper {
+    width: 100%;
+    height: 280px;
+    margin-bottom: 24px;
+    border-radius: 12px;
+    overflow: hidden;
+
+    .card-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    &:hover .card-image {
+        transform: scale(1.05);
+    }
+}
+
+.card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.card-tags {
+    font-size: 0.9rem;
+    color: #6B7280;
+    font-weight: 400;
+    margin: 4px 0 8px 0;
+}
+
+.card-desc {
+    font-size: 0.95rem;
+    color: #4B5563;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .audience-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .audience-title {
+        font-size: 2rem;
+    }
+
+    .audience-card {
+        flex: 0 0 320px;
+    }
+
+    .card-image-wrapper {
+        height: 220px;
+    }
+
+    .audience-nav {
+        margin-top: 1rem;
+    }
+}

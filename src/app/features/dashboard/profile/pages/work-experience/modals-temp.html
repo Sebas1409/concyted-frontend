@@ -1,0 +1,213 @@
+<!-- MODAL: Docente -->
+<div class="modal-overlay" *ngIf="showDocentModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2>Experiencia como Docente</h2>
+            <p>Registra tu experiencia académica como docente en instituciones.</p>
+        </div>
+
+        <form [formGroup]="docentForm" (ngSubmit)="saveDocent()" class="modal-form">
+
+            <!-- Institución -->
+            <div class="form-group">
+                <label>Institución *</label>
+                <input type="text" formControlName="institution" class="form-input"
+                    placeholder="Nombre de la institución">
+            </div>
+
+            <!-- Tipos -->
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>Tipo Institución *</label>
+                    <select formControlName="institutionType" class="form-input">
+                        <option value="">Seleccionar...</option>
+                        <option value="Pública">Pública</option>
+                        <option value="Privada">Privada</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tipo Docente / Categoría *</label>
+                    <select formControlName="docentType" class="form-input">
+                        <option value="">Seleccionar...</option>
+                        <option value="Principal">Principal</option>
+                        <option value="Asociado">Asociado</option>
+                        <option value="Auxiliar">Auxiliar</option>
+                        <option value="Jefe de Práctica">Jefe de Práctica</option>
+                        <option value="Invitado">Invitado</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Cursos -->
+            <div class="form-group">
+                <label>Cursos dictados (Opcional)</label>
+                <input type="text" formControlName="courses" class="form-input"
+                    placeholder="Ej. Física I, Matemáticas...">
+            </div>
+
+            <!-- Dates -->
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>Fecha de inicio *</label>
+                    <input type="date" formControlName="startDate" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>Fecha de Fin</label>
+                    <input type="date" formControlName="endDate" class="form-input">
+                </div>
+            </div>
+
+            <!-- Currently Teaching -->
+            <div class="form-group checkbox-row">
+                <label class="custom-chk-label">
+                    <input type="checkbox" formControlName="currentlyTeaching">
+                    <span class="chk-box"></span>
+                    <span class="label-text">Actualmente dicto clases aquí</span>
+                </label>
+            </div>
+
+            <!-- File Upload -->
+            <div class="file-upload-section">
+                <button type="button" class="btn-upload" (click)="uploadFile()">
+                    <span>📤</span> Adjuntar archivo (PDF, Max 5MB)
+                </button>
+            </div>
+
+            <!-- File Table (Mock Reuse) -->
+            <table class="files-table" *ngIf="file">
+                <thead>
+                    <tr>
+                        <th>Codigo</th>
+                        <th>Archivo</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ file.code }}</td>
+                        <td>{{ file.name }}</td>
+                        <td class="text-center">
+                            <button type="button" class="btn-trash" (click)="removeFile()">🗑️</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" (click)="closeDocentModal()">Cancelar</button>
+                <button type="submit" class="btn-save" [disabled]="docentForm.invalid">Guardar Docencia</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: Evaluador/Formulador de Proyectos -->
+<div class="modal-overlay" *ngIf="showProjectModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2>Experiencia en Proyectos I+D+i</h2>
+            <p>Registra tu participación en proyectos de investigación, desarrollo o innovación.</p>
+        </div>
+
+        <form [formGroup]="projectForm" (ngSubmit)="saveProject()" class="modal-form">
+
+            <!-- Concurso -->
+            <div class="form-group">
+                <label>Nombre del Concurso / Convocatoria *</label>
+                <input type="text" formControlName="contestName" class="form-input"
+                    placeholder="Ej. Proyectos de Investigación Básica 2024">
+            </div>
+
+            <!-- Entidad Financiera -->
+            <div class="form-group">
+                <label>Entidad Financiera *</label>
+                <input type="text" formControlName="financingEntity" class="form-input"
+                    placeholder="Ej. Concytec, ProCiencia, Banco Mundial">
+            </div>
+
+            <!-- Roles y Tipos -->
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>Rol en el Proyecto *</label>
+                    <select formControlName="role" class="form-input">
+                        <option value="">Seleccionar...</option>
+                        <option value="Investigador Principal">Investigador Principal</option>
+                        <option value="Co-Investigador">Co-Investigador</option>
+                        <option value="Asistente de Investigación">Asistente de Investigación</option>
+                        <option value="Tesista">Tesista</option>
+                        <option value="Coordinador">Coordinador</option>
+                        <option value="Formulador">Formulador</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Proyecto *</label>
+                    <select formControlName="projectType" class="form-input">
+                        <option value="">Seleccionar...</option>
+                        <option value="Investigación Básica">Investigación Básica</option>
+                        <option value="Investigación Aplicada">Investigación Aplicada</option>
+                        <option value="Desarrollo Tecnológico">Desarrollo Tecnológico</option>
+                        <option value="Innovación">Innovación</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Pais y Año -->
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>País *</label>
+                    <input type="text" formControlName="country" class="form-input" placeholder="Perú">
+                </div>
+                <div class="form-group">
+                    <label>Año de Ejecución *</label>
+                    <input type="text" formControlName="executionYear" class="form-input" placeholder="Ej. 2023">
+                </div>
+            </div>
+
+            <!-- Monto y URL -->
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>Monto Financiado *</label>
+                    <input type="number" formControlName="amount" class="form-input" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label>URL / Sitio Web *</label>
+                    <input type="text" formControlName="url" class="form-input" placeholder="https://...">
+                </div>
+            </div>
+
+            <!-- File Upload -->
+            <div class="file-upload-section">
+                <button type="button" class="btn-upload" (click)="uploadFile()">
+                    <span>📤</span> Adjuntar archivo (PDF, Max 5MB)
+                </button>
+            </div>
+
+            <!-- File Table (Mock Reuse) -->
+            <table class="files-table" *ngIf="file">
+                <thead>
+                    <tr>
+                        <th>Codigo</th>
+                        <th>Archivo</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ file.code }}</td>
+                        <td>{{ file.name }}</td>
+                        <td class="text-center">
+                            <button type="button" class="btn-trash" (click)="removeFile()">🗑️</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" (click)="closeProjectModal()">Cancelar</button>
+                <button type="submit" class="btn-save" [disabled]="projectForm.invalid">Guardar Proyecto</button>
+            </div>
+
+        </form>
+    </div>
+</div>

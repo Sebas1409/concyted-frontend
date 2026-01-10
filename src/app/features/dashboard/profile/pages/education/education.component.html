@@ -1,0 +1,529 @@
+<div class="education-container">
+
+    <!-- TOP ACTION CARD -->
+    <div class="card actions-card mb-4">
+        <div class="card-header">
+            <h3>Registrar Nueva Formación Académica</h3>
+            <p>Selecciona una categoría para añadir un nuevo registro a tu hoja de vida.</p>
+        </div>
+
+        <div class="buttons-row">
+            <button class="btn-action btn-outline" (click)="openImportModal()">
+                <span class="plus">+</span> Importar grados y títulos desde SUNEDU
+            </button>
+            <button class="btn-action btn-outline" (click)="openModal()">
+                <span class="plus">+</span> Agregar Manualmente
+            </button>
+            <button class="btn-action btn-outline" (click)="openTechnicalModal()">
+                <span class="plus">+</span> Estudios Tecnico superior
+            </button>
+            <button class="btn-action btn-outline" (click)="openInProgressModal()">
+                <span class="plus">+</span> Estudios Tecnico superior en curso
+            </button>
+            <button class="btn-action btn-outline" (click)="openComplementaryModal()">
+                <span class="plus">+</span> Información complementaria
+            </button>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs-container mb-4">
+        <div class="tab-item" [class.active]="activeTab === 'all'" (click)="setActiveTab('all')">
+            Todas las formaciones <span class="badge">02</span>
+        </div>
+        <div class="tab-item" [class.active]="activeTab === 'education'" (click)="setActiveTab('education')">
+            Formación académica <span class="badge">02</span>
+        </div>
+        <div class="tab-item" [class.active]="activeTab === 'technical'" (click)="setActiveTab('technical')">
+            Tecnicos superiores <span class="badge">00</span>
+        </div>
+        <div class="tab-item" [class.active]="activeTab === 'inProgress'" (click)="setActiveTab('inProgress')">
+            Tecnicos superiores en curso <span class="badge">00</span>
+        </div>
+        <div class="tab-item" [class.active]="activeTab === 'complementary'" (click)="setActiveTab('complementary')">
+            Formación complementaria <span class="badge">00</span>
+        </div>
+    </div>
+
+    <!-- CONTENT: TABLES -->
+
+    <!-- Table 1: Formacion academica -->
+    <div class="section-container mb-5" *ngIf="activeTab === 'all' || activeTab === 'education'">
+        <div class="card-header-simple">
+            <h3 class="section-title">Formación académica <i class="fas fa-graduation-cap ml-2"></i></h3>
+        </div>
+        <div class="card table-card">
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Centro de estudios</th>
+                            <th>Grado obtenido</th>
+                            <th>Título</th>
+                            <th>Fecha inicio</th>
+                            <th>Fecha fin</th>
+                            <th>Adjuntos</th>
+                            <th>Fuente</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of educationList; let i = index">
+                            <td>{{ item.code }}</td>
+                            <td>{{ item.institution }}</td>
+                            <td>{{ item.degreeType }}</td>
+                            <td>{{ item.titleName }}</td>
+                            <td>{{ item.startDate }}</td>
+                            <td>{{ item.endDate }}</td>
+                            <td><a href="javascript:void(0)" class="link-view"
+                                    (click)="openFileViewer(item, ACADEMIC_SECTION)">Ver archivos</a></td>
+                            <td class="text-center">
+                                <span *ngIf="item.isSunedu" class="sunedu-badge">SUNEDU</span>
+                                <span *ngIf="!item.isSunedu">-</span>
+                            </td>
+                            <td class="actions">
+                                <app-action-buttons (edit)="editEducation(item)"
+                                    (delete)="deleteEducation(i)"></app-action-buttons>
+                            </td>
+                        </tr>
+                        <tr *ngIf="educationList.length === 0">
+                            <td colspan="9" class="text-center p-4 text-muted bg-light">No hay registros</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table 2: Estudio tecnico superior -->
+    <div class="section-container mb-5" *ngIf="activeTab === 'all' || activeTab === 'technical'">
+        <div class="card-header-simple">
+            <h3 class="section-title">Estudio técnico superior <i class="fas fa-user-cog ml-2"></i></h3>
+        </div>
+        <div class="card table-card">
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Centro de estudios</th>
+                            <th>Carrera</th>
+                            <th>Fecha inicio</th>
+                            <th>Fecha fin</th>
+                            <th>Adjuntos</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of technicalList; let i = index">
+                            <td>{{ item.code }}</td>
+                            <td>{{ item.institution }}</td>
+                            <td>{{ item.career }}</td>
+                            <td>{{ item.startDate }}</td>
+                            <td>{{ item.endDate }}</td>
+                            <td><a href="javascript:void(0)" class="link-view"
+                                    (click)="openFileViewer(item, TECHNICAL_SECTION)">Ver archivos</a></td>
+                            <td class="actions">
+                                <app-action-buttons (edit)="editTechnical(item)"></app-action-buttons>
+                            </td>
+                        </tr>
+                        <tr *ngIf="technicalList.length === 0">
+                            <td colspan="7" class="text-center p-4 text-muted bg-light">No hay registros</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table 3: Estudios academico/tecnico superior en curso -->
+    <div class="section-container mb-5" *ngIf="activeTab === 'all' || activeTab === 'inProgress'">
+        <div class="card-header-simple">
+            <h3 class="section-title">Estudios academico/tecnico superior en curso <i
+                    class="fas fa-book-reader ml-2"></i></h3>
+        </div>
+        <div class="card table-card">
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Centro de estudios</th>
+                            <th>Carrera</th>
+                            <th>Tipo de estudios</th>
+                            <th>Fecha inicio</th>
+                            <th>Adjuntos</th>
+                            <th>Accciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of inProgressList; let i = index">
+                            <td>{{ item.code }}</td>
+                            <td>{{ item.institution }}</td>
+                            <td>{{ item.courseName }}</td>
+                            <td>{{ item.studyType }}</td>
+                            <td>{{ item.startDate }}</td>
+                            <td><a href="javascript:void(0)" class="link-view"
+                                    (click)="openFileViewer(item, IN_PROGRESS_SECTION)">Ver archivos</a></td>
+                            <td class="actions">
+                                <app-action-buttons (edit)="editInProgress(item)"></app-action-buttons>
+                            </td>
+                        </tr>
+                        <tr *ngIf="inProgressList.length === 0">
+                            <td colspan="7" class="text-center p-4 text-muted bg-light"
+                                style="color:#6B7280; text-align:center; padding: 2rem;">
+                                No hay registros
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Table 4: Formación complementaria -->
+    <div class="section-container mb-5" *ngIf="activeTab === 'all' || activeTab === 'complementary'">
+        <div class="card-header-simple">
+            <h3 class="section-title">Formación complementaria <i class="fas fa-certificate ml-2"></i></h3>
+        </div>
+        <div class="card table-card">
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Centro de estudios</th>
+                            <th>Capacitación</th>
+                            <th>Frecuencia</th>
+                            <th>Cantidad</th>
+                            <th>Fecha inicio</th>
+                            <th>Adjuntos</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of complementaryList; let i = index">
+                            <td>{{ item.code }}</td>
+                            <td>{{ item.institution }}</td>
+                            <td>{{ item.courseName }}</td>
+                            <td>{{ item.measureUnit }}</td>
+                            <td>{{ item.totalHours }}</td>
+                            <td>{{ item.startDate }}</td>
+                            <td><a href="javascript:void(0)" class="link-view"
+                                    (click)="openFileViewer(item, COMPLEMENTARY_SECTION)">Ver archivos</a></td>
+                            <td class="actions">
+                                <app-action-buttons (edit)="editComplementary(item)"></app-action-buttons>
+                            </td>
+                        </tr>
+                        <tr *ngIf="complementaryList.length === 0">
+                            <td colspan="8" class="text-center p-4 text-muted bg-light"
+                                style="color:#6B7280; text-align:center; padding: 2rem;">
+                                No hay registros
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Agregar Formación Académica -->
+<app-form-modal *ngIf="showModal" title="Agregar Formación Académica"
+    subtitle="Registra manualmente los grados o títulos que no aparecen en la búsqueda automática de SUNEDU."
+    (close)="closeModal()">
+    <form [formGroup]="educationForm" (ngSubmit)="saveEducation()" class="modal-form">
+
+        <!-- Row 1: Nivel + País -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label>Grado Obtenido <span class="required">*</span></label>
+                <input type="text" formControlName="degreeName" class="form-input" hidden>
+                <!-- degreeName backup? No, distinct field -->
+                <!-- wait, checking original -->
+                <select formControlName="academicLevel" class="form-input">
+                    <option value="">Seleccionar nivel...</option>
+                    <option value="Bachiller">Bachiller</option>
+                    <option value="Titulado">Titulado</option>
+                    <option value="Maestría">Maestría</option>
+                    <option value="Doctorado">Doctorado</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>País <span class="required">*</span></label>
+                <select formControlName="country" class="form-input">
+                    <option value="">Seleccionar país...</option>
+                    <option value="Perú">Perú</option>
+                    <option value="Extranjero">Extranjero</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Row 2: Titulo -->
+        <div class="form-group">
+            <label>Nombre del Título o Grado <span class="required">*</span></label>
+            <input type="text" formControlName="degreeName" class="form-input"
+                placeholder="Ej. Licenciado en Administración, Magíster en Finanzas...">
+        </div>
+
+        <!-- Row 3: Facultad -->
+        <div class="form-group">
+            <label>Facultad</label>
+            <input type="text" formControlName="faculty" class="form-input"
+                placeholder="Ej. Facultad de Ciencias Económicas">
+        </div>
+
+        <!-- Row 4: Institucion -->
+        <div class="form-group">
+            <app-institution-select [control]="$any(educationForm.get('institution'))" label="Institución Educativa *"
+                placeholder="Buscar institución..." (selectionChange)="selectEducationInstitution($event)">
+            </app-institution-select>
+        </div>
+
+        <!-- Row 5: Dates -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label>Fecha de Inicio <span class="required">*</span></label>
+                <input type="date" formControlName="startDate" class="form-input">
+            </div>
+            <div class="form-group">
+                <label>Fecha de Fin / Obtención <span class="required">*</span></label>
+                <input type="date" formControlName="endDate" class="form-input">
+            </div>
+        </div>
+
+        <!-- File Upload -->
+        <app-file-uploader [(files)]="educationFiles"></app-file-uploader>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="btn-save" [disabled]="educationForm.invalid">Guardar Grado</button>
+        </div>
+
+    </form>
+</app-form-modal>
+
+<!-- MODAL: Importar SUNEDU (Center Modal) -->
+<div class="modal-center-overlay" *ngIf="showImportModal">
+    <div class="modal-center-container">
+
+        <div class="modal-center-header">
+            <div class="header-title-row">
+                <h2>Importar Grados y Títulos</h2>
+                <span class="badge-dni">{{ dni }}</span>
+            </div>
+            <p>Estos son los registros académicos oficiales encontrados en SUNEDU vinculados a <strong>{{ fullName
+                    }}</strong></p>
+        </div>
+
+        <div class="import-table-wrapper">
+            <table class="import-table">
+                <thead>
+                    <tr>
+                        <th class="w-10">Seleccionar</th>
+                        <th class="w-30">Centro de estudios</th>
+                        <th class="w-40">Grado / Título</th>
+                        <th class="w-20">Grado Obtenido</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let item of suneduList">
+                        <td class="text-center">
+                            <label class="custom-chk">
+                                <input type="checkbox" [(ngModel)]="item.selected"
+                                    [ngModelOptions]="{standalone: true}">
+                                <span class="checkmark"></span>
+                            </label>
+                        </td>
+                        <td>{{ item.institution }}</td>
+                        <td>{{ item.degree }}</td>
+                        <td>{{ item.date }}</td>
+                    </tr>
+                    <!-- Mock empty row if needed, but sunedu usually found items -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeImportModal()">Cancelar</button>
+            <button type="button" class="btn-save" (click)="importSelected()">Importar Seleccionados</button>
+        </div>
+
+    </div>
+</div>
+
+<!-- MODAL: Agregar Formación Técnica (Side Modal) -->
+<!-- MODAL: Agregar Formación Técnica (Side Modal) -->
+<app-form-modal *ngIf="showTechnicalModal" title="Agregar Formación Técnica"
+    subtitle="Registra tus estudios técnicos concluidos en institutos de educación superior."
+    (close)="closeTechnicalModal()">
+    <form [formGroup]="technicalForm" (ngSubmit)="saveTechnical()" class="modal-form">
+
+        <!-- Instituto -->
+        <div class="form-group">
+            <app-institution-select [control]="$any(technicalForm.get('institution'))"
+                label="Instituto / Centro de Estudios *" placeholder="Buscar instituto..."
+                (selectionChange)="selectTechnicalInstitution($event)">
+            </app-institution-select>
+        </div>
+
+        <!-- Carrera -->
+        <div class="form-group">
+            <label>Nombre de la Carrera Técnica <span class="required">*</span></label>
+            <input type="text" formControlName="careerName" class="form-input"
+                placeholder="Ej. Desarrollo de Software, Diseño Gráfico...">
+        </div>
+
+        <!-- Dates -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label>Fecha de Inicio <span class="required">*</span></label>
+                <input type="date" formControlName="startDate" class="form-input">
+            </div>
+            <div class="form-group">
+                <label>Fecha de Fin / Egresado <span class="required">*</span></label>
+                <input type="date" formControlName="endDate" class="form-input">
+            </div>
+        </div>
+
+        <!-- File Upload -->
+        <app-file-uploader [(files)]="technicalFiles"></app-file-uploader>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeTechnicalModal()">Cancelar</button>
+            <button type="submit" class="btn-save" [disabled]="technicalForm.invalid">Guardar Estudio</button>
+        </div>
+
+    </form>
+</app-form-modal>
+
+<!-- MODAL: Agregar Estudio en Curso (Side Modal) -->
+<!-- MODAL: Agregar Estudio en Curso (Side Modal) -->
+<app-form-modal *ngIf="showInProgressModal" title="Agregar Estudio en Curso"
+    subtitle="Registra la formación académica o técnica que estás cursando actualmente."
+    (close)="closeInProgressModal()">
+    <form [formGroup]="inProgressForm" (ngSubmit)="saveInProgress()" class="modal-form">
+
+        <!-- Instituto -->
+        <div class="form-group">
+            <app-institution-select [control]="$any(inProgressForm.get('institution'))"
+                label="Instituto / Centro de Estudios *" placeholder="Buscar institución..."
+                (selectionChange)="selectInProgressInstitution($event)">
+            </app-institution-select>
+        </div>
+
+        <!-- Tipo de Estudio & Fecha Inicio -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label>Tipo de Estudio <span class="required">*</span></label>
+                <select formControlName="studyType" class="form-input">
+                    <option value="">Seleccionar nivel...</option>
+                    <option value="Pregrado">Pregrado</option>
+                    <option value="Maestría">Maestría</option>
+                    <option value="Doctorado">Doctorado</option>
+                    <option value="Técnico">Técnico</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Fecha de Inicio <span class="required">*</span></label>
+                <input type="date" formControlName="startDate" class="form-input">
+            </div>
+        </div>
+
+        <!-- Carrera -->
+        <div class="form-group">
+            <label>Nombre de la Carrera Técnica <span class="required">*</span></label>
+            <input type="text" formControlName="courseName" class="form-input"
+                placeholder="Ej. Ingeniería de Sistemas, Marketing Digital...">
+        </div>
+
+        <!-- File Upload -->
+        <app-file-uploader [(files)]="inProgressFiles"></app-file-uploader>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeInProgressModal()">Cancelar</button>
+            <button type="submit" class="btn-save" [disabled]="inProgressForm.invalid">Guardar Estudio</button>
+        </div>
+
+    </form>
+</app-form-modal>
+
+<!-- MODAL: Agregar Formación Complementaria (Side Modal) -->
+<!-- MODAL: Agregar Formación Complementaria (Side Modal) -->
+<app-form-modal *ngIf="showComplementaryModal" title="Agregar Formación Complementaria"
+    subtitle="Registra cursos cortos, diplomados, talleres o seminarios de actualización profesional."
+    (close)="closeComplementaryModal()">
+    <form [formGroup]="complementaryForm" (ngSubmit)="saveComplementary()" class="modal-form">
+
+        <!-- Instituto -->
+        <div class="form-group">
+            <app-institution-select [control]="$any(complementaryForm.get('institution'))"
+                label="Instituto / Centro de Estudios *" placeholder="Buscar institución..."
+                (selectionChange)="selectComplementaryInstitution($event)">
+            </app-institution-select>
+        </div>
+
+        <!-- Nombre Curso -->
+        <div class="form-group">
+            <label>Nombre del Curso o Programa <span class="required">*</span></label>
+            <input type="text" formControlName="courseName" class="form-input"
+                placeholder="Ej. Diplomado en Gestión Pública, Curso de Python Avanzado...">
+        </div>
+
+        <!-- Row: Pais, Unidad, Cantidad -->
+        <div class="form-row three-col">
+            <div class="form-group">
+                <label>País de Estudios <span class="required">*</span></label>
+                <select formControlName="country" class="form-input">
+                    <option value="">Seleccionar país...</option>
+                    <option value="Perú">Perú</option>
+                    <option value="España">España</option>
+                    <option value="EE.UU.">EE.UU.</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Unidad de Medida <span class="required">*</span></label>
+                <select formControlName="measureUnit" class="form-input">
+                    <option value="">Seleccionar unidad...</option>
+                    <option value="Horas">Horas</option>
+                    <option value="Créditos">Créditos</option>
+                    <option value="Semanas">Semanas</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Cantidad Total <span class="required">*</span></label>
+                <input type="number" formControlName="totalHours" class="form-input" placeholder="Ej. 48">
+            </div>
+        </div>
+
+        <!-- Dates -->
+        <div class="form-row two-col">
+            <div class="form-group">
+                <label>Fecha de Inicio <span class="required">*</span></label>
+                <input type="date" formControlName="startDate" class="form-input">
+            </div>
+            <div class="form-group">
+                <label>Fecha de fin <span class="required">*</span></label>
+                <input type="date" formControlName="endDate" class="form-input">
+            </div>
+        </div>
+
+        <!-- File Upload -->
+        <app-file-uploader [(files)]="complementaryFiles"></app-file-uploader>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeComplementaryModal()">Cancelar</button>
+            <button type="submit" class="btn-save" [disabled]="complementaryForm.invalid">Guardar
+                Capacitación</button>
+        </div>
+
+    </form>
+</app-form-modal>
+
+<!-- File Viewer Modal -->
+<!-- File Viewer Modal -->
+<app-file-viewer-modal [isOpen]="showFileViewer" [files]="viewerFiles"
+    (onClose)="showFileViewer = false"></app-file-viewer-modal>

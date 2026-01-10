@@ -1,0 +1,90 @@
+<div class="cv-container" *ngIf="researcher">
+    <!-- Header Summary -->
+    <div class="cv-header">
+        <div class="info-col">
+            <h1 class="researcher-name">{{ researcher.name }}</h1>
+            <p class="last-update" *ngIf="researcher.lastUpdate">Fecha de última actualización: {{ researcher.lastUpdate
+                }}</p>
+            <p class="bio-text">{{ researcher.bio }}</p>
+
+            <div class="action-buttons">
+                <!-- Buttons could be emitted events if specific logic is needed -->
+                <button class="btn-primary-blue">Contactar Investigador</button>
+                <button class="btn-outline">Descargar Ficha CTI</button>
+            </div>
+        </div>
+        <div class="photo-col">
+            <div class="photo-wrapper">
+                <img [src]="researcher.photo || 'assets/images/placeholder-user.png'" alt="Foto">
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicators Grid -->
+    <div class="indicators-grid">
+        <div class="indicator-card renacyt">
+            <div class="card-header">Calificado como investigador RENACYT</div>
+            <div class="card-body">
+                <p>Código: <span class="highlight">{{ researcher.renacytCode }}</span></p>
+                <span class="logo-fallback">RENACYT</span>
+            </div>
+        </div>
+        <div class="indicator-card scopus">
+            <div class="card-header">Investigadores de Autor</div>
+            <div class="card-body">
+                <p>Scopus ID: <span class="highlight">{{ researcher.scopusId }}</span></p>
+                <span class="logo-sc">SC</span>
+            </div>
+        </div>
+        <div class="indicator-card orcid">
+            <div class="card-header">ORCID Autor</div>
+            <div class="card-body">
+                <p>ID: <span class="highlight">{{ researcher.orcidId }}</span></p>
+                <span class="logo-id">ID</span>
+            </div>
+        </div>
+        <div class="indicator-card conduct">
+            <div class="card-header">Conducta Responsable</div>
+            <div class="card-body">
+                <p class="highlight">{{ researcher.conductDate || '--' }}</p>
+                <span class="logo-cti">CTI Vitae</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Static Section: Datos Generales -->
+    <section class="cv-section mb-4">
+        <div class="section-title">Datos Personales</div>
+        <div class="table-responsive">
+            <table class="cv-table">
+                <thead>
+                    <tr>
+                        <th>Nombres y Apellidos</th>
+                        <th>Género</th>
+                        <th>Nacionalidad</th>
+                        <th>Email/Web</th>
+                        <th>País Residencia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ researcher.name }}</td>
+                        <td>{{ generalData?.gender }}</td>
+                        <td>{{ generalData?.nationality }}</td>
+                        <td>{{ generalData?.email }}</td>
+                        <td>{{ generalData?.residence }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Dynamic Tabs Component -->
+    <app-researcher-tabs [workExperience]="workExperience" [docenteExperience]="docenteExperience"
+        [ctiManagementExperience]="ctiManagementExperience" [boardExperience]="boardExperience"
+        [academicFormation]="academicFormation" [technicalFormation]="technicalFormation" [projects]="projects"
+        [scientificProduction]="scientificProduction" [languages]="languages" [thesisAdvisory]="thesisAdvisory"
+        [thesisJury]="thesisJury"></app-researcher-tabs>
+
+
+</div>

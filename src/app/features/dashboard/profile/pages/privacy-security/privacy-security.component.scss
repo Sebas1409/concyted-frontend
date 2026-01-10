@@ -1,0 +1,243 @@
+/* privacy-security.component.scss */
+
+.privacy-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0;
+}
+
+/* ALERTS */
+.alert-box-success,
+.alert-box-info {
+    border-radius: 6px;
+    padding: 1rem 1.5rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+}
+
+.alert-box-success {
+    background-color: #ECFDF5;
+    /* Green 50 */
+    border: 1px solid #10B981;
+    color: #064E3B;
+    /* Green 900 */
+}
+
+.mb-4 {
+    margin-bottom: 2rem;
+}
+
+.mt-4 {
+    margin-top: 2rem;
+}
+
+/* Custom Checkbox Container */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 500;
+
+    input {
+        display: none;
+    }
+
+    .checkmark {
+        width: 20px;
+        height: 20px;
+        background-color: var(--primary-600);
+        /* Teal check bg */
+        border-radius: 4px;
+        margin-right: 1rem;
+        position: relative;
+        flex-shrink: 0;
+
+        &::after {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 3px;
+            width: 6px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+    }
+}
+
+.alert-box-info {
+    background-color: #EFF6FF;
+    /* Blue 50 */
+    color: #1E3A8A;
+    /* Blue 900 */
+    border: none;
+    /* Usually info alerts have no border or soft border */
+    align-items: center;
+    gap: 1rem;
+}
+
+.info-icon {
+    width: 24px;
+    height: 24px;
+    background-color: #3B82F6;
+    /* Blue 500 */
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-family: serif;
+    flex-shrink: 0;
+}
+
+.info-text {
+    font-size: 0.9rem;
+    color: #1F2937;
+}
+
+/* GRID LAYOUT */
+.privacy-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+/* PRIVACY CARD */
+.privacy-card {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    margin-bottom: 1.5rem;
+
+    h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1F2937;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    p {
+        font-size: 0.9rem;
+        color: #6B7280;
+        line-height: 1.4;
+    }
+}
+
+/* Checklist Items */
+.checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex: 1;
+    /* Push footer down */
+}
+
+.check-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    color: #374151;
+    cursor: pointer;
+
+    input {
+        display: none;
+    }
+
+    .custom-check {
+        width: 18px;
+        height: 18px;
+        border: 2px solid #D1D5DB;
+        /* Unchecked border */
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: bold;
+        color: transparent;
+        /* Hide checkmark when unchecked */
+        transition: all 0.2s;
+        background-color: white;
+    }
+
+    /* Checked State */
+    input:checked+.custom-check {
+        background-color: var(--primary-600);
+        /* Teal check */
+        border-color: var(--primary-600);
+        color: white;
+        /* Show checkmark */
+    }
+}
+
+/* Footer Note */
+.card-footer-note {
+    font-size: 0.85rem;
+    color: #4B5563;
+    background-color: white;
+    /* No spec bg, just text */
+    line-height: 1.5;
+    padding-top: 1rem;
+    border-top: 1px solid #F3F4F6;
+    /* Slight separator probably useful given space */
+}
+
+@media (max-width: 1024px) {
+    .privacy-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.btn-save {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #00587C;
+    border: 1px solid #00587C;
+    color: var(--text-white, #FFF);
+    height: 32px;
+    min-height: 32px;
+    padding: 6px 12px;
+    /* Wider padding for main action */
+    border-radius: 6px;
+    cursor: pointer;
+
+    /* Typography Standard */
+    text-align: center;
+    font-family: var(--font-family-Figtree, Figtree);
+    font-size: var(--font-size-11, 14px);
+    font-style: normal;
+    font-weight: var(--font-weight-semibold, 600);
+    line-height: var(--line-height-10, 20px);
+    box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.06), 0 1px 2px 0 rgba(0, 0, 0, 0.10);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+
+    &:hover {
+        background: #004663;
+        transform: translateY(-1px);
+    }
+
+    &:disabled {
+        background-color: #9CA3AF;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+}

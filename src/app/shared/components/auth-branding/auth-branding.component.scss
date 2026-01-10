@@ -1,0 +1,113 @@
+:host {
+    display: block;
+    width: 100%;
+    /* Allows the brand-panel to act as a flex child of the parent container */
+}
+
+.brand-panel {
+    height: 100%;
+    width: 100%;
+    /* Background image with teal overlay for text legibility */
+    background:
+        linear-gradient(135deg, rgba(6, 95, 107, 0.85) 0%, rgba(1, 58, 66, 0.95) 100%),
+        url('/assets/images/auth-bg-sidebar.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    position: relative;
+    padding: 3rem 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: white;
+    overflow: hidden;
+}
+
+.brand-header {
+    position: relative;
+    z-index: 1;
+
+    .concytec-logo {
+        height: 48px;
+        opacity: 0.9;
+    }
+}
+
+.brand-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    max-width: 480px;
+    margin: 0 auto;
+
+    .logo-large {
+        margin-bottom: 2rem;
+
+        .cti-logo {
+            height: 100px;
+            /* Placeholder size, adjust as needed */
+            width: auto;
+        }
+    }
+
+    .brand-disclaimer {
+        font-size: 1rem;
+        line-height: 1.5;
+        font-weight: 300;
+        opacity: 0.9;
+    }
+}
+
+.brand-footer {
+    position: relative;
+    z-index: 1;
+
+    p {
+        font-size: 0.75rem;
+        line-height: 1.5;
+        opacity: 0.7;
+        max-width: 600px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .brand-panel {
+        flex: 0 0 40%;
+        padding: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .brand-panel {
+        display: flex;
+        /* Transparent so the register container background shows through */
+        background: transparent !important;
+        padding: 1rem 1rem 0.5rem 1rem;
+        /* Minimal padding to pull everything up */
+        justify-content: center;
+        align-items: center;
+        min-height: auto;
+        height: auto;
+        width: 100%;
+    }
+
+    .brand-header {
+        align-self: center;
+        margin-top: 0;
+
+        .concytec-logo {
+            height: 60px;
+            /* Increased size as requested */
+            /* Ensure logo pops against the dark background */
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+            /* Enhanced shadow */
+            transition: all 0.3s ease;
+        }
+    }
+
+    .brand-content,
+    .brand-footer {
+        display: none;
+    }
+}

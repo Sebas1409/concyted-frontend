@@ -1,0 +1,309 @@
+/* Main Container */
+.cv-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: 'Roboto', 'Helvetica Neue', sans-serif;
+    /* Standardizing font */
+    color: #333;
+}
+
+/* Header Section */
+.cv-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #eee;
+
+    @media (max-width: 768px) {
+        flex-direction: column-reverse;
+    }
+
+    .info-col {
+        flex: 1;
+
+        .researcher-name {
+            font-size: 2.5rem;
+            color: #1a1a1a;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+            line-height: 1.1;
+        }
+
+        .last-update {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 1.5rem;
+        }
+
+        .bio-text {
+            color: #444;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            text-align: justify;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+
+            button {
+                padding: 0.7rem 1.5rem;
+                border-radius: 4px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                cursor: pointer;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                transition: all 0.2s;
+            }
+
+            .btn-primary-blue {
+                background-color: #A4C639;
+                /* Acid Green / Lime often seen in these designs or Teal*/
+                /* Let's stick to the brand Teal if not lime */
+                background-color: #005763;
+                color: white;
+                border: none;
+
+                &:hover {
+                    background-color: #00454f;
+                }
+            }
+
+            .btn-outline {
+                background: white;
+                border: 1px solid #ccc;
+                color: #555;
+
+                &:hover {
+                    border-color: #999;
+                    color: #333;
+                }
+            }
+        }
+    }
+
+    .photo-col {
+        width: 300px;
+        flex-shrink: 0;
+
+        .photo-wrapper {
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+            border-radius: 8px;
+            /* Slightly rounded */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+            img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+        }
+    }
+}
+
+/* Data Indicators (Renacyt, Scopus, etc) */
+.indicators-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+
+    @media (max-width: 992px) {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    @media (max-width: 576px) {
+        grid-template-columns: 1fr;
+    }
+
+    .indicator-card {
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+
+        .card-header {
+            background-color: #004E5A;
+            /* Dark Teal */
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+            padding: 0.6rem;
+            height: 50px;
+            /* Fixed height for alignment */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.2;
+        }
+
+        .card-body {
+            padding: 1rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            gap: 0.5rem;
+
+            p {
+                margin: 0;
+                font-size: 0.85rem;
+                color: #666;
+            }
+
+            .highlight {
+                color: #004E5A;
+                font-weight: 800;
+                font-size: 1rem;
+            }
+
+            /* Logos */
+            .logo-fallback {
+                font-weight: bold;
+                color: #555;
+            }
+
+            .logo-sc {
+                background: #FF9800;
+                color: white;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: 0.8rem;
+                font-weight: bold;
+            }
+
+            .logo-id {
+                color: #A4C639;
+                font-weight: bold;
+                font-family: monospace;
+                font-size: 1.2rem;
+            }
+
+            .logo-cti {
+                color: #004E5A;
+                font-weight: bold;
+            }
+        }
+    }
+}
+
+/* Table Sections */
+.cv-section {
+    margin-bottom: 2rem;
+
+    /* Section Title within the content area if distinct from tab */
+    .section-title {
+        background-color: #004E5A;
+        color: white;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 6px 6px 0 0;
+        margin-bottom: 0;
+    }
+
+    .table-responsive {
+        border: 1px solid #ddd;
+        border-top: none;
+        border-radius: 0 0 6px 6px;
+        overflow-x: auto;
+    }
+
+    .cv-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 700px;
+        font-size: 0.9rem;
+
+        thead {
+            tr {
+                border-bottom: 2px solid #eee;
+            }
+
+            th {
+                background-color: #fff;
+                /* Often white with bold text or light gray */
+                /* Wait, user liked the 'dark' look? The previous design had headers. 
+                   Let's stick to the Classic Report style: Header often #f4f4f4 or White with Border */
+
+                /* Actually, many CTI Vitae styles use a secondary teal header row */
+                background-color: #f8f9fa;
+                color: #004E5A;
+                font-weight: 700;
+                text-transform: uppercase;
+                font-size: 0.75rem;
+                padding: 1rem;
+                text-align: left;
+                border-bottom: 1px solid #ddd;
+            }
+        }
+
+        tbody {
+            tr {
+                background: white;
+                border-bottom: 1px solid #eee;
+                transition: background 0.1s;
+
+                &:hover {
+                    background-color: #fcfcfc;
+                }
+
+                &:last-child {
+                    border-bottom: none;
+                }
+            }
+
+            td {
+                padding: 1rem;
+                color: #444;
+                vertical-align: top;
+                line-height: 1.5;
+            }
+        }
+
+        .badge-source {
+            background: #e0f2f1;
+            color: #00695c;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-status {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

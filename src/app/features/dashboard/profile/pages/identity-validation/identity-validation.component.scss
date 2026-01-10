@@ -1,0 +1,200 @@
+/* identity-validation.component.scss */
+
+.identity-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    /* Fixed left width to match General Info */
+    gap: 3rem;
+    width: 100%;
+    margin: 0;
+    padding-bottom: 2rem;
+}
+
+.info-column h3 {
+    font-size: 1.1rem;
+    /* Match General Info */
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #1F2937;
+}
+
+.info-column p {
+    font-size: 0.9rem;
+    color: #6B7280;
+    line-height: 1.5;
+}
+
+/* Card Styling */
+.card {
+    background: white;
+    border-radius: 8px;
+    padding: 2.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #E5E7EB;
+    width: 100%;
+}
+
+/* Form Layout */
+.form-group {
+    margin-bottom: 1.5rem;
+
+    label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #1F2937;
+
+        svg {
+            display: inline-block;
+            margin-left: 0.5rem;
+            vertical-align: text-bottom;
+            color: #4B5563;
+            /* Gray-600 to match text or slightly lighter */
+        }
+    }
+}
+
+.row-2-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+/* Readonly Field Styling (Gray Background) */
+.form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: #374151;
+    outline: none;
+    transition: border 0.15s;
+    background-color: white;
+
+    &:focus {
+        box-shadow: none;
+        border-color: #005f73;
+        /* Teal focus */
+    }
+
+    &.readonly-field {
+        background-color: #F3F4F6 !important;
+        cursor: default;
+        border-color: #E5E7EB;
+
+        &:focus {
+            border-color: #E5E7EB;
+        }
+    }
+}
+
+.field-hint {
+    margin-top: 0.4rem;
+    font-size: 0.8rem;
+    color: #6B7280;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    /* Right aligned button */
+    margin-top: 2.5rem;
+}
+
+.btn-save {
+    background-color: #005f73;
+    /* Teal color */
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: background-color 0.2s;
+
+    &:hover {
+        background-color: #0a4f5f;
+    }
+}
+
+.btn-validate {
+    display: none;
+    /* Deprecated in favor of btn-save */
+}
+
+@media (max-width: 1024px) {
+    .identity-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .info-column {
+        max-width: 100%;
+        margin-bottom: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .row-2-col {
+        grid-template-columns: 1fr;
+    }
+
+    .card {
+        padding: 1.5rem;
+    }
+}
+
+/* Card Styling */
+.card {
+    background: white;
+    border-radius: 8px;
+    padding: 2.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #E5E7EB;
+    width: 100%;
+    position: relative;
+    /* Added for absolute badge positioning */
+}
+
+.card-badges {
+    position: absolute;
+    top: 1.5rem;
+    right: 3rem;
+    z-index: 10;
+}
+
+/* User removed these lines to keep context short in thought block */
+/* Form Layout */
+.form-group {
+    margin-bottom: 1.5rem;
+    /* ... */
+}
+
+/* ... */
+.badge-reniec {
+    display: inline-flex;
+    align-items: center;
+    background-color: #10B981;
+    /* Green-500 */
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 9999px;
+    /* margin-left: 0.75rem; Removed as it's now absolute */
+    font-weight: 600;
+    vertical-align: middle;
+    letter-spacing: 0.025em;
+
+    svg {
+        margin-right: 4px;
+    }
+
+    &.badge-warning {
+        background-color: #EF4444;
+        /* Amber-500 */
+    }
+}

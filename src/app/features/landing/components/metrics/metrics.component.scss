@@ -1,0 +1,130 @@
+/* ==============================
+   SECCIÓN – ALCANCE
+   ============================== */
+
+.reach-section {
+    padding: 112px 0;
+    /* igual al PDF */
+    background: var(--white);
+}
+
+/* HEADER (TÍTULO + INTEGRADO CON) */
+.reach-header {
+    max-width: 1280px;
+    margin: 0 auto 48px;
+    //padding: 0 170px;
+    /* EXACTO DEL FIGMA */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+/* TÍTULO IZQUIERDA */
+.title-left h2 {
+    margin: 0;
+    color: #17203A;
+    font-size: 45px;
+    font-weight: 500;
+    line-height: 56px;
+    letter-spacing: -2px;
+}
+
+/* DERECHA */
+.integrated-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.integrated-right .label {
+    font-size: 12px;
+    color: #58656D;
+    font-weight: 400;
+    line-height: 18px;
+    letter-spacing: 1px;
+}
+
+.integrated-right .logos {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.integrated-right .logos img {
+    height: 32px;
+    object-fit: contain;
+}
+
+/* ==============================
+   GRID DE CARDS
+   ============================== */
+.reach-grid {
+    max-width: 1280px;
+    margin: 0 auto;
+    // padding: 0 170px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+}
+
+/* CARD */
+.reach-grid .card {
+    background: #F6F7FA;
+    /* gris super claro del PDF */
+    padding: 58px;
+    border-radius: 4px;
+    border: 1px solid #F6F7FA;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.reach-grid .card h3 {
+    line-height: 56px;
+    font-size: 44.8px;
+    font-weight: 500;
+    color: var(--g-800);
+    letter-spacing: -2px;
+    margin: 0 0 8px;
+    padding-bottom: 32px;
+}
+
+.reach-grid .card p {
+    font-size: 14.8px;
+    color: var(--g-600);
+    line-height: 24px;
+    margin: 0;
+    font-weight: 400;
+    align-self: stretch;
+    padding-top: 32px;
+}
+
+/* ==============================
+   RESPONSIVE
+   ============================== */
+
+@media (max-width: 1100px) {
+    .reach-header {
+        padding: 0 2rem;
+        flex-direction: column;
+        gap: 24px;
+        text-align: left;
+    }
+
+    .integrated-right {
+        align-items: flex-start;
+    }
+
+    .reach-grid {
+        padding: 0 2rem;
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .reach-grid {
+        grid-template-columns: 1fr;
+    }
+}

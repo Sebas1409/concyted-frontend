@@ -1,0 +1,306 @@
+<!-- Tabs Navigation -->
+<div class="tabs-nav sticky-tabs">
+    <button class="tab-btn" [class.active]="activeTab === 'experience'"
+        (click)="setActiveTab('experience')">Experiencia</button>
+    <button class="tab-btn" [class.active]="activeTab === 'academic'"
+        (click)="setActiveTab('academic')">Formación</button>
+    <button class="tab-btn" [class.active]="activeTab === 'projects'"
+        (click)="setActiveTab('projects')">Proyectos</button>
+    <button class="tab-btn" [class.active]="activeTab === 'search-prod'"
+        (click)="setActiveTab('search-prod')">Producción Científica</button>
+    <button class="tab-btn" [class.active]="activeTab === 'advising'" (click)="setActiveTab('advising')">Asesoría y
+        Jurado</button>
+    <button class="tab-btn" [class.active]="activeTab === 'languages'"
+        (click)="setActiveTab('languages')">Idiomas</button>
+</div>
+
+<!-- Content Area -->
+<div class="tab-content">
+
+    <!-- TAB: EXPERIENCE -->
+    <div *ngIf="activeTab === 'experience'" class="fade-in">
+        <!-- Laboral -->
+        <section class="cv-section mb-4" *ngIf="workExperience.length > 0">
+            <div class="section-title">Experiencia laboral</div>
+            <div class="table-responsive">
+                <table class="cv-table">
+                    <thead>
+                        <tr>
+                            <th>Institución</th>
+                            <th>Cargo</th>
+                            <th>Descripción</th>
+                            <th>Periodo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of workExperience">
+                            <td>{{ item.institution }}</td>
+                            <td>{{ item.position }}</td>
+                            <td>{{ item.description }}</td>
+                            <td>{{ item.startDate }} - {{ item.endDate }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Docente -->
+        <section class="cv-section mb-4" *ngIf="docenteExperience.length > 0">
+            <div class="section-title">Experiencia laboral como docente</div>
+            <div class="table-responsive">
+                <table class="cv-table">
+                    <thead>
+                        <tr>
+                            <th>Institución</th>
+                            <th>Tipo</th>
+                            <th>Cargo/Descripción</th>
+                            <th>Periodo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of docenteExperience">
+                            <td>{{ item.institution }}</td>
+                            <td>{{ item.type }} / {{ item.docenteType }}</td>
+                            <td>{{ item.description }}</td>
+                            <td>{{ item.startDate }} - {{ item.endDate }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Gestion CTI -->
+        <section class="cv-section mb-4" *ngIf="ctiManagementExperience.length > 0">
+            <div class="section-title">Trayectoria profesional en gestión de CTI</div>
+            <div class="table-responsive">
+                <table class="cv-table">
+                    <thead>
+                        <tr>
+                            <th>Institución</th>
+                            <th>Cargo</th>
+                            <th>Periodo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of ctiManagementExperience">
+                            <td>{{ item.institution }}</td>
+                            <td>{{ item.position }}</td>
+                            <td>{{ item.period }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Consejos -->
+        <section class="cv-section mb-4" *ngIf="boardExperience.length > 0">
+            <div class="section-title">Trayectoria como miembro de consejos directivos</div>
+            <div class="table-responsive">
+                <table class="cv-table">
+                    <thead>
+                        <tr>
+                            <th>Institución</th>
+                            <th>Tipo Consejo</th>
+                            <th>Cargo</th>
+                            <th>Periodo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of boardExperience">
+                            <td>{{ item.institution }}</td>
+                            <td>{{ item.councilType }}</td>
+                            <td>{{ item.position }}</td>
+                            <td>{{ item.period }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- TAB: ACADEMIC -->
+    <div *ngIf="activeTab === 'academic'" class="fade-in">
+        <section class="cv-section mb-4">
+            <div class="section-title">Grados académicos - Títulos</div>
+            <div class="table-responsive">
+                <table class="cv-table">
+                    <thead>
+                        <tr>
+                            <th>Centro Estudios</th>
+                            <th>Grado/Título</th>
+                            <th>Mención/Especialidad</th>
+                            <th>Fecha</th>
+                            <th>Fuente</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of academicFormation">
+                            <td>{{ item.institution }}</td>
+                            <td>{{ item.degree }}</td>
+                            <td>{{ item.title }}</td>
+                            <td>{{ item.endDate }}</td>
+                            <td><span class="badge-source">{{ item.source || 'SUNEDU' }}</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="cv-section mb-4" *ngIf="technicalFormation.length > 0">
+            <div class="section-title">Estudios Técnicos</div>
+            <div class="table-responsive">
+                <table class="cv-table">
+                    <thead>
+                        <tr>
+                            <th>Institución</th>
+                            <th>Carrera</th>
+                            <th>Periodo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of technicalFormation">
+                            <td>{{ item.institution }}</td>
+                            <td>{{ item.career }}</td>
+                            <td>{{ item.startDate }} - {{ item.endDate }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- TAB: PROJECTS -->
+    <div *ngIf="activeTab === 'projects'" class="fade-in">
+        <section class="cv-section">
+            <div class="section-title">Proyectos de I+D+i</div>
+            <div class="table-responsive">
+                <table class="cv-table">
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Tipo</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of projects">
+                            <td>{{ item.title }}</td>
+                            <td>{{ item.type }}</td>
+                            <td>{{ item.role }}</td>
+                            <td><span class="badge-status">{{ item.status }}</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- TAB: SCIENTIFIC PROD -->
+    <div *ngIf="activeTab === 'search-prod'" class="fade-in">
+        <section class="cv-section">
+            <div class="section-title">Producción Científica</div>
+            <div class="table-responsive">
+                <table class="cv-table">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Título</th>
+                            <th>Detalle</th>
+                            <th>Año</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of scientificProduction">
+                            <td>{{ item.type }}</td>
+                            <td>{{ item.title }}</td>
+                            <td>{{ item.details }}</td>
+                            <td>{{ item.year }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- TAB: ADVISING -->
+    <div *ngIf="activeTab === 'advising'" class="fade-in">
+        <section class="cv-section mb-4" *ngIf="thesisAdvisory.length > 0">
+            <div class="section-title">Asesoría de Tesis</div>
+            <div class="table-responsive">
+                <table class="cv-table">
+                    <thead>
+                        <tr>
+                            <th>Tesista</th>
+                            <th>Tesis</th>
+                            <th>Institución</th>
+                            <th>Año</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of thesisAdvisory">
+                            <td>{{ item.student }}</td>
+                            <td>{{ item.thesis }}</td>
+                            <td>{{ item.university }}</td>
+                            <td>{{ item.year }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="cv-section mb-4" *ngIf="thesisJury.length > 0">
+            <div class="section-title">Jurado de Tesis</div>
+            <div class="table-responsive">
+                <table class="cv-table">
+                    <thead>
+                        <tr>
+                            <th>Tesista</th>
+                            <th>Tesis</th>
+                            <th>Institución</th>
+                            <th>Año</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of thesisJury">
+                            <td>{{ item.student }}</td>
+                            <td>{{ item.thesis }}</td>
+                            <td>{{ item.university }}</td>
+                            <td>{{ item.year }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- TAB: LANGUAGES -->
+    <div *ngIf="activeTab === 'languages'" class="fade-in">
+        <section class="cv-section">
+            <div class="section-title">Idiomas</div>
+            <div class="table-responsive">
+                <table class="cv-table">
+                    <thead>
+                        <tr>
+                            <th>Idioma</th>
+                            <th>Nivel</th>
+                            <th>Lectura</th>
+                            <th>Escritura</th>
+                            <th>Habla</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of languages">
+                            <td>{{ item.language }}</td>
+                            <td>{{ item.level }}</td>
+                            <td>{{ item.reading }}</td>
+                            <td>{{ item.writing }}</td>
+                            <td>{{ item.speaking }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+</div>

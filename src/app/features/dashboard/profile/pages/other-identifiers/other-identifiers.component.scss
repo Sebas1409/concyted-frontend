@@ -1,0 +1,274 @@
+/* other-identifiers.component.scss */
+
+.identifiers-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    width: 100%;
+    margin: 0;
+    padding-bottom: 2rem;
+}
+
+.identifiers-container {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    /* Fixed left like General Info / Identity */
+    gap: 4rem;
+    /* More gap as per screenshot */
+    padding: 2.5rem;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #E5E7EB;
+    width: 100%;
+    align-items: start;
+}
+
+/* LEFT SECTION */
+.left-section {
+    /* Implicit width from grid column */
+}
+
+.header-group h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: #1F2937;
+}
+
+.header-group p {
+    font-size: 0.85rem;
+    color: #6B7280;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid #D1D5DB;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: #1F2937;
+    outline: none;
+    transition: border 0.15s;
+
+    &:focus {
+        border-color: #9CA3AF;
+    }
+
+    &[readonly] {
+        background-color: #F3F4F6;
+        color: #6B7280;
+    }
+}
+
+.field-hint {
+    margin-top: 0.35rem;
+    font-size: 0.75rem;
+    color: #6B7280;
+
+    a {
+        color: #F97316;
+        /* Orange for Scopus link */
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+/* RIGHT SECTION */
+.right-section {
+    width: 100%;
+}
+
+/* 
+   The action grid needs to support:
+   [Card 1] [Card 2]
+   [Card 3 (Full Width or just separate)]
+   
+   We can use grid with 2 columns.
+   The 3rd item can span 2 columns if we want, or just be in flow.
+   Let's check the HTML logic. It's just 3 buttons in .action-grid.
+   We can make the 3rd child span 2 columns.
+*/
+.action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.action-card {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    position: relative;
+    min-height: 80px;
+
+    /* Make the 3rd child span full width */
+    &:nth-child(3) {
+        grid-column: span 2;
+    }
+}
+
+/*--- ICONS ---*/
+.icon-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.logo-text {
+    font-weight: 700;
+    font-size: 1rem;
+    font-family: sans-serif;
+}
+
+/* ORCID Styles */
+.card-orcid:hover {
+    border-color: #A6CE39;
+    background-color: #F7FDE8;
+    /* Light Lime/Green */
+}
+
+.orcid-bg {
+    background-color: #A6CE39;
+    color: white;
+}
+
+.title-orcid {
+    color: #65A30D;
+}
+
+/* Green 600 */
+
+/* SCOPUS Styles */
+.card-scopus:hover {
+    border-color: #F97316;
+    background-color: #FFF7ED;
+    /* Orange 50 */
+}
+
+.scopus-bg {
+    background-color: #F97316;
+    /* Orange 500 */
+    color: white;
+}
+
+.scopus-bg-pale {
+    background-color: #FFEDD5;
+    /* Orange 100 */
+    color: #F97316;
+}
+
+.title-scopus {
+    color: #EA580C;
+}
+
+/* Orange 600 */
+
+/* WOS Styles */
+.card-wos:hover {
+    border-color: #F59E0B;
+    background-color: #FFFBEB;
+    /* Amber 50 */
+}
+
+.wos-bg {
+    position: relative;
+    background-color: white;
+    /* Ideally an image for the dots */
+    border: 1px solid #FCD34D;
+}
+
+.wos-bg-pale {
+    background-color: #FEF3C7;
+}
+
+.wos-icon-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.title-wos {
+    color: #D97706;
+}
+
+/* Amber 600 */
+
+/* Common Texts */
+.action-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.action-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.1rem;
+}
+
+.action-subtitle {
+    font-size: 0.75rem;
+    color: #9CA3AF;
+}
+
+.title-red {
+    color: #EF4444;
+    /* Red for delete/unlink */
+}
+
+.arrow {
+    color: #D1D5DB;
+    font-size: 1.25rem;
+    margin-left: 0.5rem;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    .identifiers-container {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .left-section {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .action-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-card:nth-child(3) {
+        grid-column: span 1;
+    }
+}

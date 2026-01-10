@@ -1,0 +1,202 @@
+<div class="distinctions-container">
+    <app-intro-card title="Distinciones y Premios"
+        subtitle="Registra los reconocimientos, honores y premios otorgados por instituciones académicas o científicas para validar tu excelencia profesional.">
+        <button class="btn-action btn-outline" (click)="openAddModal()">
+            <span class="plus">+</span>
+            Agregar Distinción
+        </button>
+    </app-intro-card>
+
+    <div class="tabs-container">
+        <button class="tab-btn active">
+            Distinciones y premios <span class="badge">{{ distinctionsList.length > 9 ? distinctionsList.length : '0' +
+                distinctionsList.length }}</span>
+        </button>
+    </div>
+
+    <!-- Table: Distinciones (Education Style) -->
+    <div class="section-container">
+        <div class="card-header-simple">
+            <h3 class="section-title">Distinciones y Premios</h3>
+        </div>
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Distinción</th>
+                            <th>Descripción</th>
+                            <th>Institución</th>
+                            <th>Fecha</th>
+                            <th>Adjuntos</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of distinctionsList">
+                            <td>{{ item.id }}</td>
+                            <td>{{ item.nombre }}</td>
+                            <td>{{ item.descripcion }}</td>
+                            <td>{{ item.nombreInstitucion }}</td>
+                            <td>{{ item.fechaReconocimiento | date:'dd/MM/yyyy' }}</td>
+                            <td>
+                                <a href="javascript:void(0)" class="link-action" (click)="viewFile(item)">Ver
+                                    archivos</a>
+                            </td>
+                            <td class="actions">
+                                <app-action-buttons (edit)="openEditModal(item)"
+                                    (delete)="deleteDistinction(item.id)"></app-action-buttons>
+                            </td>
+                        </tr>
+                        <tr *ngIf="distinctionsList.length === 0">
+                            <td colspan="7" class="empty-message">No hay distinciones registradas.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Agregar Nueva Distinción con Form Modal -->
+    <app-form-modal *ngIf="showAddModal" [title]="'Agregar Nueva Distinción o Premio'"
+        [subtitle]="'Registra los reconocimientos, honores o premios otorgados por instituciones académicas o científicas.'"
+        (close)="closeAddModal()">
+
+        <div [formGroup]="distinctionForm" class="distinction-form-content">
+            <!-- Row 1: Institucion otorgante -->
+            <div class="form-group">
+                <label>Institución Otorgante *</label>
+                <div class="input-with-icon relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                        stroke="#6B7280"
+                        style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; pointer-events: none; z-index: 10;">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                    <input type="text" formControlName="institution" placeholder="Buscar institución..."
+                        (input)="onSearchInstitution($event)" (blur)="onBlurInstitution()" autocomplete="off"
+                        style="padding-left: 35px !important; width: 100%;"
+                        [class.invalid]="distinctionForm.get('institution')?.invalid && distinctionForm.get('institution')?.touched">
+                    <i class="chevron-icon" style="right: 1.5rem;">▼</i>
+
+                    <!-- Custom Dropdown Results -->
+                    <ul class="autocomplete-results" *ngIf="showInstitutionDropdown && institutionResults.length > 0">
+                        <li *ngFor="let item of institutionResults" (mousedown)="selectInstitution(item)">
+                            {{ item.nombre }}
+                        </li>
+                    </ul>
+                    <ul class="autocomplete-results" *ngIf="showInstitutionDropdown && institutionResults.length === 0">
+                        <li class="no-results">No se encontraron resultados</li>
+                    </ul>
+                </div>
+                <div class="error-msg"
+                    *ngIf="distinctionForm.get('institution')?.invalid && distinctionForm.get('institution')?.touched">
+                    <small style="color:red;">La institución es obligatoria.</small>
+                </div>
+            </div>
+
+            <!-- Row 2: Nombre Distinción -->
+            <div class="form-group">
+                <label>Nombre de la Distinción *</label>
+                <input type="text" formControlName="name" placeholder="Ej: Doctor Honoris Causa, Primer Puesto..."
+                    [class.invalid]="distinctionForm.get('name')?.invalid && distinctionForm.get('name')?.touched">
+                <div class="error-msg"
+                    *ngIf="distinctionForm.get('name')?.invalid && distinctionForm.get('name')?.touched">
+                    <small style="color:red;">El nombre de la distinción es obligatorio.</small>
+                </div>
+            </div>
+
+            <!-- Row 3: Descripción -->
+            <div class="form-group">
+                <label>Descripción (Opcional)</label>
+                <textarea formControlName="description" rows="3"
+                    placeholder="Describe brevemente el motivo del reconocimiento..."></textarea>
+            </div>
+
+            <!-- Row 4: Pais y Fecha -->
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>País *</label>
+                    <select formControlName="country"
+                        [class.invalid]="distinctionForm.get('country')?.invalid && distinctionForm.get('country')?.touched">
+                        <option value="">Selecciona el país...</option>
+                        <option *ngFor="let opt of countries" [value]="opt.nombre">{{ opt.nombre }}</option>
+                    </select>
+                    <div class="error-msg"
+                        *ngIf="distinctionForm.get('country')?.invalid && distinctionForm.get('country')?.touched">
+                        <small style="color:red;">El país es obligatorio.</small>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Fecha de Reconocimiento *</label>
+                    <input type="date" formControlName="date"
+                        [class.invalid]="distinctionForm.get('date')?.invalid && distinctionForm.get('date')?.touched">
+                    <div class="error-msg"
+                        *ngIf="distinctionForm.get('date')?.invalid && distinctionForm.get('date')?.touched">
+                        <small style="color:red;">La fecha es obligatoria.</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 5: Enlace -->
+            <div class="form-group">
+                <label>Enlace de Referencia</label>
+                <input type="text" formControlName="url" placeholder="https://...">
+            </div>
+
+            <!-- File Upload Section -->
+            <!-- File Upload Section -->
+            <div class="upload-section-container">
+                <app-file-uploader [files]="uploaderFiles" (filesChange)="onUploaderFilesChange($event)"
+                    [maxSizeMB]="5"></app-file-uploader>
+
+                <div *ngIf="existingFiles.length > 0 || uploaderFiles.length > 0" style="margin-top: 1rem;">
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th class="w-code text-center">Codigo</th>
+                                    <th>Archivo</th>
+                                    <th class="w-action text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Existing Files -->
+                                <tr *ngFor="let file of existingFiles; let i = index">
+                                    <td class="text-center">{{ (i + 1) < 10 ? '0' + (i + 1) : (i + 1) }}</td>
+                                    <td style="color: #374151;">{{ file.nombre }}</td>
+                                    <td class="text-center">
+                                        <app-action-buttons [canEdit]="false"
+                                            (delete)="removeExistingFile(i)"></app-action-buttons>
+                                    </td>
+                                </tr>
+                                <!-- New Files (Uploader) -->
+                                <tr *ngFor="let file of uploaderFiles; let j = index">
+                                    <td class="text-center">
+                                        {{ (existingFiles.length + j + 1) < 10 ? '0' + (existingFiles.length + j + 1) :
+                                            (existingFiles.length + j + 1) }} </td>
+                                    <td style="color: #374151;">{{ file.name }}</td>
+                                    <td class="text-center">
+                                        <app-action-buttons [canEdit]="false"
+                                            (delete)="removeNewFile(j)"></app-action-buttons>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="form-actions-footer">
+                <button class="btn-cancel" (click)="closeAddModal()">Cancelar</button>
+                <button class="btn-save" (click)="saveDistinction()" [disabled]="distinctionForm.invalid">Guardar
+                    Distinción</button>
+            </div>
+        </div>
+    </app-form-modal>
+
+    <!-- File Viewer Modal -->
+    <app-file-viewer-modal [isOpen]="showFileViewer" [files]="viewerFiles" (onClose)="showFileViewer = false">
+    </app-file-viewer-modal>

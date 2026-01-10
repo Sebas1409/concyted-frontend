@@ -1,0 +1,97 @@
+<div class="login-container">
+    <!-- Left Panel: Branding & Info -->
+    <!-- Left Panel: Branding & Info -->
+    <app-auth-branding class="brand-panel"></app-auth-branding>
+
+    <!-- Right Panel: Form -->
+    <div class="form-panel">
+        <div class="top-bar">
+            <a routerLink="/" class="btn-back">
+                Volver a inicio
+                <svg width="6" height="10" viewBox="0 0 6 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 9L5 5L1 1" stroke="#1F2937" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+            </a>
+        </div>
+
+        <div class="form-wrapper">
+            <div *ngIf="successMessage" class="alert alert-success"
+                style="background-color: #D1FAE5; color: #065F46; padding: 0.75rem; border-radius: 0.375rem; margin-bottom: 1.5rem; border: 1px solid #10B981; font-size: 0.875rem;">
+                {{ successMessage }}
+            </div>
+            <div class="form-header">
+                <h2>Bienvenido a <br> CTI Vitae</h2>
+            </div>
+
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+                <div class="form-group">
+                    <label class="form-label">Documento de identidad <span class="required">*</span></label>
+                    <input type="text" class="form-control" placeholder="ej. 123456789" formControlName="dni"
+                        [class.is-invalid]="isFieldInvalid('dni')">
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('dni')">
+                        <span *ngIf="loginForm.get('dni')?.errors?.['required']">El documento de identidad es
+                            requerido</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Contraseña <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <input [type]="showPassword ? 'text' : 'password'" class="form-control" placeholder="XXXXXX"
+                            formControlName="password" [class.is-invalid]="isFieldInvalid('password')">
+                        <button type="button" class="btn-eye" (click)="togglePasswordVisibility()">
+                            <svg *ngIf="!showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg *ngIf="showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                                </path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('password')">
+                        <span *ngIf="loginForm.get('password')?.errors?.['required']">La contraseña es requerida</span>
+                    </div>
+                </div>
+
+                <div class="check-actions">
+                    <a routerLink="/auth/recover-password" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                </div>
+
+                <div *ngIf="loginError"
+                    style="color: #b91c1c; background-color: #fef2f2; border: 1px solid #f87171; padding: 0.75rem; border-radius: 6px; font-size: 0.9rem; margin-bottom: 1rem; text-align: center; position: relative;">
+                    {{ loginError }}
+                    <span (click)="loginError = null" title="Cerrar"
+                        style="position: absolute; top: 4px; right: 8px; cursor: pointer; font-weight: bold; font-size: 1.2rem; line-height: 1; color: #991b1b;">
+                        &times;
+                    </span>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" [disabled]="isLoading">
+                    <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status"
+                        aria-hidden="true"></span>
+                    <span *ngIf="!isLoading">Iniciar sesión</span>
+                    <span *ngIf="isLoading"> Iniciando...</span>
+                </button>
+
+                <div class="divider">
+                    <span>o</span>
+                </div>
+
+                <button type="button" class="btn btn-outline btn-block">
+                    Iniciar con ORCID
+                </button>
+
+                <div class="form-footer">
+                    ¿No tienes una cuenta? <a routerLink="/auth/register" class="register-link">Regístrate</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

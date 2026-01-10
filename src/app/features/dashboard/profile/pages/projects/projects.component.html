@@ -1,0 +1,439 @@
+<div class="projects-container">
+
+    <!-- Header / Intro Card -->
+    <app-intro-card title="Proyectos de Investigación, Desarrollo e Innovación (I+D+i)"
+        subtitle="Gestiona tu portafolio de proyectos científicos y tecnológicos. Puedes registrar proyectos manualmente o visualizar aquellos importados desde tu perfil ORCID">
+        <button class="btn-action btn-outline" (click)="openModal('research')">
+            <span class="plus">+</span> Proyecto de Investigación y Desarrollo
+        </button>
+        <button class="btn-action btn-outline" (click)="openModal('innovation')">
+            <span class="plus">+</span> Proyecto de Innovación
+        </button>
+    </app-intro-card>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+        <button class="tab-item" [class.active]="activeTab === 'all'" (click)="setActiveTab('all')">
+            Todos los proyectos I+D+i <span class="badge">02</span>
+        </button>
+        <button class="tab-item" [class.active]="activeTab === 'manual'" (click)="setActiveTab('manual')">
+            Proyectos <span class="badge">00</span>
+        </button>
+        <button class="tab-item" [class.active]="activeTab === 'orcid'" (click)="setActiveTab('orcid')">
+            Proyectos importados de ORCID <span class="badge">02</span>
+        </button>
+    </div>
+
+    <!-- Table 1: Proyectos -->
+    <div *ngIf="activeTab === 'all' || activeTab === 'manual'">
+        <div class="table-card" [class.fullscreen-mode]="isTableMaximized">
+            <div class="table-header-bar">
+                <h3>Proyectos</h3>
+                <div class="icons">
+                    <!-- Clipboard Icon -->
+                    <button class="icon-btn" title="Opciones">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                            <path fill-rule="evenodd"
+                                d="M12 2.25c.621 0 1.125.504 1.125 1.125v1.875h-2.25V3.375c0-.621.504-1.125 1.125-1.125ZM16.5 6.75v-2.25a2.625 2.625 0 0 0-5.25 0v2.25H5.25v13.5h13.5v-13.5H16.5Z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <!-- Maximize/Minimize Toggle -->
+                    <button class="icon-btn" (click)="toggleMaximize()"
+                        [title]="isTableMaximized ? 'Restaurar' : 'Maximizar'">
+                        <svg *ngIf="!isTableMaximized" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                            fill="currentColor" class="w-6 h-6">
+                            <path fill-rule="evenodd"
+                                d="M15 3.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0V5.56l-3.97 3.97a.75.75 0 1 1-1.06-1.06l3.97-3.97h-2.69a.75.75 0 0 1-.75-.75Zm-12 0A.75.75 0 0 1 3.75 3h4.5a.75.75 0 0 1 0 1.5H5.56l3.97 3.97a.75.75 0 0 1-1.06 1.06L4.5 5.56v2.69a.75.75 0 0 1-1.5 0v-4.5ZM3.75 15a.75.75 0 0 1 .75.75v2.69l3.97-3.97a.75.75 0 0 1 1.06 1.06l-3.97 3.97h2.69a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 1 .75-.75Zm10.5 0a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-2.69l-3.97 3.97a.75.75 0 1 1-1.06-1.06l3.97-3.97v2.69a.75.75 0 0 1-1.5 0v-4.5Z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <svg *ngIf="isTableMaximized" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                            fill="currentColor" class="w-6 h-6">
+                            <path fill-rule="evenodd"
+                                d="M3.75 6.75a.75.75 0 0 0 0 1.5h2.69l-3.97 3.97a.75.75 0 0 0 1.06 1.06l3.97-3.97v2.69a.75.75 0 0 0 1.5 0v-4.5a.75.75 0 0 0-.75-.75h-4.5Zm16.5 0a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-2.69l-3.97 3.97a.75.75 0 1 1-1.06-1.06l3.97-3.97h2.69a.75.75 0 0 1 .75-.75h4.5ZM6.75 15a.75.75 0 0 1 .75.75v2.69l3.97-3.97a.75.75 0 1 1 1.06 1.06l-3.97 3.97h2.69a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75v-4.5Zm9.75 0a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-2.69l-3.97 3.97a.75.75 0 0 1-1.06-1.06l3.97-3.97h2.69a.75.75 0 0 1-.75-.75Z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th class="w-5">Código</th>
+                            <th class="w-15">Tipo proyecto</th>
+                            <th class="w-15">Título</th>
+                            <th class="w-20">Descripción</th>
+                            <th class="w-10">Institución</th>
+                            <th class="w-10">Fecha inicio</th>
+                            <th class="w-10">Fecha fin</th>
+                            <th class="w-10">Adjuntos</th>
+                            <th class="w-5 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let project of manualProjects">
+                            <td>{{ project.code }}</td>
+                            <td>{{ project.institution }}</td>
+                            <!-- Mapping institution here based on screenshot content column position -->
+                            <td class="font-bold">{{ project.title }}</td>
+                            <td>{{ project.description }}</td>
+                            <td>{{ project.startDate }}</td> <!-- Likely typo in mockup, mapping date here -->
+                            <td>{{ project.startDate }}</td>
+                            <td>{{ project.endDate }}</td>
+                            <td>
+                                <span class="link-action">Ver archivos</span>
+                            </td>
+                            <td class="actions">
+                                <app-action-buttons></app-action-buttons>
+                            </td>
+                        </tr>
+                        <tr *ngIf="manualProjects.length === 0">
+                            <td colspan="9" class="text-center p-4 text-gray-500">No hay proyectos manuales registrados.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table 2: Importados ORCID (Visible if activeTab is all or orcid) -->
+    <div *ngIf="activeTab === 'all' || activeTab === 'orcid'">
+        <div class="table-card">
+            <div class="table-header-bar">
+                <h3>Proyectos importados de ORCID <span class="source-text">Fuente: Connecting Research and Researchers
+                        Orcid</span></h3>
+            </div>
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th class="w-5">Código</th>
+                            <th class="w-10">Tipo financiamiento</th>
+                            <th class="w-15">Título</th>
+                            <th class="w-20">Descripción</th>
+                            <th class="w-10">Institución</th>
+                            <th class="w-10">Fecha inicio</th>
+                            <th class="w-10">Fecha fin</th>
+                            <th class="w-10 text-center">Fuente</th>
+                            <th class="w-10 text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let project of orcidProjects">
+                            <td>{{ project.code }}</td>
+                            <td>{{ project.fundingType }}</td>
+                            <td class="font-bold">{{ project.title }}</td>
+                            <td>{{ project.description }}</td>
+                            <td>{{ project.institution }}</td>
+                            <td>{{ project.startDate }}</td>
+                            <td>{{ project.endDate }}</td>
+                            <td>
+                                <div class="source-badge">
+                                    <span *ngIf="project.source !== 'SUNEDU'">S</span>
+                                    <img *ngIf="project.source === 'SUNEDU'" src="assets/images/sunedu-logo.png" alt="S"
+                                        style="width: 100%; height: 100%; border-radius: 50%; display: none;"
+                                        onload="this.style.display='block'">
+                                    <span *ngIf="project.source === 'SUNEDU'" style="font-size: 8px;">SUN</span>
+                                </div>
+                            </td>
+                            <td class="actions">
+                                <app-action-buttons></app-action-buttons>
+                            </td>
+                        </tr>
+                        <tr *ngIf="orcidProjects.length === 0">
+                            <td colspan="9" class="text-center p-4 text-gray-500">No hay proyectos importados.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL FOR NEW PROJECT -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>{{ modalTitle }}</h2>
+            <p>{{ modalDescription }}</p>
+        </div>
+
+        <form [formGroup]="projectForm" class="modal-form">
+            <div class="form-card">
+                <!-- Project Name -->
+                <div class="form-group">
+                    <label>{{ nameLabel }} <span>*</span></label>
+                    <input type="text" formControlName="projectName" class="form-input"
+                        placeholder="Ingresa el nombre oficial del proyecto...">
+                </div>
+
+                <!-- Description -->
+                <div class="form-group">
+                    <label>Descripción (Opcional)</label>
+                    <textarea formControlName="description" class="form-textarea"
+                        placeholder="Breve descripción de los objetivos y resultados esperados..."></textarea>
+                </div>
+
+                <!-- Keywords -->
+                <div class="form-group">
+                    <label>Palabras Clave <span>*</span></label>
+                    <input type="text" formControlName="keywords" class="form-input"
+                        placeholder="Ej. Biotecnología, Minería de Datos (Separar con comas)">
+                </div>
+
+                <!-- Type and Region -->
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label>Tipo de Proyecto <span>*</span></label>
+                        <select formControlName="projectType" class="form-select">
+                            <option value="" disabled selected>Seleccionar tipo...</option>
+                            <option value="Basica">Investigación Básica</option>
+                            <option value="Aplicada">Investigación Aplicada</option>
+                            <option value="Desarrollo">Desarrollo Tecnológico</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Región de Ejecución <span>*</span></label>
+                        <select formControlName="executionRegion" class="form-select">
+                            <option value="" disabled selected>Seleccionar región...</option>
+                            <option value="Lima">Lima</option>
+                            <option value="Piura">Piura</option>
+                            <option value="Arequipa">Arequipa</option>
+                            <!-- Add other regions -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Dates -->
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label>Fecha de Inicio <span>*</span></label>
+                        <input type="text" formControlName="startDate" class="form-input" placeholder="DD/MM/AAAA">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de fin <span>*</span></label>
+                        <input type="text" formControlName="endDate" class="form-input" placeholder="DD/MM/AAAA">
+                    </div>
+                </div>
+
+                <!-- Academic/Business Context and Role -->
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label>Vinculación Académica / Empresarial <span>*</span></label>
+                        <select formControlName="academicContext" class="form-select">
+                            <option value="" disabled selected>Seleccionar contexto...</option>
+                            <option value="Uni">Universidad</option>
+                            <option value="Empresa">Empresa</option>
+                            <option value="Instituto">Instituto de Investigación</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Rol Desempeñado <span>*</span></label>
+                        <select formControlName="role" class="form-select">
+                            <option value="" disabled selected>Seleccionar rol...</option>
+                            <option value="IP">Investigador Principal</option>
+                            <option value="CoI">Co-Investigador</option>
+                            <option value="Tecnico">Técnico</option>
+                            <option value="Tesista">Tesista</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Principal Investigator -->
+                <div class="form-group">
+                    <label>Investigador Principal <span>*</span></label>
+                    <div class="input-group">
+                        <input type="text" formControlName="principalInvestigator" class="form-input"
+                            placeholder="Nombre completo del responsable del proyecto">
+                        <button type="button" class="btn-secondary" (click)="openCollaboratorModal()">Agregar
+                            Colaborador</button>
+                    </div>
+                </div>
+
+                <!-- Main Institution & Collaborating Institution -->
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label>Institución Principal <span>*</span></label>
+                        <select formControlName="mainInstitution" class="form-select">
+                            <option value="" disabled selected>Buscar institución...</option>
+                            <option value="Concytec">Concytec</option>
+                            <option value="UPC">UPC</option>
+                            <option value="PUCP">PUCP</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Institución Colaboradora <span>*</span></label>
+                        <select formControlName="collaboratingInstitution" class="form-select">
+                            <option value="" disabled selected>Buscar institución...</option>
+                            <option value="None">Ninguna</option>
+                            <option value="UPC">UPC</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Funding -->
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label>Subvencionado Por (Financiadora) <span>*</span></label>
+                        <select formControlName="fundedBy" class="form-select">
+                            <option value="" disabled selected>Buscar institución...</option>
+                            <option value="ProCiencia">ProCiencia</option>
+                            <option value="Concytec">Concytec</option>
+                            <option value="Privado">Sector Privado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Concurso / Subvención <span>*</span></label>
+                        <select formControlName="grantContest" class="form-select">
+                            <option value="" disabled selected>Ej. Proyectos Semilla 2023</option>
+                            <option value="Semilla2023">Proyectos Semilla 2023</option>
+                            <option value="Basica2023">Proyectos Investigación Básica 2023</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Contract & Amount -->
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label>N° de Contrato <span>*</span></label>
+                        <input type="text" formControlName="contractNumber" class="form-input"
+                            placeholder="Ej. 125-2023-FONDECYT">
+                    </div>
+                    <div class="form-group">
+                        <label>Monto Financiado <span>*</span></label>
+                        <input type="number" formControlName="financedAmount" class="form-input" placeholder="0.00">
+                    </div>
+                </div>
+
+                <!-- OECD Fields -->
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label>Área OCDE <span>*</span></label>
+                        <select formControlName="oecdArea" class="form-select" (change)="onAreaChange($event)">
+                            <option value="" disabled selected>Seleccionar área...</option>
+                            <option *ngFor="let area of areas" [value]="area.idArea">{{ area.descripcion }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Sub-área OCDE <span>*</span></label>
+                        <select formControlName="oecdSubArea" class="form-select" (change)="onSubAreaChange($event)">
+                            <option value="" disabled selected>Seleccionar sub-área...</option>
+                            <option *ngFor="let sub of subAreas" [value]="sub.id">{{ sub.descripcion }}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label>Disciplina OCDE <span>*</span></label>
+                        <select formControlName="oecdDiscipline" class="form-select">
+                            <option value="" disabled selected>Seleccionar disciplina...</option>
+                            <option *ngFor="let disc of disciplines" [value]="disc.id">{{ disc.descripcion }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Temática Ambiental <span>*</span></label>
+                        <select formControlName="environmentalTheme" class="form-select">
+                            <option value="" disabled selected>Seleccionar temática...</option>
+                            <option *ngFor="let theme of environmentalThemes" [value]="theme.id">{{ theme.nombre }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+                    <button type="button" class="btn-save" (click)="saveProject()"
+                        [disabled]="projectForm.invalid">Guardar
+                        Proyecto</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- COLLABORATORS MODAL -->
+<div class="modal-overlay-nested" *ngIf="showCollaboratorModal" (click)="closeCollaboratorModal()">
+    <div class="modal-container-centered" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>Equipo de Colaboradores</h2>
+            <p>Registra los datos de los integrantes que participaron en el proyecto para añadirlos a tu lista.</p>
+        </div>
+
+        <form [formGroup]="collaboratorForm" class="modal-form">
+
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>Apellido Paterno <span>*</span></label>
+                    <input type="text" formControlName="paternalSurname" class="form-input" placeholder="Ej. Flores">
+                </div>
+                <div class="form-group">
+                    <label>Apellido Materno <span>*</span></label>
+                    <input type="text" formControlName="maternalSurname" class="form-input" placeholder="Ej. Sánchez">
+                </div>
+            </div>
+
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>Nombres <span>*</span></label>
+                    <input type="text" formControlName="names" class="form-input" placeholder="Ej. Juan Carlos">
+                </div>
+                <div class="form-group">
+                    <label>Correo Electrónico de Contacto <span>*</span></label>
+                    <input type="email" formControlName="email" class="form-input"
+                        placeholder="Ej. jflores@institucion.edu.pe">
+                </div>
+            </div>
+
+            <button type="button" class="btn-add-list" (click)="addCollaboratorToList()"
+                [disabled]="collaboratorForm.invalid">
+                Agregar a la lista
+            </button>
+        </form>
+
+        <!-- Collaborators List Table -->
+        <div class="collaborator-table-container">
+            <div class="table-responsive">
+                <table class="custom-table" style="font-size: 0.85rem;">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Apellido Paterno</th>
+                            <th>Apellido Materno</th>
+                            <th>Nombres</th>
+                            <th>Correo Electrónico</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let collab of collaborators; let i = index">
+                            <td>0{{collab.id}}</td>
+                            <td>{{collab.paternalSurname}}</td>
+                            <td>{{collab.maternalSurname}}</td>
+                            <td>{{collab.names}}</td>
+                            <td>{{collab.email}}</td>
+                            <td class="actions">
+                                <app-action-buttons [canEdit]="false"
+                                    (delete)="removeCollaborator(collab.id)"></app-action-buttons>
+                            </td>
+                        </tr>
+                        <tr *ngIf="collaborators.length === 0">
+                            <td colspan="6" class="text-center p-4 text-gray-500">Agrega colaboradores para verlos aquí.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="closeCollaboratorModal()">Cancelar</button>
+            <button type="button" class="btn-save" (click)="closeCollaboratorModal()">Guardar colaborador</button>
+        </div>
+    </div>
+</div>

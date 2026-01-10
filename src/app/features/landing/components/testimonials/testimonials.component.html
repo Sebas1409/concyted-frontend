@@ -1,0 +1,47 @@
+<!-- src/app/landing/testimonials/testimonials.component.html -->
+<section class="voices-section">
+    <div class="container voices-wrapper">
+
+        <h2 class="voices-title">
+            Voces que impulsan la ciencia<br>en el Perú
+        </h2>
+
+        <div class="voices-grid">
+
+            <div class="voice-card" *ngFor="let t of testimonials; let i = index" [class.active]="i === activeIndex"
+                #card [attr.data-index]="i">
+
+                <img [src]="t.image" [alt]="t.name" class="voice-image">
+
+                <div class="voice-content">
+                    <div class="voice-logo-wrapper">
+                        <img [src]="t.logo" alt="Logo" class="voice-logo">
+                    </div>
+
+                    <p class="voice-quote">
+                        {{ t.quote }}
+                    </p>
+
+                    <div class="voice-footer">
+                        <div class="voice-author">
+                            <img [src]="t.avatar" [alt]="t.name" class="author-avatar">
+                            <div class="author-info">
+                                <strong>{{ t.name }}</strong>
+                                <span>{{ t.role }}</span>
+                            </div>
+                        </div>
+
+                        <div class="redirect-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>

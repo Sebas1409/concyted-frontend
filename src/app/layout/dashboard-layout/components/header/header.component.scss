@@ -1,0 +1,136 @@
+    .dashboard-header {
+        height: 64px;
+        background-color: #004B5C;
+        /* Dark Teal from screenshot */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 2rem;
+        color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-toggle-sidebar {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+        border-radius: 4px;
+        transition: background 0.2s;
+        color: white;
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    }
+
+    .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 8px;
+        transition: background 0.2s;
+        position: relative;
+        /* Essential for dropdown positioning */
+
+        /* Show dropdown on hover */
+        &:hover .dropdown-menu {
+            display: block;
+        }
+    }
+
+    .dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 8px;
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        padding: 0.5rem;
+        min-width: 180px;
+        z-index: 1000;
+
+        /* Invisible bridge to prevent closing when moving cursor across gap */
+        &::before {
+            content: "";
+            position: absolute;
+            top: -8px;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: transparent;
+        }
+    }
+
+    .dropdown-item {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border: none;
+        background: transparent;
+        color: #374151;
+        font-size: 0.9rem;
+        cursor: pointer;
+        border-radius: 6px;
+        text-align: left;
+        font-weight: 500;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background-color: #004B5C;
+            /* Brand Teal matching Header */
+            color: #FFFFFF;
+        }
+
+        svg {
+            width: 18px;
+            height: 18px;
+        }
+    }
+
+    .user-profile:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .avatar img {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .user-info {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+
+    .name {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #FFFFFF;
+    }
+
+    .email {
+        font-size: 0.75rem;
+        color: #D1D1D1;
+        opacity: 1;
+        /* Override previous opacity */
+    }
+
+    .arrow-down {
+        /* No longer text-based, will be SVG */
+        display: flex;
+        align-items: center;
+        color: #FFFFFF;
+    }

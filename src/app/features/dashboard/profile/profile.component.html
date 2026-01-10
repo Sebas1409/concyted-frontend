@@ -1,0 +1,71 @@
+<div class="profile-container">
+
+    <!-- TOP CARD: User Summary -->
+    <div class="user-summary-card" *ngIf="user$ | async as user">
+        <div class="summary-content">
+            <!-- Avatar / Initials -->
+            <div class="user-avatar-large">
+                {{ getInitials(user) }}
+            </div>
+
+            <!-- Main Info -->
+            <div class="user-details">
+                <div class="name-row">
+                    <h1>{{ user.nombres }} {{ user.apellidoPaterno }}</h1>
+                    <span class="badge-renacyt" *ngIf="false">• RENACYT: NIVEL I</span>
+                </div>
+                <!-- Email below name for cleaner look -->
+                <!-- <div class="username-email">{{ user.email }}</div> -->
+                <div class="username">{{ user.dni || 'DNI no registrado' }}</div>
+            </div>
+
+            <!-- Meta Stats (Right Aligned) -->
+            <div class="user-meta-grid">
+                <div class="meta-item">
+                    <label>Ficha Pública CTI</label>
+                    <a href="#" class="link-external" *ngIf="user.fichaCti; else noFicha">
+                        <span class="icon">📄</span> Ver ficha <span class="copy-icon" title="Copiar enlace">❐</span>
+                    </a>
+                    <ng-template #noFicha>
+                        <span class="value" style="font-weight: 400; color: var(--g-400);">Sin ficha pública</span>
+                    </ng-template>
+                </div>
+                <div class="meta-item">
+                    <label>Ubicación</label>
+                    <div class="value">{{ getLocation(user) }}</div>
+                </div>
+                <div class="meta-item">
+                    <label>ORCID ID</label>
+                    <div class="value">{{ user.orcidId || '---' }}</div>
+                </div>
+            </div>
+        </div>
+
+        <ng-container *ngIf="showGeneralSubTabs">
+            <div class="card-divider"></div>
+            <!-- Action Buttons for General View -->
+            <div class="profile-actions">
+                <div class="right-actions">
+                    <button class="btn btn-outline small">Exportar CV</button>
+                    <button class="btn btn-primary-teal small">Solicitar Clasificación</button>
+                </div>
+            </div>
+        </ng-container>
+    </div>
+
+    <!-- MAIN TABS NAVIGATION REMOVED AS PER REQUEST -->
+
+    <!-- SUB TABS NAVIGATION: Only for General Data Section -->
+    <div class="profile-tabs sub-tabs" *ngIf="showGeneralSubTabs">
+        <a routerLink="general" routerLinkActive="active" class="tab-item small-tab">Información General</a>
+        <a routerLink="identity" routerLinkActive="active" class="tab-item small-tab">Documentos de Identidad</a>
+        <a routerLink="identifiers" routerLinkActive="active" class="tab-item small-tab">Otros Identificadores</a>
+        <a routerLink="privacy" routerLinkActive="active" class="tab-item small-tab">Privacidad y Accesos</a>
+    </div>
+
+    <!-- CHILD CONTENT (The Forms) -->
+    <div class="profile-content">
+        <router-outlet></router-outlet>
+    </div>
+
+</div>

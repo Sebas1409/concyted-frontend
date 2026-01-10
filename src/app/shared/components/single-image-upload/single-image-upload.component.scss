@@ -1,0 +1,255 @@
+    /* Default Mode Styles */
+    .upload-area {
+        border: 2px dashed #E5E7EB;
+        border-radius: 8px;
+        padding: 24px;
+        text-align: center;
+        background: #F9FAFB;
+        transition: all 0.2s;
+        min-height: 180px;
+        height: 100%;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        &.dragging {
+            border-color: #005470;
+            background: #F0F9FF;
+        }
+
+        &.has-error {
+            border-color: #DC2626;
+            background: #FEF2F2;
+        }
+
+        &.has-preview {
+            padding: 8px;
+        }
+    }
+
+    .upload-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        width: 100%;
+    }
+
+    .avatar-placeholder {
+        width: 80px;
+        height: 80px;
+        background: #D1FAE5;
+        /* Green-100 */
+        color: #064E3B;
+        /* Green-900 */
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    .upload-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-upload {
+        background: white;
+        border: 1px solid #D1D5DB;
+        padding: 8px 16px;
+        border-radius: 6px;
+        color: #374151;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+            border-color: #005470;
+            color: #005470;
+        }
+    }
+
+    .hint {
+        font-size: 12px;
+        color: #6B7280;
+        max-width: 300px;
+        line-height: 1.4;
+    }
+
+    .image-preview {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        position: relative;
+        overflow: hidden;
+
+        // Checkerboard background for transparency support
+        background-color: #f0f0f0;
+        background-image:
+            linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%, #ddd),
+            linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%, #ddd);
+        background-position: 0 0, 10px 10px;
+        background-size: 20px 20px;
+        border-radius: 8px;
+
+        img {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+            display: block;
+        }
+
+        &:hover .preview-actions {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .preview-actions {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 16px;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 100%);
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        z-index: 10;
+    }
+
+    .btn-change-image {
+        border: none;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        backdrop-filter: blur(4px);
+        transition: all 0.2s;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        background: rgba(255, 255, 255, 0.95);
+        color: #1F2937;
+
+        &:hover {
+            background: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.3);
+        }
+    }
+
+    .btn-remove-image {
+        border: none;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        backdrop-filter: blur(4px);
+        transition: all 0.2s;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        background: rgba(254, 242, 242, 0.95);
+        color: #DC2626;
+
+        &:hover {
+            background: #FEE2E2;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.3);
+        }
+    }
+
+    .error-message {
+        margin-top: 8px;
+        color: #DC2626;
+        font-size: 13px;
+        text-align: left;
+    }
+
+    /* Compact Mode Styles */
+    .upload-compact-layout {
+        display: flex;
+        gap: 24px;
+        align-items: flex-start;
+        /* Align top so text doesn't center weirdly if avatar is tall */
+    }
+
+    .avatar-compact {
+        width: 100px;
+        /* Increased from 80 */
+        height: 100px;
+        /* Increased from 80 */
+        background: #D1FAE5;
+        /* Reverted to Green */
+        color: #064E3B;
+        /* Keep text color or change? format is JA placeholder */
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 24px;
+        overflow: hidden;
+        flex-shrink: 0;
+        border: 1px solid #E5E7EB;
+        /* Always show border */
+
+        &.has-image {
+            background: transparent;
+            padding: 4px;
+        }
+    }
+
+    .avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .compact-info {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-start;
+        padding-top: 4px;
+        /* Align button with top of avatar visually */
+        max-width: 400px;
+        /* Allow more space for text */
+    }
+
+    .btn-outline-xs {
+        background: white;
+        border: 1px solid #D1D5DB;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 13px;
+        color: #374151;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+            background: #F3F4F6;
+            border-color: #9CA3AF;
+        }
+    }
+
+    .hint {
+        font-size: 12px;
+        color: #6B7280;
+    }

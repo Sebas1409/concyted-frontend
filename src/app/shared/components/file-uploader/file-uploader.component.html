@@ -1,0 +1,43 @@
+<div class="file-uploader-container">
+    <div class="upload-header">
+        <label class="btn-upload">
+            <input type="file" [accept]="accept" (change)="onFileSelected($event)" hidden>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+            </svg>
+            Adjuntar archivo (PDF, Max {{maxSizeMB}}MB)
+        </label>
+
+        <div *ngIf="errorMessage" class="error-message">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+            </svg>
+            {{ errorMessage }}
+        </div>
+    </div>
+
+    <div class="table-responsive" *ngIf="files.length > 0">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th class="w-code">Codigo</th>
+                    <th>Archivo</th>
+                    <th class="w-action text-center">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let file of files; let i = index">
+                    <td class="text-center">{{ (i + 1) < 10 ? '0' + (i + 1) : (i + 1) }}</td>
+                    <td>{{ file.name }}</td>
+                    <td class="text-center">
+                        <app-action-buttons [canEdit]="false" (delete)="removeFile(i)"></app-action-buttons>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

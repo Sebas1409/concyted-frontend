@@ -1,0 +1,80 @@
+<div class="modal-container">
+    <div class="modal-header">
+        <h2>{{ isEditing ? 'Editar Idioma' : 'Agregar Idioma' }}</h2>
+        <p>Registra tu nivel de dominio indicando tus competencias en lectura, escritura y conversación.</p>
+    </div>
+
+    <form [formGroup]="languageForm" (ngSubmit)="onSubmit()" class="modal-form">
+        <div class="form-card">
+            <!-- Row 1: Idioma & Lengua Materna -->
+            <div class="form-row split-row-large">
+                <div class="form-group">
+                    <label>Idioma</label>
+                    <select formControlName="name" class="form-input">
+                        <option value="" disabled selected>Seleccionar idioma...</option>
+                        <option *ngFor="let lang of languagesOptions" [value]="lang.id">{{ lang.nombre }}</option>
+                    </select>
+                </div>
+
+                <div class="form-group checkbox-wrapper">
+                    <label>Lengua Materna *</label>
+                    <label class="custom-checkbox-label">
+                        <input type="checkbox" formControlName="isNative">
+                        <span class="checkmark"></span>
+                        Es mi lengua materna
+                    </label>
+                </div>
+            </div>
+
+            <!-- Row 2: Competencias -->
+            <div class="form-row three-col">
+                <div class="form-group">
+                    <label>Lectura *</label>
+                    <select formControlName="reading" class="form-input">
+                        <option value="" disabled selected>Seleccione el nivel...</option>
+                        <option *ngFor="let level of levelsOptions" [value]="level.id">{{ level.nombre }}</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Escritura *</label>
+                    <select formControlName="writing" class="form-input">
+                        <option value="" disabled selected>Seleccione el nivel...</option>
+                        <option *ngFor="let level of levelsOptions" [value]="level.id">{{ level.nombre }}</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Conversación *</label>
+                    <select formControlName="speaking" class="form-input">
+                        <option value="" disabled selected>Seleccione el nivel...</option>
+                        <option *ngFor="let level of levelsOptions" [value]="level.id">{{ level.nombre }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 3: Forma de aprendizaje -->
+            <div class="form-group">
+                <label>Forma de aprendizaje *</label>
+                <select formControlName="learningMethod" class="form-input">
+                    <option value="" disabled selected>Seleccionar la forma de aprendizaje...</option>
+                    <option *ngFor="let method of learningMethodsOptions" [value]="method.id">{{ method.nombre }}
+                    </option>
+                </select>
+            </div>
+
+            <!-- Actions -->
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" (click)="onCancel()">Cancelar</button>
+                <button type="submit" class="btn-save" [disabled]="languageForm.invalid || isSaving">
+                    <ng-container *ngIf="isSaving; else saveText">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
+                            style="margin-right: 5px;"></span>
+                        Guardando...
+                    </ng-container>
+                    <ng-template #saveText>{{ isEditing ? 'Actualizar Idioma' : 'Guardar Idioma' }}</ng-template>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>

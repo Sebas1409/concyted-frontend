@@ -1,0 +1,179 @@
+<app-landing-header></app-landing-header>
+
+<div class="search-page-container">
+    <div class="content-wrapper">
+        <h2 class="page-title">Buscador de Investigadores</h2>
+
+        <!-- Filters Section -->
+        <div class="filters-card">
+            <form [formGroup]="filterForm" (ngSubmit)="search()">
+                <!-- Search Input -->
+                <div class="search-bar-row">
+                    <div class="input-icon-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" formControlName="searchText"
+                            placeholder="Buscar por nombres, apellidos, código Renacyt o DNI..."
+                            class="main-search-input">
+                    </div>
+                    <button type="submit" class="btn-search">
+                        <span class="icon">🔍</span> Buscar
+                    </button>
+                </div>
+
+                <!-- Dropdowns & Radios Row -->
+                <div class="filters-grid">
+                    <!-- Col 1: Lugar de residencia -->
+                    <div class="filter-group">
+                        <label>Lugar de residencia</label>
+                        <select formControlName="residence" class="form-select">
+                            <option value="">Seleccione...</option>
+                            <option value="Lima">Lima</option>
+                            <option value="Arequipa">Arequipa</option>
+                            <option value="Cusco">Cusco</option>
+                        </select>
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" formControlName="isForeigner" id="chkForeigner">
+                            <label for="chkForeigner">Extranjero</label>
+                        </div>
+                    </div>
+
+                    <!-- Col 2: Área OCDE -->
+                    <div class="filter-group">
+                        <label>Área OCDE</label>
+                        <select formControlName="ocdeArea" class="form-select">
+                            <option value="">Seleccione...</option>
+                            <option value="Ingeniería">Ingeniería</option>
+                            <option value="Medicina">Medicina</option>
+                            <option value="Sociales">Ciencias Sociales</option>
+                        </select>
+                    </div>
+
+                    <!-- Col 3: Grado Sunedu -->
+                    <div class="filter-group">
+                        <label>Grado Sunedu</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" formControlName="suneduGrade" value="Doctor">
+                                Doctor
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" formControlName="suneduGrade" value="Maestro">
+                                Maestro
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Col 4: Nacionalidad -->
+                    <div class="filter-group">
+                        <label>Nacionalidad</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" formControlName="nationality" value="Peruana">
+                                Peruana
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" formControlName="nationality" value="Extranjera">
+                                Extranjera
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filters-footer">
+                    <a href="javascript:void(0)" class="clear-filters" (click)="clearFilters()">Limpiar filtros</a>
+                </div>
+
+                <!-- Recaptcha Mock -->
+                <div class="recaptcha-mock">
+                    <div class="recaptcha-box">
+                        <input type="checkbox" class="recaptcha-check" disabled>
+                        <span class="recaptcha-text">No soy un robot</span>
+                        <div class="recaptcha-logo">
+                            <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA">
+                            <span>reCAPTCHA</span>
+                            <small>Privacidad - Términos</small>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section">
+            <h3 class="results-count">{{ totalResults }} Resultados encontrados</h3>
+
+            <div class="results-table-card">
+                <div class="table-responsive">
+                    <table class="search-table">
+                        <thead>
+                            <tr>
+                                <th class="w-num">N° ↓↑</th>
+                                <th class="w-sex">Sexo ↓↑</th>
+                                <th class="w-name">Nombre y Datos ↓↑</th>
+                                <th class="w-summary">Resumen Profesional ↓↑</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let item of results; let i = index">
+                                <td class="text-center">{{ (i + 1).toString().padStart(2, '0') }}</td>
+                                <td class="text-center">
+                                    <div class="sex-icon male">♂</div>
+                                </td>
+                                <td>
+                                    <div class="researcher-info">
+                                        <a [routerLink]="['/search/researcher', item.id]" class="name-link">👤 {{
+                                            item.name }}</a>
+                                        <div class="info-row">
+                                            <span class="icon">🏛️</span> {{ item.institution }}
+                                        </div>
+                                        <div class="info-row">
+                                            <span class="icon">📍</span> {{ item.location }}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <p class="summary-text">{{ item.summary }}</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination">
+                    <div class="pagination-controls">
+                        <span class="label">Mostrar</span>
+                        <select class="page-size" (change)="onPageSizeChange($event)">
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="20">20</option>
+                        </select>
+                        <span class="label">elementos</span>
+
+                        <div class="pages">
+                            <button class="page-btn" [disabled]="currentPage === 1"
+                                (click)="changePage(currentPage - 1)">Anterior</button>
+
+                            <button *ngFor="let page of pagesArray" class="page-btn"
+                                [class.active]="page === currentPage" (click)="changePage(page)">
+                                {{ page }}
+                            </button>
+
+                            <button class="page-btn" [disabled]="currentPage === totalPages"
+                                (click)="changePage(currentPage + 1)">Siguiente</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="disclaimer-alert">
+                <span class="info-icon">ℹ️</span>
+                <p>La información de este directorio es auto referenciada, por lo que el contenido de cada perfil es de
+                    responsabilidad exclusiva de la persona inscrita; y por lo tanto, no debe ser considerado como una
+                    fuente de información oficial.</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<app-footer></app-footer>

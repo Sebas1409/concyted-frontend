@@ -1,0 +1,722 @@
+<div class="production-container">
+
+    <app-intro-card title="Producción Científica"
+        subtitle="Gestiona tus artículos, libros y ponencias. Te recomendamos importar tu producción desde fuentes oficiales para asegurar su validación automática.">
+        <button class="btn-action btn-outline" (click)="importPublications()">
+            <span class="plus">+</span> Importar Publicaciones
+        </button>
+        <button class="btn-action btn-outline" (click)="addPublication()">
+            <span class="plus">+</span> Agregar Publicación
+        </button>
+        <button class="btn-action btn-outline" (click)="addCongress()">
+            <span class="plus">+</span> Agregar Congreso
+        </button>
+        <button class="btn-action btn-outline" (click)="addOther()">
+            <span class="plus">+</span> Otros
+        </button>
+    </app-intro-card>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+        <button class="tab-btn" [class.active]="activeTab === 'all'" (click)="setActiveTab('all')">
+            Todas las producciones <span class="badge">02</span>
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'imported'" (click)="setActiveTab('imported')">
+            Producción Importada <span class="badge">02</span>
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'manual'" (click)="setActiveTab('manual')">
+            Registros Manuales <span class="badge">02</span>
+        </button>
+    </div>
+
+    <!-- Table 1: Producción Importada -->
+    <div *ngIf="activeTab === 'all' || activeTab === 'imported'">
+        <div class="table-header-custom">
+            <h3 class="section-title">Producción Científica (Importadas de Scopus, Web of Science, ORCID, ALICIA)</h3>
+            <div class="icons">
+                <span>📋</span>
+                <span>✖️</span>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>N°</th>
+                            <th>Tipo Producción</th>
+                            <th>Título</th>
+                            <th>Autor</th>
+                            <th>Año</th>
+                            <th>DOI</th>
+                            <th>Revista</th>
+                            <th>Fuente</th>
+                            <th>Cuartil de ScimagoJR o JCR (*)</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of importedProductions; let i = index">
+                            <td>00{{ i + 1 }}</td>
+                            <td>{{ item.type }}</td>
+                            <td>{{ item.title }}</td>
+                            <td>{{ item.author }}</td>
+                            <td>{{ item.year }}</td>
+                            <td>{{ item.doi }}</td>
+                            <td>{{ item.journal }}</td>
+                            <td>
+                                <span class="source-badge">{{ item.source }}</span>
+                            </td>
+                            <td>{{ item.quartile }}</td>
+                            <td class="actions">
+                            <td class="actions">
+                                <app-action-buttons [canEdit]="false"
+                                    (delete)="deleteImportedProduction(i)"></app-action-buttons>
+                            </td>
+                        </tr>
+                        <tr *ngIf="importedProductions.length === 0">
+                            <td colspan="10" class="text-center p-4 text-gray-500">No hay producciones importadas.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table 2: Registros Manuales -->
+    <div *ngIf="activeTab === 'all' || activeTab === 'manual'">
+        <div class="table-header-custom">
+            <h3 class="section-title">Otras Producciones (Ingreso manual)</h3>
+            <div class="icons">
+                <span>📋</span>
+                <span>✖️</span>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Tipo Producción</th>
+                            <th>Título</th>
+                            <th>Fecha producción</th>
+                            <th>Adjuntos</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of manualProductions">
+                            <td>{{ item.code }}</td>
+                            <td>{{ item.type }}</td>
+                            <td>{{ item.title }}</td>
+                            <td>{{ item.date }}</td>
+                            <td>
+                                <span class="link-action">{{ item.attachments }}</span>
+                            </td>
+                            <td class="actions">
+                            <td class="actions">
+                                <app-action-buttons (edit)="editManualProduction(item)"
+                                    (delete)="deleteManualProduction(item)"></app-action-buttons>
+                            </td>
+                        </tr>
+                        <tr *ngIf="manualProductions.length === 0">
+                            <td colspan="6" class="text-center p-4 text-gray-500">No hay registros manuales.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- IMPORT ACTIONS -->
+<!-- Modal: Importar Publicaciones -->
+<div class="modal-overlay" *ngIf="showImportModal" (click)="closeImportModal()">
+    <div class="modal-container large" (click)="$event.stopPropagation()">
+        <!-- Header with ID badge style from image -->
+        <div class="modal-header-row">
+            <div class="title-group">
+                <h2>Importar y Sincronizar Publicaciones</h2>
+                <span class="id-badge">73946466</span>
+            </div>
+            <button class="btn-close-x" (click)="closeImportModal()">✕</button>
+        </div>
+        <p class="modal-subtitle">Registros académicos oficiales vinculados a tu perfil RENACYT. Selecciona y confirma
+            las publicaciones que deseas añadir a tu CTI Vitae.</p>
+
+        <!-- Sync Actions -->
+        <div class="sync-actions">
+            <!-- ORCID -->
+            <button class="btn-sync" [class.connected]="syncStatus.orcid" (click)="toggleSync('orcid')">
+                <div class="icon-circle orcid">ID</div>
+                <span *ngIf="!syncStatus.orcid">Sincronizar tu ORCID iD</span>
+                <span *ngIf="syncStatus.orcid">Sincronizado con ORCID</span>
+                <span *ngIf="syncStatus.orcid" class="check">✓</span>
+            </button>
+
+            <!-- Scopus -->
+            <button class="btn-sync" [class.connected]="syncStatus.scopus" (click)="toggleSync('scopus')">
+                <div class="icon-circle scopus">SC</div>
+                <span *ngIf="!syncStatus.scopus">Sincronizar con Scopus</span>
+                <span *ngIf="syncStatus.scopus">Sincronizado con Scopus</span>
+                <span *ngIf="syncStatus.scopus" class="check">✓</span>
+            </button>
+
+            <!-- Profile/Alicia -->
+            <button class="btn-sync" [class.connected]="syncStatus.profile" (click)="toggleSync('profile')">
+                <div class="icon-circle profile">●</div>
+                <span *ngIf="!syncStatus.profile">Sincronizar Perfil</span>
+                <span *ngIf="syncStatus.profile">Perfil Sincronizado</span>
+                <span *ngIf="syncStatus.profile" class="check">✓</span>
+            </button>
+        </div>
+
+        <!-- Import Tabs -->
+        <div class="import-tabs">
+            <button class="tab-btn" [class.active]="activeImportTab === 'international'"
+                (click)="setImportTab('international')">
+                Importar desde Scopus, Web Of Science y ORCID.
+            </button>
+            <button class="tab-btn" [class.active]="activeImportTab === 'alicia'" (click)="setImportTab('alicia')">
+                Importar desde Alicia
+            </button>
+        </div>
+        <div class="tab-line"></div>
+
+        <!-- Search Bar -->
+        <div class="search-bar-container">
+            <div class="search-input-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" [(ngModel)]="searchQuery"
+                    (keyup.enter)="activeImportTab === 'international' ? searchInternational() : searchAlicia()"
+                    [placeholder]="activeImportTab === 'international' ? 'Buscar por Título, nombre etc' : 'Buscar por Título, Autor, o ID de Publicación...'">
+            </div>
+            <button class="btn-search"
+                (click)="activeImportTab === 'international' ? searchInternational() : searchAlicia()">Buscar</button>
+        </div>
+
+        <!-- Results Table -->
+        <div class="results-table-container">
+            <!-- INTERNATIONAL TABLE -->
+            <table class="import-table" *ngIf="activeImportTab === 'international'">
+                <thead>
+                    <tr>
+                        <th class="chk-col">Selecciona</th>
+                        <th>Titulo de publicación</th>
+                        <th>Fecha de publicación</th>
+                        <th>Url</th>
+                        <th>Tipo de publicación</th>
+                        <th>Fuente</th>
+                        <th>Revista de publicacion</th>
+                        <th>Api Fuente</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let item of searchResults" [class.disabled]="item.alreadyImported">
+                        <td class="chk-col">
+                            <input type="checkbox" [checked]="isSelected(item) || item.alreadyImported"
+                                [disabled]="item.alreadyImported" (change)="toggleSelection(item)">
+                        </td>
+                        <td>{{ item.title }}</td>
+                        <td>{{ item.date }}</td>
+                        <td><a href="#" class="link">Link</a></td>
+                        <td>{{ item.type }}</td>
+                        <td>
+                            <div class="source-circle">{{ item.source.charAt(0) }}</div>
+                        </td>
+                        <td>{{ item.journal }}</td>
+                        <td>{{ item.apiSource }}</td>
+                    </tr>
+                    <tr *ngIf="searchResults.length === 0">
+                        <td colspan="8" class="empty-message">Realiza una búsqueda para ver resultados.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- ALICIA TABLE -->
+            <table class="import-table" *ngIf="activeImportTab === 'alicia'">
+                <thead>
+                    <tr>
+                        <th class="chk-col">Selecciona</th>
+                        <th>Tipo de Publicación</th>
+                        <th>Título</th>
+                        <th>Autor</th>
+                        <th>Fecha de publicación</th>
+                        <th>Instalación</th>
+                        <th>Api Fuente</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let item of searchResults" [class.disabled]="item.alreadyImported">
+                        <td class="chk-col">
+                            <input type="checkbox" [checked]="isSelected(item) || item.alreadyImported"
+                                [disabled]="item.alreadyImported" (change)="toggleSelection(item)">
+                        </td>
+                        <td>{{ item.type }}</td>
+                        <td>{{ item.title }}</td>
+                        <td>{{ item.author }}</td>
+                        <td>{{ item.date }}</td>
+                        <td>{{ item.institution }}</td>
+                        <td>{{ item.apiSource }}</td>
+                    </tr>
+                    <tr *ngIf="searchResults.length === 0">
+                        <td colspan="7" class="empty-message">No se encontraron resultados en Alicia.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination (Mock) -->
+        <div class="pagination-footer" *ngIf="searchResults.length > 0">
+            <div class="items-per-page">
+                Mostrar
+                <select>
+                    <option>10</option>
+                </select>
+                elementos
+            </div>
+            <div class="page-controls">
+                <button class="btn-page prev">Anterior</button>
+                <div class="pages">
+                    <button class="page active">1</button>
+                    <button class="page">2</button>
+                    <span class="dots">...</span>
+                    <button class="page">5</button>
+                </div>
+                <button class="btn-page next">Siguiente</button>
+            </div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="import-actions">
+            <button class="btn-cancel-import" (click)="closeImportModal()">Cancelar</button>
+            <button class="btn-confirm-import" (click)="importSelected()">Importar Seleccionados</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Agregar Publicación Manual -->
+<div class="modal-overlay" *ngIf="showAddModal" (click)="closeAddModal()">
+    <div class="modal-container right-sheet" (click)="$event.stopPropagation()">
+        <div class="modal-header-simple">
+            <div class="titles">
+                <h2>Agregar Publicación Científica</h2>
+                <p>Registra manualmente tus artículos, libros o capítulos de libro que no se encuentren
+                    disponibles en las bases de datos automáticas (Scopus, ORCID, WoS, etc).*</p>
+            </div>
+            <button class="btn-close-simple" (click)="closeAddModal()">✕</button>
+        </div>
+
+        <div class="modal-body-scroll" [formGroup]="publicationForm">
+            <!-- Row 1: Indexado y DOI -->
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>Indexado en</label>
+                    <select formControlName="indexedIn">
+                        <option value="">Seleccionar el indexado...</option>
+                        <option *ngFor="let opt of indexedInOptions" [value]="opt">{{ opt }}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>DOI (Digital Object Identifier):</label>
+                    <div class="input-with-button">
+                        <input type="text" formControlName="doi" placeholder="Ej. 001584-2023/DIN">
+                        <button class="btn-validate">Validar DOI</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2: Categoria y Tipo -->
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>Categoría de Trabajo *</label>
+                    <select formControlName="category">
+                        <option value="">Seleccionar la categoría...</option>
+                        <option *ngFor="let opt of workCategoryOptions" [value]="opt">{{ opt }}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Obra *</label>
+                    <select formControlName="workType">
+                        <option value="">Seleccionar tipo de obra...</option>
+                        <option *ngFor="let opt of workTypeOptions" [value]="opt">{{ opt }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 3: Titulo -->
+            <div class="form-group">
+                <label>Título de la Publicación</label>
+                <input type="text" formControlName="title" placeholder="Ej. Métodos de proteínas">
+            </div>
+
+            <!-- Row 4: URL y Revista -->
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>URL de la Publicación:</label>
+                    <input type="text" formControlName="url" placeholder="https://">
+                </div>
+                <div class="form-group">
+                    <label>Nombre de la Revista / Editorial</label>
+                    <select formControlName="journal">
+                        <option value="">Ej. Revista Cielo</option>
+                        <option *ngFor="let opt of journalOptions" [value]="opt">{{ opt }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 5: Pais y Fecha -->
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>País de Publicación</label>
+                    <select formControlName="country">
+                        <option value="">Seleccionar el país...</option>
+                        <option *ngFor="let opt of countryOptions" [value]="opt">{{ opt }}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Fecha de Publicación</label>
+                    <input type="date" formControlName="date">
+                </div>
+            </div>
+
+            <!-- Row 6: Volumen, Issue, Paginas -->
+            <div class="form-row three-col">
+                <div class="form-group">
+                    <label>Volumen</label>
+                    <input type="text" formControlName="volume" placeholder="Ej. 001">
+                </div>
+                <div class="form-group">
+                    <label>Fascículo (Issue)</label>
+                    <input type="text" formControlName="issue" placeholder="Ej. 002">
+                </div>
+                <div class="form-group">
+                    <label>Rango de Páginas</label>
+                    <input type="text" formControlName="pageRange" placeholder="3 - 6">
+                </div>
+            </div>
+
+            <!-- Row 7: Rol y Orden -->
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>Rol en la Publicación</label>
+                    <select formControlName="role">
+                        <option value="">Seleccionar el rol...</option>
+                        <option *ngFor="let opt of roleOptions" [value]="opt">{{ opt }}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Orden de Autoría *</label>
+                    <select formControlName="authorshipOrder">
+                        <option value="">Seleccionar el rol...</option>
+                        <option *ngFor="let opt of authorshipOrderOptions" [value]="opt">{{ opt }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Attachment Section -->
+            <div class="attachment-section">
+                <button class="btn-attach">
+                    <span class="icon">upload</span> Adjuntar archivo (PDF, Max 5MB)
+                </button>
+            </div>
+
+            <table class="attachment-table">
+                <thead>
+                    <tr>
+                        <th>Codigo</th>
+                        <th>Archivo</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>01</td>
+                        <td>Diciembre 2024</td>
+                        <td><app-action-buttons [canEdit]="false"
+                                (delete)="removeAttachment(file)"></app-action-buttons></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="modal-footer-simple">
+            <button class="btn-cancel" (click)="closeAddModal()">Cancelar</button>
+            <button class="btn-save" (click)="closeAddModal()">Guardar Registro</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Agregar Otra Producción -->
+<div class="modal-overlay" *ngIf="showAddOtherModal" (click)="closeAddOtherModal()">
+    <div class="modal-container right-sheet" (click)="$event.stopPropagation()">
+        <div class="modal-header-simple">
+            <div class="titles">
+                <h2>Agregar Otra Producción</h2>
+                <p>Registra documentos técnicos, reportes, datasets, normas técnicas u obras artísticas que no
+                    encajan en las categorías de artículos o libros.</p>
+            </div>
+            <button class="btn-close-simple" (click)="closeAddOtherModal()">✕</button>
+        </div>
+
+        <div class="modal-body-scroll" [formGroup]="otherProductionForm">
+            <!-- Row 1: Tipo y Pais -->
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>Tipo de Obra</label>
+                    <select formControlName="workType">
+                        <option value="">Seleccionar el tipo...</option>
+                        <option *ngFor="let opt of workTypeOptions" [value]="opt">{{ opt }}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>País de Origen</label>
+                    <select formControlName="country">
+                        <option value="">Seleccionar el pais...</option>
+                        <option *ngFor="let opt of countryOptions" [value]="opt">{{ opt }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 2: Titulo -->
+            <div class="form-group">
+                <label>Título</label>
+                <input type="text" formControlName="title" placeholder="Ej. Métodos de proteínas">
+            </div>
+
+            <!-- Row 3: Sub-titulo -->
+            <div class="form-group">
+                <label>Sub-título</label>
+                <input type="text" formControlName="subtitle" placeholder="Ej. alimentos...">
+            </div>
+
+            <!-- Row 4: Resumen -->
+            <div class="form-group">
+                <label>Resumen / Descripción</label>
+                <textarea formControlName="summary" rows="3"
+                    placeholder="Breve descripción de los objetivos y resultados esperados..."></textarea>
+            </div>
+
+            <!-- Row 5: Fechas -->
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>Fecha de Publicación</label>
+                    <input type="date" formControlName="date">
+                </div>
+                <div class="form-group">
+                    <label>Fecha de Finalización</label>
+                    <input type="date" formControlName="endDate">
+                </div>
+            </div>
+
+            <!-- Row 6: Institucion y DOI -->
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>Institución / Entidad Editora</label>
+                    <input type="text" formControlName="institution" placeholder="Seleccionar la insitución...">
+                </div>
+                <div class="form-group">
+                    <label>DOI / Handle</label>
+                    <input type="text" formControlName="doi" placeholder="Seleccionar tipo de obra...">
+                </div>
+            </div>
+
+            <!-- Row 7: URL -->
+            <div class="form-group">
+                <label>URL de las Memorias / Certificado</label>
+                <input type="text" formControlName="url" placeholder="Seleccionar el pais...">
+            </div>
+
+            <!-- Row 8: Rol y Orden -->
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>Función / Rol *</label>
+                    <select formControlName="role">
+                        <option value="">Seleccionar rol...</option>
+                        <option *ngFor="let opt of roleOptions" [value]="opt">{{ opt }}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Orden de Autoría *</label>
+                    <div class="input-with-button">
+                        <select formControlName="authorshipOrder">
+                            <option value="">Seleccionar orden...</option>
+                            <option *ngFor="let opt of authorshipOrderOptions" [value]="opt">{{ opt }}</option>
+                        </select>
+                        <button class="btn-validate">Agregar Colaborador</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attachment Section -->
+            <div class="attachment-section">
+                <button class="btn-attach">
+                    <span class="icon">upload</span> Adjuntar archivo de sustento (PDF, Max 5MB)
+                </button>
+            </div>
+
+            <table class="attachment-table">
+                <thead>
+                    <tr>
+                        <th>Codigo</th>
+                        <th>Archivo</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>01</td>
+                        <td>Diciembre 2024</td>
+                        <td><app-action-buttons [canEdit]="false"
+                                (delete)="removeAttachment(file)"></app-action-buttons></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="modal-footer-simple">
+            <button class="btn-cancel" (click)="closeAddOtherModal()">Cancelar</button>
+            <button class="btn-save" (click)="closeAddOtherModal()">Guardar Registro</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Agregar Participación en Congreso -->
+<div class="modal-overlay" *ngIf="showAddCongressModal" (click)="closeAddCongressModal()">
+    <div class="modal-container right-sheet" (click)="$event.stopPropagation()">
+        <div class="modal-header-simple">
+            <div class="titles">
+                <h2>Agregar Participación en Congreso</h2>
+                <p>Registra ponencias, pósters o conferencias presentadas en eventos científicos nacionales e
+                    internacionales.</p>
+            </div>
+            <button class="btn-close-simple" (click)="closeAddCongressModal()">✕</button>
+        </div>
+
+        <div class="modal-body-scroll" [formGroup]="congressForm">
+            <!-- Row 1: Tipo de Congreso y Pais -->
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>Tipo de Congreso *</label>
+                    <div class="radio-group" style="display: flex; gap: 1rem; padding-top: 0.5rem;">
+                        <label style="font-weight: 400; display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="radio" formControlName="congressType" value="Nacional"> Nacional
+                        </label>
+                        <label style="font-weight: 400; display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="radio" formControlName="congressType" value="Internacional"> Internacional
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>País del Evento *</label>
+                    <select formControlName="country">
+                        <option value="">Seleccionar el indexado...</option>
+                        <option *ngFor="let opt of countryOptions" [value]="opt">{{ opt }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 2: Fecha Presentacion -->
+            <div class="form-group">
+                <label>Fecha de Presentación</label>
+                <input type="date" formControlName="presentationDate">
+            </div>
+
+            <!-- Row 3: Titulo -->
+            <div class="form-group">
+                <label>Título del Trabajo Presentado *</label>
+                <input type="text" formControlName="title" placeholder="Métodos de proteínas">
+            </div>
+
+            <!-- Row 4: Sub-titulo -->
+            <div class="form-group">
+                <label>Sub-título *</label>
+                <input type="text" formControlName="subtitle" placeholder="https://">
+            </div>
+
+            <!-- Row 5: Resumen -->
+            <div class="form-group">
+                <label>Resumen / Descripción</label>
+                <textarea formControlName="summary" rows="3"
+                    placeholder="Breve descripción de los objetivos y resultados esperados..."></textarea>
+            </div>
+
+            <!-- Row 6: Tipo Obra/Pres y DOI -->
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>Tipo de Obra / Presentación*</label>
+                    <select formControlName="presentationType">
+                        <option value="">Seleccionar la categoria...</option>
+                        <!-- Reusing workTypeOptions as placeholder, or define logic for this specific dropdown if needed -->
+                        <option *ngFor="let opt of workTypeOptions" [value]="opt">{{ opt }}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>DOI (Si aplica)</label>
+                    <input type="text" formControlName="doi" placeholder="Seleccionar tipo de obra...">
+                </div>
+            </div>
+
+            <!-- Row 7: URL Memorias -->
+            <div class="form-group">
+                <label>URL de las Memorias / Certificado</label>
+                <input type="text" formControlName="certificateUrl" placeholder="Seleccionar el pais...">
+            </div>
+
+            <!-- Row 8: Rol y Orden -->
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>Función / Rol *</label>
+                    <select formControlName="role">
+                        <option value="">Seleccionar rol...</option>
+                        <option *ngFor="let opt of roleOptions" [value]="opt">{{ opt }}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Orden de Autoría *</label>
+                    <div class="input-with-button">
+                        <select formControlName="authorshipOrder">
+                            <option value="">Seleccionar orden...</option>
+                            <option *ngFor="let opt of authorshipOrderOptions" [value]="opt">{{ opt }}</option>
+                        </select>
+                        <button class="btn-validate">Agregar Colaborador</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attachment Section -->
+            <div class="attachment-section">
+                <button class="btn-attach">
+                    <span class="icon">upload</span> Adjuntar archivo de sustento (PDF, Max 5MB)
+                </button>
+            </div>
+
+            <table class="attachment-table">
+                <thead>
+                    <tr>
+                        <th>Codigo</th>
+                        <th>Archivo</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>01</td>
+                        <td>Diciembre 2024</td>
+                        <td><app-action-buttons [canEdit]="false"
+                                (delete)="removeAttachment(file)"></app-action-buttons></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="modal-footer-simple">
+            <button class="btn-cancel" (click)="closeAddCongressModal()">Cancelar</button>
+            <button class="btn-save" (click)="closeAddCongressModal()">Guardar Registro</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,13 @@
+<div class="dashboard-wrapper">
+    <!-- Admin Sidebar -->
+    <app-admin-sidebar *ngIf="isSidebarOpen" (toggle)="toggleSidebar()"></app-admin-sidebar>
+
+    <div class="main-content-wrapper">
+        <!-- Header: binding correctly to isSidebarClosed -->
+        <app-dashboard-header (toggle)="toggleSidebar()" [isSidebarClosed]="!isSidebarOpen"></app-dashboard-header>
+
+        <main class="page-content">
+            <router-outlet></router-outlet>
+        </main>
+    </div>
+</div>
