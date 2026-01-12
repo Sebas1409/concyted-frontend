@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserRegistryModalComponent } from '../../components/user-registry-modal/user-registry-modal.component';
 import { RoleAssignmentModalComponent } from '../../components/role-assignment-modal/role-assignment-modal.component';
+import { IntroCardComponent } from '../../../../shared/components/intro-card/intro-card.component';
 import { UserService, UserProfileApi } from '../../../../core/services/user.service';
 import { AlertService } from '../../../../core/services/alert.service';
 
@@ -20,7 +21,7 @@ interface User {
 @Component({
     selector: 'app-user-management',
     standalone: true,
-    imports: [CommonModule, FormsModule, UserRegistryModalComponent, RoleAssignmentModalComponent],
+    imports: [CommonModule, FormsModule, UserRegistryModalComponent, RoleAssignmentModalComponent, IntroCardComponent],
     templateUrl: './user-management.component.html',
     styleUrl: './user-management.component.scss'
 })

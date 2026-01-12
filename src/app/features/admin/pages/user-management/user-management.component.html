@@ -1,18 +1,13 @@
 <div class="user-management-page">
-    <div class="page-header">
-        <h1>Gestión de Usuarios y Accesos</h1>
-        <p>Administra las cuentas de los funcionarios, asigna roles operativos y gestiona los permisos de acceso a la
-            plataforma Admin de CTI Vitae.</p>
-
-        <div class="header-actions">
-            <button class="btn-primary" (click)="openRegistryModal()">
-                <span class="icon">+</span> Registrar Usuario
-            </button>
-            <button class="btn-outline" (click)="openRoleModal()">
-                <span class="icon">+</span> Asignar Rol
-            </button>
-        </div>
-    </div>
+    <app-intro-card title="Gestión de Usuarios y Accesos"
+        subtitle="Administra las cuentas de los funcionarios, asigna roles operativos y gestiona los permisos de acceso a la plataforma Admin de CTI Vitae.">
+        <button class="btn-action btn-outline" (click)="openRegistryModal()">
+            <span class="plus">+</span> Registrar Usuario
+        </button>
+        <button class="btn-action btn-outline" (click)="openRoleModal()">
+            <span class="plus">+</span> Asignar Rol
+        </button>
+    </app-intro-card>
 
     <!-- Tabs -->
     <div class="tabs-container">

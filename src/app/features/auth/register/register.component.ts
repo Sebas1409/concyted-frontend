@@ -398,7 +398,8 @@ export class RegisterComponent implements OnInit {
                 ubigeo: ubigeoCode || "",
                 usuarioId: 0,
                 validado: false,
-                validadoPor: 0
+                validadoPor: 0,
+                activo: true
             };
 
             this.authService.registerResearcher(researcherPayload).subscribe({

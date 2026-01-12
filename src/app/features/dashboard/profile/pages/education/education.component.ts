@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActionButtonsComponent } from '../../../../../shared/components/action-buttons/action-buttons.component';
@@ -8,12 +8,17 @@ import { FileUploaderComponent } from '../../../../../shared/components/file-upl
 import { FileViewerModalComponent, ViewerFile, ViewerFileType } from '../../../../../shared/components/file-viewer-modal/file-viewer-modal.component';
 import { FileService } from '../../../../../core/services/file.service';
 import { AuthService } from '../../../../../core/services/auth.service';
+import { UbigeoService } from '../../../../../core/services/ubigeo.service';
+import { CatalogService } from '../../../../../core/services/catalog.service';
+import { AlertService } from '../../../../../core/services/alert.service';
+import { EducationService } from '../../../../../core/services/education.service';
 import { FileModule, FileType } from '../../../../../core/constants/file-upload.constants';
 import { forkJoin, Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 interface EducationEntry {
-    code: string;
+    id: number;
+    code?: string;
     isSunedu: boolean;
     institution: string;
     degreeType: string;
@@ -21,10 +26,12 @@ interface EducationEntry {
     startDate: string;
     endDate: string;
     tokens?: string[];
+    originalItem?: any;
 }
 
 interface ComplementaryEntry {
-    code: string;
+    id: number;
+    code?: string;
     institution: string;
     courseName: string;
     country: string;
@@ -33,24 +40,29 @@ interface ComplementaryEntry {
     startDate: string;
     endDate: string;
     tokens?: string[];
+    originalItem?: any;
 }
 
 interface InProgressEntry {
-    code: string;
+    id: number;
+    code?: string;
     institution: string;
-    courseName: string; // "Nombre de la Carrera Técnica" or "Carrera"
-    studyType: string;  // "Tipo de Estudio"
+    courseName: string;
+    studyType: string;
     startDate: string;
     tokens?: string[];
+    originalItem?: any;
 }
 
 interface TechnicalEntry {
-    code: string;
+    id: number;
+    code?: string;
     institution: string;
     career: string;
     startDate: string;
     endDate: string;
     tokens?: string[];
+    originalItem?: any;
 }
 
 interface SuneduEntry {
@@ -77,7 +89,7 @@ interface SuneduEntry {
     templateUrl: './education.component.html',
     styleUrl: './education.component.scss'
 })
-export class EducationComponent {
+export class EducationComponent implements OnInit {
     showModal = false;       // Manual Entry Modal
     showImportModal = false; // Sunedu Import Modal
     showTechnicalModal = false; // Technical Entry Modal
@@ -108,43 +120,18 @@ export class EducationComponent {
     showFileViewer = false;
     viewerFiles: ViewerFile[] = [];
     isEditing = false;
-    currentEditCode: string | null = null;
+    currentEditId: number | null = null;
 
-    setActiveTab(tab: 'all' | 'education' | 'technical' | 'inProgress' | 'complementary') {
-        this.activeTab = tab;
-    }
-
-    // Mock List (Main)
-    educationList: EducationEntry[] = [
-        {
-            code: '001',
-            isSunedu: true,
-            institution: 'Universidad César Vallejo S.A.C.',
-            degreeType: 'LICENCIADO / TÍTULO',
-            titleName: 'INGENIERO DE SISTEMAS',
-            startDate: 'Diciembre 2024',
-            endDate: 'Diciembre 2024'
-        }
-    ];
-
-    // Mock Technical List
-    technicalList: TechnicalEntry[] = [
-        {
-            code: '001',
-            institution: 'Diseñador de experiencia de usuario',
-            career: 'Diseñador de experiencia de usuario', // Mock data from screenshot looks repetitive but matching it
-            startDate: 'Diciembre 2024',
-            endDate: 'Diciembre 2024'
-        }
-    ];
-
-    // Mock In Progress List
+    // Lists
+    educationList: EducationEntry[] = [];
+    technicalList: TechnicalEntry[] = [];
     inProgressList: InProgressEntry[] = [];
-
-    // Mock Complementary List
     complementaryList: ComplementaryEntry[] = [];
 
-    // Mock Sunedu List
+    // Catalogs
+    countries: any[] = [];
+    academicLevels: any[] = [];
+
     suneduList: SuneduEntry[] = [
         { id: 1, selected: true, institution: 'Univ. César Vallejo', degree: 'Bachiller en Ingenieria de Sistemas', date: '15/05/2021' },
         { id: 2, selected: true, institution: 'Univ. César Vallejo', degree: 'Ingeniero de Sistemas', date: '20/12/2022' }
@@ -158,21 +145,19 @@ export class EducationComponent {
         private fb: FormBuilder,
         private fileService: FileService,
         private authService: AuthService,
+        private alertService: AlertService,
+        private educationService: EducationService,
+        private ubigeoService: UbigeoService,
+        private catalogService: CatalogService,
         private cdr: ChangeDetectorRef
     ) {
-        this.authService.currentUser$.subscribe(user => {
-            if (user) {
-                this.fullName = `${user.nombres} ${user.apellidoPaterno} ${user.apellidoMaterno}`;
-                this.dni = user.dni || '';
-            }
-        });
-
         this.educationForm = this.fb.group({
-            academicLevel: ['', Validators.required],
-            country: ['', Validators.required],
+            academicLevelId: ['', Validators.required], // ID for payload
+            countryId: [0, Validators.required],       // ID for payload
             degreeName: ['', Validators.required],
             faculty: [''],
-            institution: ['', Validators.required],
+            institution: ['', Validators.required],    // Display name
+            institutionId: ['', Validators.required],  // ID for payload
             startDate: ['', Validators.required],
             endDate: ['', Validators.required],
         });
@@ -202,12 +187,130 @@ export class EducationComponent {
         });
     }
 
+    ngOnInit() {
+        this.authService.currentUser$.subscribe(user => {
+            if (user) {
+                this.fullName = `${user.nombres} ${user.apellidoPaterno} ${user.apellidoMaterno}`;
+                this.dni = user.dni || '';
+                this.loadAllData();
+            }
+        });
+    }
+
+    loadAllData() {
+        this.loadCountries();
+        this.loadAcademicLevels();
+        const user = this.authService.getCurrentUser();
+        if (user && user.id) {
+            this.loadEducation(user.id);
+            this.loadTechnical(user.id);
+            this.loadInProgress(user.id);
+            this.loadComplementary(user.id);
+        }
+    }
+
+    loadCountries() {
+        this.ubigeoService.getCountries().subscribe({
+            next: (data) => this.countries = data,
+            error: (err) => console.error('Error loading countries', err)
+        });
+    }
+
+    loadAcademicLevels() {
+        this.catalogService.getMasterDetailsByCode('GRADOS').subscribe({
+            next: (data) => this.academicLevels = data,
+            error: (err) => console.error('Error loading academic levels', err)
+        });
+    }
+
+    setActiveTab(tab: 'all' | 'education' | 'technical' | 'inProgress' | 'complementary') {
+        this.activeTab = tab;
+    }
+
+    // --- LOAD METHODS ---
+    loadEducation(userId: number) {
+        this.educationService.getAcademicByInvestigator(userId).subscribe({
+            next: (data: any[]) => {
+                this.educationList = data.map(item => ({
+                    id: item.id,
+                    code: item.id.toString(),
+                    isSunedu: item.esSunedu, // NOTE: Check if esSunedu is in response. If not, default false.
+                    institution: item.institucionNombre, // Updated from screenshot schema
+                    degreeType: item.nivelAcademicoNombre, // Updated from screenshot schema
+                    titleName: item.nombreTituloGrado, // Updated from screenshot schema
+                    startDate: item.fechaInicio,
+                    endDate: item.fechaFin,
+                    originalItem: item
+                }));
+                this.cdr.markForCheck();
+            },
+            error: (err: any) => console.error('Error loading education', err)
+        });
+    }
+
+    loadTechnical(userId: number) {
+        this.educationService.getTechnicalByInvestigator(userId).subscribe({
+            next: (data: any[]) => {
+                this.technicalList = data.map(item => ({
+                    id: item.id,
+                    code: item.id.toString(),
+                    institution: item.institucion,
+                    career: item.carrera,
+                    startDate: item.fechaInicio,
+                    endDate: item.fechaFin,
+                    originalItem: item
+                }));
+                this.cdr.markForCheck();
+            },
+            error: (err: any) => console.error('Error loading technical', err)
+        });
+    }
+
+    loadInProgress(userId: number) {
+        this.educationService.getInProgressByInvestigator(userId).subscribe({
+            next: (data: any[]) => {
+                this.inProgressList = data.map(item => ({
+                    id: item.id,
+                    code: item.id.toString(),
+                    institution: item.institucion,
+                    courseName: item.nombreCurso,
+                    studyType: item.tipoEstudio,
+                    startDate: item.fechaInicio,
+                    originalItem: item
+                }));
+                this.cdr.markForCheck();
+            },
+            error: (err: any) => console.error('Error loading in progress', err)
+        });
+    }
+
+    loadComplementary(userId: number) {
+        this.educationService.getComplementaryByInvestigator(userId).subscribe({
+            next: (data: any[]) => {
+                this.complementaryList = data.map(item => ({
+                    id: item.id,
+                    code: item.id.toString(),
+                    institution: item.institucion,
+                    courseName: item.nombreCurso,
+                    country: item.pais,
+                    measureUnit: item.unidadMedida,
+                    totalHours: item.horasTotales,
+                    startDate: item.fechaInicio,
+                    endDate: item.fechaFin,
+                    originalItem: item
+                }));
+                this.cdr.markForCheck();
+            },
+            error: (err: any) => console.error('Error loading complementary', err)
+        });
+    }
+
     // --- Modal Logic ---
     // --- Modal Logic ---
     openModal() {
         this.showModal = true;
         this.isEditing = false;
-        this.currentEditCode = null;
+        this.currentEditId = null;
         this.educationFiles = [];
         this.educationForm.reset({
             academicLevel: '',
@@ -218,35 +321,42 @@ export class EducationComponent {
             startDate: '',
             endDate: ''
         });
+
+        this.educationForm.reset({
+            academicLevelId: '',
+            countryId: '', // Select placeholder often empty string
+            degreeName: '',
+            faculty: '',
+            institution: '',
+            institutionId: '',
+            startDate: '',
+            endDate: ''
+        });
     }
 
     editEducation(item: EducationEntry) {
         this.showModal = true;
         this.isEditing = true;
-        this.currentEditCode = item.code;
+        this.currentEditId = item.id;
+        const raw = item.originalItem || item;
+
         this.educationForm.patchValue({
-            academicLevel: item.degreeType,
-            country: 'Perú',
-            degreeName: item.titleName,
-            faculty: '',
-            institution: item.institution,
+            academicLevelId: raw.nivelAcademicoId || item.degreeType,
+            countryId: raw.paisId || 0,
+            degreeName: raw.nombreTituloGrado || item.titleName,
+            faculty: raw.facultad || '',
+            institution: raw.institucionNombre || item.institution, // Display Name
+            institutionId: raw.institucionId || '',                 // ID
             startDate: item.startDate,
             endDate: item.endDate
         });
 
         this.educationFiles = [];
-        const id = Number(item.code);
-        if (!isNaN(id)) {
-            this.fileService.listFilesMetadata(this.INVESTIGATOR_MODULE, this.EDUCATION_CATEGORY, this.ACADEMIC_SECTION, id)
-                .subscribe({
-                    next: (files) => this.educationFiles = files.map(f => ({ name: f.nombre, token: f.token, file: null })),
-                    error: () => {
-                        if (item.tokens) this.educationFiles = item.tokens.map(t => ({ name: 'Archivo Adjunto', token: t, file: null }));
-                    }
-                });
-        } else if (item.tokens) {
-            this.educationFiles = item.tokens.map(t => ({ name: 'Archivo Adjunto', token: t, file: null }));
-        }
+        this.fileService.listFilesMetadata(this.INVESTIGATOR_MODULE, this.EDUCATION_CATEGORY, this.ACADEMIC_SECTION, item.id)
+            .subscribe({
+                next: (files) => this.educationFiles = files.map(f => ({ name: f.nombre, token: f.token, file: null })),
+                error: (err: any) => console.error('Error loading files', err)
+            });
     }
 
     closeModal() {
@@ -254,69 +364,104 @@ export class EducationComponent {
         this.educationFiles = [];
     }
 
-    // --- Sunedu Import Logic ---
-    openImportModal() {
-        this.showImportModal = true;
-    }
+    saveEducation() {
+        if (this.educationForm.invalid) {
+            this.educationForm.markAllAsTouched();
+            return;
+        }
 
-    closeImportModal() {
-        this.showImportModal = false;
-    }
+        const currentUser = this.authService.getCurrentUser();
+        if (!currentUser?.id) return;
 
-    importSelected() {
-        const selected = this.suneduList.filter(x => x.selected);
-        selected.forEach(item => {
-            this.educationList.push({
-                code: this.generateCode(),
-                isSunedu: true,
-                institution: item.institution,
-                degreeType: 'TÍTULO / GRADO',
-                titleName: item.degree,
-                startDate: item.date,
-                endDate: item.date
-            });
+        const val = this.educationForm.value;
+        const payload = {
+            active: true,
+            facultad: val.faculty,
+            fechaFin: val.endDate,
+            fechaInicio: val.startDate,
+            institucionId: val.institutionId,
+            investigadorId: currentUser.id,
+            nivelAcademicoId: val.academicLevelId,
+            nombreTituloGrado: val.degreeName,
+            paisId: Number(val.countryId),
+            tokens: [] as string[]
+        };
+
+        const confirmMessage = this.isEditing
+            ? '¿Está seguro de actualizar el registro?'
+            : '¿Está seguro de guardar el registro?';
+
+        this.alertService.confirm('Confirmación', confirmMessage).then(confirmed => {
+            if (confirmed) {
+                this.uploadFiles(this.educationFiles, this.INVESTIGATOR_MODULE, FileType.DOCUMENT, this.EDUCATION_CATEGORY, this.ACADEMIC_SECTION)
+                    .subscribe(uploaded => {
+                        const tokens = uploaded.map(u => u.token);
+                        const finalPayload = { ...payload, tokens };
+
+                        const action$ = this.isEditing && this.currentEditId
+                            ? this.educationService.updateAcademic(this.currentEditId, finalPayload)
+                            : this.educationService.createAcademic(finalPayload);
+
+                        action$.subscribe({
+                            next: () => {
+                                this.alertService.success('Éxito', 'Registro guardado correctamente');
+                                this.loadEducation(currentUser.id);
+                                this.closeModal();
+                            },
+                            error: (err: any) => {
+                                console.error('Error saving education', err);
+                                this.alertService.error('Error', 'Error al guardar el registro');
+                            }
+                        });
+                    });
+            }
         });
-        this.closeImportModal();
     }
 
-    // --- Technical Modal Logic ---
+    deleteEducation(id: number | undefined) {
+        if (!id) return;
+        this.alertService.confirm('Eliminar', '¿Está seguro de eliminar este registro?').then(confirmed => {
+            if (confirmed) {
+                this.educationService.deleteAcademic(id).subscribe({
+                    next: () => {
+                        this.alertService.success('Éxito', 'Registro eliminado');
+                        const user = this.authService.getCurrentUser();
+                        if (user) this.loadEducation(user.id);
+                    },
+                    error: () => this.alertService.error('Error', 'Error al eliminar')
+                });
+            }
+        });
+    }
+
+    // --- Technical Logic ---
     openTechnicalModal() {
         this.showTechnicalModal = true;
         this.isEditing = false;
-        this.currentEditCode = null;
+        this.currentEditId = null;
         this.technicalFiles = [];
-        this.technicalForm.reset({
-            institution: '',
-            careerName: '',
-            startDate: '',
-            endDate: ''
-        });
+        this.technicalForm.reset();
     }
 
     editTechnical(item: TechnicalEntry) {
         this.showTechnicalModal = true;
         this.isEditing = true;
-        this.currentEditCode = item.code;
+        this.currentEditId = item.id;
+        const raw = item.originalItem || item;
+
         this.technicalForm.patchValue({
-            institution: item.institution,
-            careerName: item.career,
+            institution: raw.institucion || item.institution,
+            careerName: raw.carrera || item.career,
             startDate: item.startDate,
             endDate: item.endDate
         });
 
         this.technicalFiles = [];
-        const id = Number(item.code);
-        if (!isNaN(id)) {
-            this.fileService.listFilesMetadata(this.INVESTIGATOR_MODULE, this.EDUCATION_CATEGORY, this.TECHNICAL_SECTION, id)
-                .subscribe({
-                    next: (files) => this.technicalFiles = files.map(f => ({ name: f.nombre, token: f.token, file: null })),
-                    error: () => {
-                        if (item.tokens) this.technicalFiles = item.tokens.map(t => ({ name: 'Archivo Adjunto', token: t, file: null }));
-                    }
-                });
-        } else if (item.tokens) {
-            this.technicalFiles = item.tokens.map(t => ({ name: 'Archivo Adjunto', token: t, file: null }));
-        }
+        this.fileService.listFilesMetadata(this.INVESTIGATOR_MODULE, this.EDUCATION_CATEGORY, this.TECHNICAL_SECTION, item.id)
+            .subscribe({
+                next: (files) => this.technicalFiles = files.map(f => ({ name: f.nombre, token: f.token, file: null })),
+                error: (err: any) => console.error('Error loading files', err)
+            });
     }
 
     closeTechnicalModal() {
@@ -330,73 +475,71 @@ export class EducationComponent {
             return;
         }
 
-        this.uploadFiles(this.technicalFiles, this.INVESTIGATOR_MODULE, FileType.DOCUMENT, this.EDUCATION_CATEGORY, this.TECHNICAL_SECTION)
-            .subscribe(uploaded => {
-                const tokens = uploaded.map(u => u.token);
-                const val = this.technicalForm.value;
+        const currentUser = this.authService.getCurrentUser();
+        if (!currentUser?.id) return;
 
-                if (this.isEditing && this.currentEditCode) {
-                    const idx = this.technicalList.findIndex(x => x.code === this.currentEditCode);
-                    if (idx !== -1) {
-                        this.technicalList[idx] = { ...this.technicalList[idx], institution: val.institution, career: val.careerName, startDate: val.startDate, endDate: val.endDate, tokens };
-                    }
-                } else {
-                    this.technicalList.push({
-                        code: this.generateTechnicalCode(),
-                        institution: val.institution,
-                        career: val.careerName,
-                        startDate: val.startDate,
-                        endDate: val.endDate,
-                        tokens
+        const val = this.technicalForm.value;
+        const payload = {
+            active: true,
+            investigadorId: currentUser.id,
+            institucion: val.institution,
+            carrera: val.careerName,
+            fechaInicio: val.startDate,
+            fechaFin: val.endDate
+        };
+
+        this.alertService.confirm('Confirmación', '¿Guardar registro técnico?').then(confirmed => {
+            if (confirmed) {
+                this.uploadFiles(this.technicalFiles, this.INVESTIGATOR_MODULE, FileType.DOCUMENT, this.EDUCATION_CATEGORY, this.TECHNICAL_SECTION)
+                    .subscribe(uploaded => {
+                        const tokens = uploaded.map(u => u.token);
+                        const finalPayload = { ...payload, tokens };
+
+                        const action$ = this.isEditing && this.currentEditId
+                            ? this.educationService.updateTechnical(this.currentEditId, finalPayload)
+                            : this.educationService.createTechnical(finalPayload);
+
+                        action$.subscribe({
+                            next: () => {
+                                this.alertService.success('Éxito', 'Estudio técnico guardado');
+                                this.loadTechnical(currentUser.id);
+                                this.closeTechnicalModal();
+                            },
+                            error: (err: any) => this.alertService.error('Error', 'Error al guardar estudio técnico')
+                        });
                     });
-                }
-                this.closeTechnicalModal();
-            });
+            }
+        });
     }
 
-    generateTechnicalCode(): string {
-        const nextId = this.technicalList.length + 1;
-        return nextId.toString().padStart(3, '0');
-    }
-
-    // --- In Progress Modal Logic ---
+    // --- In Progress Logic ---
     openInProgressModal() {
         this.showInProgressModal = true;
         this.isEditing = false;
-        this.currentEditCode = null;
+        this.currentEditId = null;
         this.inProgressFiles = [];
-        this.inProgressForm.reset({
-            institution: '',
-            studyType: '',
-            courseName: '',
-            startDate: ''
-        });
+        this.inProgressForm.reset();
     }
 
     editInProgress(item: InProgressEntry) {
         this.showInProgressModal = true;
         this.isEditing = true;
-        this.currentEditCode = item.code;
+        this.currentEditId = item.id;
+        const raw = item.originalItem || item;
+
         this.inProgressForm.patchValue({
-            institution: item.institution,
-            studyType: item.studyType,
-            courseName: item.courseName,
+            institution: raw.institucion || item.institution,
+            studyType: raw.tipoEstudio || item.studyType,
+            courseName: raw.nombreCurso || item.courseName,
             startDate: item.startDate
         });
 
         this.inProgressFiles = [];
-        const id = Number(item.code);
-        if (!isNaN(id)) {
-            this.fileService.listFilesMetadata(this.INVESTIGATOR_MODULE, this.EDUCATION_CATEGORY, this.IN_PROGRESS_SECTION, id)
-                .subscribe({
-                    next: (files) => this.inProgressFiles = files.map(f => ({ name: f.nombre, token: f.token, file: null })),
-                    error: () => {
-                        if (item.tokens) this.inProgressFiles = item.tokens.map(t => ({ name: 'Archivo Adjunto', token: t, file: null }));
-                    }
-                });
-        } else if (item.tokens) {
-            this.inProgressFiles = item.tokens.map(t => ({ name: 'Archivo Adjunto', token: t, file: null }));
-        }
+        this.fileService.listFilesMetadata(this.INVESTIGATOR_MODULE, this.EDUCATION_CATEGORY, this.IN_PROGRESS_SECTION, item.id)
+            .subscribe({
+                next: (files) => this.inProgressFiles = files.map(f => ({ name: f.nombre, token: f.token, file: null })),
+                error: (err: any) => console.error('Error loading files', err)
+            });
     }
 
     closeInProgressModal() {
@@ -410,79 +553,74 @@ export class EducationComponent {
             return;
         }
 
-        this.uploadFiles(this.inProgressFiles, this.INVESTIGATOR_MODULE, FileType.DOCUMENT, this.EDUCATION_CATEGORY, this.IN_PROGRESS_SECTION)
-            .subscribe(uploaded => {
-                const tokens = uploaded.map(u => u.token);
-                const val = this.inProgressForm.value;
+        const currentUser = this.authService.getCurrentUser();
+        if (!currentUser?.id) return;
 
-                if (this.isEditing && this.currentEditCode) {
-                    const idx = this.inProgressList.findIndex(x => x.code === this.currentEditCode);
-                    if (idx !== -1) {
-                        this.inProgressList[idx] = { ...this.inProgressList[idx], institution: val.institution, courseName: val.courseName, studyType: val.studyType, startDate: val.startDate, tokens };
-                    }
-                } else {
-                    this.inProgressList.push({
-                        code: this.generateInProgressCode(),
-                        institution: val.institution,
-                        courseName: val.courseName,
-                        studyType: val.studyType,
-                        startDate: val.startDate,
-                        tokens
+        const val = this.inProgressForm.value;
+        const payload = {
+            active: true,
+            investigadorId: currentUser.id,
+            institucion: val.institution,
+            tipoEstudio: val.studyType,
+            nombreCurso: val.courseName,
+            fechaInicio: val.startDate
+        };
+
+        this.alertService.confirm('Confirmación', '¿Guardar estudio en curso?').then(confirmed => {
+            if (confirmed) {
+                this.uploadFiles(this.inProgressFiles, this.INVESTIGATOR_MODULE, FileType.DOCUMENT, this.EDUCATION_CATEGORY, this.IN_PROGRESS_SECTION)
+                    .subscribe(uploaded => {
+                        const tokens = uploaded.map(u => u.token);
+                        const finalPayload = { ...payload, tokens };
+
+                        const action$ = this.isEditing && this.currentEditId
+                            ? this.educationService.updateInProgress(this.currentEditId, finalPayload)
+                            : this.educationService.createInProgress(finalPayload);
+
+                        action$.subscribe({
+                            next: () => {
+                                this.alertService.success('Éxito', 'Estudio en curso guardado');
+                                this.loadInProgress(currentUser.id);
+                                this.closeInProgressModal();
+                            },
+                            error: (err: any) => this.alertService.error('Error', 'Error al guardar estudio en curso')
+                        });
                     });
-                }
-                this.closeInProgressModal();
-            });
+            }
+        });
     }
 
-    generateInProgressCode(): string {
-        const nextId = this.inProgressList.length + 1;
-        return nextId.toString().padStart(3, '0');
-    }
-
-    // --- Complementary Modal Logic ---
+    // --- Complementary Logic ---
     openComplementaryModal() {
         this.showComplementaryModal = true;
         this.isEditing = false;
-        this.currentEditCode = null;
+        this.currentEditId = null;
         this.complementaryFiles = [];
-        this.complementaryForm.reset({
-            institution: '',
-            courseName: '',
-            country: '',
-            measureUnit: '',
-            totalHours: '',
-            startDate: '',
-            endDate: ''
-        });
+        this.complementaryForm.reset();
     }
 
     editComplementary(item: ComplementaryEntry) {
         this.showComplementaryModal = true;
         this.isEditing = true;
-        this.currentEditCode = item.code;
+        this.currentEditId = item.id;
+        const raw = item.originalItem || item;
+
         this.complementaryForm.patchValue({
-            institution: item.institution,
-            courseName: item.courseName,
-            country: item.country,
-            measureUnit: item.measureUnit,
-            totalHours: item.totalHours,
+            institution: raw.institucion || item.institution,
+            courseName: raw.nombreCurso || item.courseName,
+            country: raw.pais || item.country,
+            measureUnit: raw.unidadMedida || item.measureUnit,
+            totalHours: raw.horasTotales || item.totalHours,
             startDate: item.startDate,
             endDate: item.endDate
         });
 
         this.complementaryFiles = [];
-        const id = Number(item.code);
-        if (!isNaN(id)) {
-            this.fileService.listFilesMetadata(this.INVESTIGATOR_MODULE, this.EDUCATION_CATEGORY, this.COMPLEMENTARY_SECTION, id)
-                .subscribe({
-                    next: (files) => this.complementaryFiles = files.map(f => ({ name: f.nombre, token: f.token, file: null })),
-                    error: () => {
-                        if (item.tokens) this.complementaryFiles = item.tokens.map(t => ({ name: 'Archivo Adjunto', token: t, file: null }));
-                    }
-                });
-        } else if (item.tokens) {
-            this.complementaryFiles = item.tokens.map(t => ({ name: 'Archivo Adjunto', token: t, file: null }));
-        }
+        this.fileService.listFilesMetadata(this.INVESTIGATOR_MODULE, this.EDUCATION_CATEGORY, this.COMPLEMENTARY_SECTION, item.id)
+            .subscribe({
+                next: (files) => this.complementaryFiles = files.map(f => ({ name: f.nombre, token: f.token, file: null })),
+                error: (err: any) => console.error('Error loading files', err)
+            });
     }
 
     closeComplementaryModal() {
@@ -496,74 +634,47 @@ export class EducationComponent {
             return;
         }
 
-        this.uploadFiles(this.complementaryFiles, this.INVESTIGATOR_MODULE, FileType.DOCUMENT, this.EDUCATION_CATEGORY, this.COMPLEMENTARY_SECTION)
-            .subscribe(uploaded => {
-                const tokens = uploaded.map(u => u.token);
-                const val = this.complementaryForm.value;
-                if (this.isEditing && this.currentEditCode) {
-                    const idx = this.complementaryList.findIndex(x => x.code === this.currentEditCode);
-                    if (idx !== -1) {
-                        this.complementaryList[idx] = { ...this.complementaryList[idx], ...val, tokens };
-                    }
-                } else {
-                    this.complementaryList.push({
-                        code: this.generateComplementaryCode(),
-                        ...val,
-                        tokens
+        const currentUser = this.authService.getCurrentUser();
+        if (!currentUser?.id) return;
+
+        const val = this.complementaryForm.value;
+        const payload = {
+            active: true,
+            investigadorId: currentUser.id,
+            institucion: val.institution,
+            nombreCurso: val.courseName,
+            pais: val.country,
+            unidadMedida: val.measureUnit,
+            horasTotales: val.totalHours,
+            fechaInicio: val.startDate,
+            fechaFin: val.endDate
+        };
+
+        this.alertService.confirm('Confirmación', '¿Guardar formación complementaria?').then(confirmed => {
+            if (confirmed) {
+                this.uploadFiles(this.complementaryFiles, this.INVESTIGATOR_MODULE, FileType.DOCUMENT, this.EDUCATION_CATEGORY, this.COMPLEMENTARY_SECTION)
+                    .subscribe(uploaded => {
+                        const tokens = uploaded.map(u => u.token);
+                        const finalPayload = { ...payload, tokens };
+
+                        const action$ = this.isEditing && this.currentEditId
+                            ? this.educationService.updateComplementary(this.currentEditId, finalPayload)
+                            : this.educationService.createComplementary(finalPayload);
+
+                        action$.subscribe({
+                            next: () => {
+                                this.alertService.success('Éxito', 'Formación complementaria guardada');
+                                this.loadComplementary(currentUser.id);
+                                this.closeComplementaryModal();
+                            },
+                            error: (err: any) => this.alertService.error('Error', 'Error al guardar formación complementaria')
+                        });
                     });
-                }
-                this.closeComplementaryModal();
-            });
+            }
+        });
     }
 
-    generateComplementaryCode(): string {
-        const nextId = this.complementaryList.length + 1;
-        return nextId.toString().padStart(3, '0');
-    }
-
-    saveEducation() {
-        if (this.educationForm.invalid) {
-            this.educationForm.markAllAsTouched();
-            return;
-        }
-
-        this.uploadFiles(this.educationFiles, this.INVESTIGATOR_MODULE, FileType.DOCUMENT, this.EDUCATION_CATEGORY, this.ACADEMIC_SECTION)
-            .subscribe(uploaded => {
-                const tokens = uploaded.map(u => u.token);
-                const val = this.educationForm.value;
-
-                if (this.isEditing && this.currentEditCode) {
-                    const idx = this.educationList.findIndex(e => e.code === this.currentEditCode);
-                    if (idx !== -1) {
-                        this.educationList[idx] = { ...this.educationList[idx], institution: val.institution, degreeType: val.academicLevel, titleName: val.degreeName, startDate: val.startDate, endDate: val.endDate, tokens };
-                    }
-                } else {
-                    this.educationList.push({
-                        code: this.generateCode(),
-                        isSunedu: false,
-                        institution: val.institution,
-                        degreeType: val.academicLevel,
-                        titleName: val.degreeName,
-                        startDate: val.startDate, // In real app format date
-                        endDate: val.endDate,
-                        tokens
-                    });
-                }
-                this.closeModal();
-            });
-    }
-
-    generateCode(): string {
-        const nextId = this.educationList.length + 1;
-        return nextId.toString().padStart(3, '0');
-    }
-
-    deleteEducation(index: number) {
-        this.educationList.splice(index, 1);
-    }
-
-    // --- Helper Methods ---
-
+    // --- Helpers ---
     uploadFiles(files: any[], module: string, type: string, category: string, section: string, isPublic: boolean = false): Observable<any[]> {
         if (!files || files.length === 0) return of([]);
 
@@ -575,7 +686,7 @@ export class EducationComponent {
                     map(response => ({
                         ...response,
                         name: fileItem.file.name,
-                        token: response.token || response // Adjust based on actual API
+                        token: response.token || response
                     }))
                 );
             }
@@ -588,9 +699,8 @@ export class EducationComponent {
     }
 
     openFileViewer(item: any, section: string) {
-        const id = Number(item.code);
-
-        if (!isNaN(id)) {
+        const id = item.id;
+        if (id) {
             this.fileService.listFilesMetadata(this.INVESTIGATOR_MODULE, this.EDUCATION_CATEGORY, section, id)
                 .subscribe({
                     next: (files) => {
@@ -603,34 +713,11 @@ export class EducationComponent {
                         }));
                         this.showFileViewer = true;
                     },
-                    error: (err) => {
-                        if (item.tokens) {
-                            this.viewerFiles = item.tokens.map((t: string) => ({
-                                id: 0,
-                                name: 'Archivo Adjunto', // Name lost if not saved to metadata
-                                url: '',
-                                type: 'PDF',
-                                token: t
-                            }));
-                            this.showFileViewer = true;
-                        } else {
-                            this.viewerFiles = [];
-                            this.showFileViewer = true;
-                        }
+                    error: () => {
+                        this.viewerFiles = [];
+                        this.showFileViewer = true;
                     }
                 });
-        } else if (item.tokens) {
-            this.viewerFiles = item.tokens.map((t: string) => ({
-                id: 0,
-                name: 'Archivo Adjunto',
-                url: '',
-                type: 'PDF',
-                token: t
-            }));
-            this.showFileViewer = true;
-        } else {
-            this.viewerFiles = [];
-            this.showFileViewer = true;
         }
     }
 
@@ -641,19 +728,88 @@ export class EducationComponent {
         return 'PDF';
     }
 
-    selectEducationInstitution(item: any) {
-        this.educationForm.patchValue({ institution: item.nombre });
+    deleteTechnical(id: number | undefined) {
+        if (!id) return;
+        this.alertService.confirm('Eliminar', '¿Está seguro de eliminar este registro técnico?').then(confirmed => {
+            if (confirmed) {
+                this.educationService.deleteTechnical(id).subscribe({
+                    next: () => {
+                        this.alertService.success('Éxito', 'Registro técnico eliminado');
+                        const user = this.authService.getCurrentUser();
+                        if (user) this.loadTechnical(user.id);
+                    },
+                    error: () => this.alertService.error('Error', 'Error al eliminar')
+                });
+            }
+        });
     }
 
+    deleteInProgress(id: number | undefined) {
+        if (!id) return;
+        this.alertService.confirm('Eliminar', '¿Está seguro de eliminar este estudio en curso?').then(confirmed => {
+            if (confirmed) {
+                this.educationService.deleteInProgress(id).subscribe({
+                    next: () => {
+                        this.alertService.success('Éxito', 'Estudio eliminado');
+                        const user = this.authService.getCurrentUser();
+                        if (user) this.loadInProgress(user.id);
+                    },
+                    error: () => this.alertService.error('Error', 'Error al eliminar')
+                });
+            }
+        });
+    }
+
+    deleteComplementary(id: number | undefined) {
+        if (!id) return;
+        this.alertService.confirm('Eliminar', '¿Está seguro de eliminar esta formación complementaria?').then(confirmed => {
+            if (confirmed) {
+                this.educationService.deleteComplementary(id).subscribe({
+                    next: () => {
+                        this.alertService.success('Éxito', 'Registro eliminado');
+                        const user = this.authService.getCurrentUser();
+                        if (user) this.loadComplementary(user.id);
+                    },
+                    error: () => this.alertService.error('Error', 'Error al eliminar')
+                });
+            }
+        });
+    }
+
+    // --- Select handlers ---
+    selectEducationInstitution(item: any) {
+        // Set display name
+        this.educationForm.patchValue({
+            institution: item.nombre,
+            institutionId: item.id.toString() // Capture ID as string for payload
+        });
+    }
     selectTechnicalInstitution(item: any) {
         this.technicalForm.patchValue({ institution: item.nombre });
     }
-
     selectInProgressInstitution(item: any) {
         this.inProgressForm.patchValue({ institution: item.nombre });
     }
-
     selectComplementaryInstitution(item: any) {
         this.complementaryForm.patchValue({ institution: item.nombre });
+    }
+
+    // --- Sunedu Import (Mock for now, or use service if available) ---
+    openImportModal() {
+        this.showImportModal = true;
+    }
+
+    closeImportModal() {
+        this.showImportModal = false;
+    }
+
+    importSelected() {
+        const selected = this.suneduList.filter(x => x.selected);
+        // Implement backend import logic if API exists for it.
+        // For now, leave as is or basic mock adds to list but list is now driven by backend.
+        // Usually import means "fetch from Sunedu and save to DB".
+        // I will assume for now we just show a message or call a bulk create endpoint if it existed.
+        this.alertService.info('Importar', 'Funcionalidad de importación en desarrollo (conectando con backend).');
+        this.closeImportModal();
     }
 }

@@ -3,44 +3,6 @@
     max-width: 1600px;
     margin: 0 auto;
 
-    /* Top Actions */
-    .top-actions {
-        display: flex;
-        gap: 16px;
-        margin-bottom: 32px;
-
-        button {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: 500;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .btn-primary-dark {
-            background: #005470;
-            color: white;
-            border: none;
-
-            &:hover {
-                background: #003f54;
-            }
-        }
-
-        .btn-outline {
-            background: white;
-            border: 1px solid #005470;
-            color: #005470;
-
-            &:hover {
-                background: #F0F9FF;
-            }
-        }
-    }
-
     .content-area {
         background: white;
         border-radius: 8px;
