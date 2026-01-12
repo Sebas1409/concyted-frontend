@@ -919,36 +919,25 @@ export class LandingConfigComponent implements OnInit {
             });
     }
     /* Notification Methods */
+    /* Notification Methods */
     loadNotificationConfig() {
-        this.landingService.getDetailsByHeaderCode(LandingSectionCode.AYUDA).subscribe({
+        this.landingService.getHeaderByCode(LandingSectionCode.AYUDA).subscribe({
             next: (data) => {
-                if (data && data.length > 0) {
-                    const item = data[0];
-                    let dates = { startDate: '', endDate: '' };
-                    try {
-                        if (item.detalle3) {
-                            dates = JSON.parse(item.detalle3);
-                        }
-                    } catch (e) {
-                        console.error('Error parsing notification dates', e);
-                    }
+                if (data) {
+                    this.notificationHeader = data;
+                    // Format for date: YYYY-MM-DD
+                    const formatDate = (dateStr?: string) => {
+                        if (!dateStr) return '';
+                        return dateStr.split('T')[0];
+                    };
 
                     this.notificationForm = {
-                        id: item.id.toString(),
-                        description: item.detalle1 || '',
-                        buttonTitle: item.nombre || '',
-                        url: item.detalle2 || '',
-                        startDate: dates.startDate || '',
-                        endDate: dates.endDate || ''
-                    };
-                } else {
-                    this.notificationForm = {
-                        id: '',
-                        description: '',
-                        buttonTitle: '',
-                        url: '',
-                        startDate: '',
-                        endDate: ''
+                        id: data.id.toString(),
+                        description: data.titulo || '',
+                        buttonTitle: data.subtitulo || '',
+                        url: data.subtituloEnlace || '',
+                        startDate: formatDate(data.fechaInicio),
+                        endDate: formatDate(data.fechaFin)
                     };
                 }
                 this.cdr.markForCheck();
@@ -963,31 +952,31 @@ export class LandingConfigComponent implements OnInit {
             return;
         }
 
-        const dates = {
-            startDate: this.notificationForm.startDate,
-            endDate: this.notificationForm.endDate
+        if (!this.notificationForm.startDate || !this.notificationForm.endDate) {
+            this.alertService.warning('Campos incompletos', 'Fecha de Inicio y Fin son obligatorias.');
+            return;
+        }
+
+        if (this.notificationForm.startDate > this.notificationForm.endDate) {
+            this.alertService.warning('Fechas inválidas', 'La Fecha de Inicio no puede ser mayor a la Fecha de Fin.');
+            return;
+        }
+
+        if (!this.notificationHeader) {
+            this.alertService.error('Error', 'No se ha cargado la configuración inicial.');
+            return;
+        }
+
+        const payload: LandingHeader = {
+            ...this.notificationHeader,
+            titulo: this.notificationForm.description,
+            subtitulo: this.notificationForm.buttonTitle,
+            subtituloEnlace: this.notificationForm.url,
+            fechaInicio: this.notificationForm.startDate,
+            fechaFin: this.notificationForm.endDate
         };
 
-        const detail: LandingDetail = {
-            id: this.notificationForm.id ? parseInt(this.notificationForm.id) : 0,
-            codigoEncabezado: LandingSectionCode.AYUDA,
-            nombre: this.notificationForm.buttonTitle,
-            detalle1: this.notificationForm.description,
-            detalle2: this.notificationForm.url,
-            detalle3: JSON.stringify(dates),
-            fotoToken: '',
-            logoToken: '',
-            fuenteDato: '',
-            orden: 1,
-            publicado: true,
-            activo: true
-        };
-
-        const request$ = detail.id
-            ? this.landingService.updateDetail(detail.id, detail)
-            : this.landingService.createDetail(detail);
-
-        request$.subscribe({
+        this.landingService.updateHeader(this.notificationHeader.id, payload).subscribe({
             next: () => {
                 this.alertService.success('Éxito', 'Notificación actualizada correctamente.');
                 this.loadNotificationConfig();

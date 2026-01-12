@@ -635,12 +635,19 @@
                 </div>
                 <div class="grid-2-col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div class="form-group">
-                        <label>Fecha de Inicio</label>
-                        <input type="date" [(ngModel)]="notificationForm.startDate">
+                        <label>Fecha de Inicio <span class="required">*</span></label>
+                        <input type="date" [(ngModel)]="notificationForm.startDate" [max]="notificationForm.endDate"
+                            [class.input-error]="notificationForm.startDate && notificationForm.endDate && notificationForm.startDate > notificationForm.endDate">
                     </div>
                     <div class="form-group">
-                        <label>Fecha de Fin</label>
-                        <input type="date" [(ngModel)]="notificationForm.endDate">
+                        <label>Fecha de Fin <span class="required">*</span></label>
+                        <input type="date" [(ngModel)]="notificationForm.endDate" [min]="notificationForm.startDate"
+                            [class.input-error]="notificationForm.startDate && notificationForm.endDate && notificationForm.startDate > notificationForm.endDate">
+
+                        <span class="hint-text-sm" style="color: #EF4444; font-size: 12px; margin-top: 4px;"
+                            *ngIf="notificationForm.startDate && notificationForm.endDate && notificationForm.startDate > notificationForm.endDate">
+                            La fecha de fin no puede ser menor a la fecha de inicio
+                        </span>
                     </div>
                 </div>
                 <div class="card-footer">
@@ -657,9 +664,9 @@
     <!-- Existing Slide Modal Body -->
     <p class="modal-description">Sube la fotografía de fondo y configura los datos destacados del investigador que
         aparecerán superpuestos en la sección Hero</p>
-    <app-single-image-upload [currentToken]="slideForm.image" [minWidth]="1920" [minHeight]="1080" placeholderText="JA"
+    <app-single-image-upload [currentToken]="slideForm.image" [minWidth]="500" [minHeight]="500" placeholderText="JA"
         accept=".webp,.jpg,.jpeg,.png,.svg" [maxSizeBytes]="5242880"
-        hintText="JPG, PNG, SVG o WEBP (Alta Calidad). Resolución mínima: 1920x1080px. Peso máximo: 5MB." module="ADMIN"
+        hintText="JPG, PNG, SVG o WEBP (Alta Calidad). Resolución mínima: 500x500px. Peso máximo: 5MB." module="ADMIN"
         category="LANDING" section="HERO01" [type]="FileType.PHOTO" (tokenChange)="onSlideImageUploaded($event)"
         [isPublic]="true" style="margin-bottom: 24px; display: block;">
     </app-single-image-upload>

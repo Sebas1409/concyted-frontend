@@ -1,26 +1,28 @@
 <section class="features">
     <div class="container">
-        <div class="cards">
-            <div class="card-item">
-                <img src="assets/images/landing/features/feature1.png" alt="Financiamiento y Concursos">
-                <h3>Financiamiento y Concursos</h3>
-                <p>Postula a fondos nacionales e internacionales de ProCiencia. Gestiona tus subvenciones sin trámites
-                    físicos.</p>
-            </div>
 
-            <div class="card-item">
-                <img src="assets/images/landing/features/feature2.png" alt="Biblioteca Científica">
-                <h3>Biblioteca Científica (Acceso Total)</h3>
-                <p>Descarga papers de Scopus, WoS y bases de datos de alto impacto. Tu puerta gratuita al conocimiento
-                    global.</p>
+        <!-- SKELETON LOADER -->
+        <ng-container *ngIf="loading && featuresList.length === 0">
+            <div class="cards">
+                <div class="card-item" *ngFor="let i of [1,2,3]">
+                    <div class="skeleton-loader skeleton-image"></div>
+                    <div class="skeleton-loader skeleton-title"></div>
+                    <div class="skeleton-loader skeleton-text"></div>
+                </div>
             </div>
+        </ng-container>
 
-            <div class="card-item">
-                <img src="assets/images/landing/features/feature3.png" alt="Gestión de CV">
-                <h3>Gestión Inteligente de tu CV</h3>
-                <p>Genera tu Hoja de Vida oficial con un clic. Exporta formatos estandarizados para convocatorias del
-                    Estado.</p>
+        <!-- REAL DATA -->
+        <ng-container *ngIf="!loading || featuresList.length > 0">
+            <div class="cards">
+                <div class="card-item" *ngFor="let item of featuresList">
+                    <img [src]="item.image" onerror="this.onerror=null;this.src='assets/images/placeholder.jpg'"
+                        [alt]="item.title">
+                    <h3>{{ item.title }}</h3>
+                    <p>{{ item.description }}</p>
+                </div>
             </div>
-        </div>
+        </ng-container>
+
     </div>
 </section>

@@ -3,7 +3,9 @@
 
         <!-- COLUMNA 1: LOGO + DESCRIPCIÓN -->
         <div class="col brand-block">
-            <img src="assets/images/landing/logo-white.png" alt="CTI Vitae" class="footer-logo">
+            <a [routerLink]="['/']">
+                <img src="assets/images/landing/logo-white.png" alt="CTI Vitae" class="footer-logo">
+            </a>
 
             <p class="brand-text">
                 La plataforma oficial que conecta,<br>
@@ -15,21 +17,22 @@
         <!-- COLUMNA 2 -->
         <div class="col">
             <h4>PLATAFORMA</h4>
-            <a href="#">Inicio</a>
-            <a href="#">Buscador de Investigadores</a>
+            <a [routerLink]="['/']">Inicio</a>
+            <a [routerLink]="['/search']">Buscador de Investigadores</a>
             <a href="#">Reglamento RENACYT</a>
             <a href="#">Convocatorias Abiertas</a>
-            <a href="#">Iniciar Sesión</a>
+            <a [routerLink]="['/auth/login']">Iniciar Sesión</a>
         </div>
 
         <!-- COLUMNA 3 -->
         <div class="col">
             <h4>RECURSOS</h4>
-            <a href="#">Repositorio ALICIA</a>
-            <a href="#">Biblioteca Virtual de CTI</a>
-            <a href="#">Manual de Usuario</a>
-            <a href="#">Preguntas Frecuentes (FAQ)</a>
-            <a href="#">Mesa de Ayuda</a>
+            <a href="https://alicia.concytec.gob.pe/" target="_blank">Repositorio ALICIA</a>
+            <a href="https://biblioteca.concytec.gob.pe/" target="_blank">Biblioteca Virtual de CTI</a>
+            <a href="https://sites.google.com/concytec.gob.pe/ctivitae" target="_blank">Manual de Usuario</a>
+            <a href="https://sites.google.com/concytec.gob.pe/ctivitae/ayuda/preguntas-frecuentes"
+                target="_blank">Preguntas Frecuentes (FAQ)</a>
+            <a href="https://sites.google.com/concytec.gob.pe/ctivitae/ayuda" target="_blank">Mesa de Ayuda</a>
         </div>
 
         <!-- COLUMNA 4 -->
@@ -55,7 +58,8 @@
 
         <div class="bottom-links">
             <a href="#">Política de Privacidad</a>
-            <a href="#">Términos de Uso</a>
+            <a href="https://sites.google.com/concytec.gob.pe/ctivitae/sobre-ctivitae/terminos-condiciones"
+                target="_blank">Términos de Uso</a>
             <a href="#">Libro de Reclamaciones</a>
         </div>
     </div>

@@ -64,7 +64,9 @@
 
                 <div class="form-group">
                     <label class="form-label">Número de documento <span class="required">*</span></label>
-                    <input type="text" class="form-control" formControlName="documentNumber" placeholder="ej. 123456789"
+                    <input type="text" class="form-control" formControlName="documentNumber"
+                        [placeholder]="documentNumberPlaceholder" [maxlength]="documentMaxLength"
+                        (input)="onDocumentInput($event)"
                         [class.is-invalid]="isFieldInvalid(step0Form, 'documentNumber')">
                     <div class="invalid-feedback" *ngIf="isFieldInvalid(step0Form, 'documentNumber')">
                         <span *ngIf="step0Form.get('documentNumber')?.errors?.['required']">El número de documento es

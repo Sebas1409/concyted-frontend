@@ -1,5 +1,15 @@
-import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnChanges, SimpleChanges, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LandingDetail, LandingSection } from '../../../../core/services/landing.service';
+import { environment } from '../../../../../environments/environment';
+import { FileService } from '../../../../core/services/file.service';
+
+interface AudienceItem {
+    title: string;
+    tags: string;
+    description: string;
+    image: string;
+}
 
 @Component({
     selector: 'app-audience',
@@ -8,50 +18,52 @@ import { CommonModule } from '@angular/common';
     templateUrl: './audience.component.html',
     styleUrl: './audience.component.scss'
 })
-export class AudienceComponent implements AfterViewInit {
-
+export class AudienceComponent implements AfterViewInit, OnChanges {
+    @Input() sectionData: LandingSection | undefined;
+    @Input() loading: boolean = true;
     @ViewChild('carousel') carousel!: ElementRef<HTMLElement>;
 
-    audienceList = [
-        {
-            title: 'Talento Humano',
-            tags: 'Investigadores | Profesionales | Técnicos',
-            description: 'Diseñado para quienes crean conocimiento. Gestiona tu perfil, visibiliza tu producción y encuentra oportunidades de crecimiento profesional.',
-            image: 'assets/images/landing/audiencie/img1.png'
-        },
-        {
-            title: 'Gobierno y Sector Productivo',
-            tags: 'Empresas | Estado | Organismos Internacionales',
-            description: 'Conectamos la demanda con la oferta tecnológica. Encuentra expertos para proyectos de I+D+i y toma decisiones basadas en evidencia científica.',
-            image: 'assets/images/landing/audiencie/img2.png'
-        },
-        {
-            title: 'Instituciones Académicas',
-            tags: 'Universidades | Institutos de Investigación',
-            description: 'Herramientas de gestión de la producción intelectual, visibilidad institucional y fomento de la colaboración académica.',
-            image: 'assets/images/landing/audiencie/img3.png'
-        },
-        {
-            title: 'Sociedad Civil',
-            tags: 'Ciudadanos | Estudiantes',
-            description: 'Accede a información científica confiable y descubre cómo la ciencia impacta en tu vida diaria y en el desarrollo de tu comunidad.',
-            image: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=500&auto=format&fit=crop&q=60'
-        },
-        {
-            title: 'Cooperación Internacional',
-            tags: 'Embajadas | Agencias de Cooperación',
-            description: 'Facilitamos alianzas estratégicas y conectamos investigadores peruanos con oportunidades globales de financiamiento y desarrollo.',
-            image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=500&auto=format&fit=crop&q=60'
-        }
-    ];
+    audienceList: AudienceItem[] = [];
+    sectionTitle: string = 'Nuestro Publico: Un ecosistema conectado para el desarrollo del país'; // Default title
 
     currentSlide = 1;
-    cardWidth = 400 + 32; // Card width (400) + gap (32)
+    cardWidth = 400 + 32;
+
+    constructor(
+        private cdr: ChangeDetectorRef,
+        private fileService: FileService
+    ) { }
+
+    ngOnChanges(changes: SimpleChanges) {
+        if (changes['sectionData'] && this.sectionData) {
+            this.processData(this.sectionData);
+        } else if (changes['loading']) {
+            if (!this.loading && !this.sectionData) {
+                this.audienceList = [];
+            }
+        }
+    }
+
+    private processData(data: LandingSection) {
+        if (data.encabezado) {
+            this.sectionTitle = data.encabezado.titulo || this.sectionTitle;
+        }
+
+        if (data.detalles) {
+            this.audienceList = data.detalles.filter(d => d.activo && d.publicado).sort((a, b) => a.orden - b.orden)
+                .map(d => ({
+                    title: d.nombre || '',
+                    tags: d.detalle2 || '',
+                    description: d.detalle1 || '',
+                    image: d.fotoToken ? this.fileService.getFileUrl(d.fotoToken, true) : 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=600&auto=format&fit=crop'
+                }));
+        }
+    }
 
     ngAfterViewInit() {
-        this.updateCarouselState();
-        // Listen to scroll to update index if user scrolls manually
-        this.carousel.nativeElement.addEventListener('scroll', () => this.updateIndexFromScroll());
+        if (this.carousel) {
+            this.carousel.nativeElement.addEventListener('scroll', () => this.updateIndexFromScroll());
+        }
     }
 
     get totalSlides() {
@@ -73,6 +85,7 @@ export class AudienceComponent implements AfterViewInit {
     }
 
     private scrollToSlide() {
+        if (!this.carousel) return;
         const position = (this.currentSlide - 1) * this.cardWidth;
         this.carousel.nativeElement.scrollTo({
             left: position,
@@ -81,6 +94,7 @@ export class AudienceComponent implements AfterViewInit {
     }
 
     private updateIndexFromScroll() {
+        if (!this.carousel) return;
         const scrollLeft = this.carousel.nativeElement.scrollLeft;
         const index = Math.round(scrollLeft / this.cardWidth) + 1;
         if (index !== this.currentSlide) {
@@ -88,8 +102,4 @@ export class AudienceComponent implements AfterViewInit {
         }
     }
 
-    // Update state helper if needed
-    updateCarouselState() {
-        // Any initialization
-    }
 }

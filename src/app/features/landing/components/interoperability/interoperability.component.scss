@@ -160,3 +160,13 @@
         text-align: center;
     }
 }
+
+@media (max-width: 480px) {
+    .feature-image-wrapper {
+        height: 220px;
+    }
+
+    .main-header h2 {
+        font-size: 2rem;
+    }
+}

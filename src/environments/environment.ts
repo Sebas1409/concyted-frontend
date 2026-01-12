@@ -5,5 +5,6 @@ export const environment = {
     managementServiceUrl: '/cti-management-service/api',
     catalogServiceUrl: '/cti-catalog-service/api',
     fileServiceUrl: '/cti-file-service/api',
-    reniecApiUrl: '/cti-interop-service/api/reniec/validar'
+    reniecApiUrl: '/cti-interop-service/api/reniec/validar',
+    landingPublicUrl: '/cti-management-service/public/api'
 };

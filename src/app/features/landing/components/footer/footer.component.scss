@@ -139,14 +139,20 @@
         .footer-top {
             grid-template-columns: 1fr;
             text-align: center;
+        }
 
-            .footer-logo {
-                margin: 0 auto 1rem auto;
-            }
+        .brand-block {
+            align-items: center;
+            /* Center flex children like logo and text */
+        }
+
+        .footer-logo {
+            margin: 0 auto 1rem auto;
         }
 
         .brand-text {
             margin: 0 auto;
+            text-align: center;
         }
 
         .footer-bottom {

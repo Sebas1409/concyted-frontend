@@ -82,6 +82,18 @@
     .user-logos-grid {
         grid-template-columns: 1fr;
         text-align: center;
+        gap: 2rem;
+    }
+
+    .logos-carousel {
+        margin-left: 0;
+        /* Reset desktop margin */
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .left-text h3 {
+        font-size: 1.25rem;
     }
 
     .logo {

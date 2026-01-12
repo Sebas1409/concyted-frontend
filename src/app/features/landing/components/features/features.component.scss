@@ -44,8 +44,71 @@
     @media (max-width: 980px) {
         .cards {
             grid-template-columns: 1fr;
-            max-width: 600px; // Limit width on mobile so stack looks decent
+            max-width: 100%;
+            /* Allow full width */
+            padding: 0 2rem;
+            /* Reasonable side padding */
             margin: 0 auto;
+        }
+
+        /* Optional: limit image size if it gets too huge? */
+        .cards .card-item img {
+            max-height: 500px;
+            /* capping height visually if needed */
+        }
+    }
+
+    @media (max-width: 480px) {
+        .cards {
+            padding: 0 1rem;
+            /* add container padding */
+        }
+
+        .cards .card-item {
+            text-align: center;
+            /* Center text */
+            margin-bottom: 2rem;
+            padding: 0 1rem;
+            /* Add side padding to card content */
+        }
+    }
+
+    /* SKELETON LOADER */
+    .skeleton-loader {
+        background-color: #e0e0e0;
+        animation: pulse 1.5s infinite ease-in-out;
+        border-radius: 8px;
+    }
+
+    .skeleton-image {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        display: block;
+    }
+
+    .skeleton-title {
+        margin-top: 1.5rem;
+        width: 80%;
+        height: 1.5rem;
+    }
+
+    .skeleton-text {
+        margin-top: 0.75rem;
+        width: 100%;
+        height: 3rem;
+    }
+
+    @keyframes pulse {
+        0% {
+            opacity: 0.6;
+        }
+
+        50% {
+            opacity: 0.4;
+        }
+
+        100% {
+            opacity: 0.6;
         }
     }
 }

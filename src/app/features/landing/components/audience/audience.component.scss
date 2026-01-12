@@ -162,3 +162,107 @@
         margin-top: 1rem;
     }
 }
+
+@media (max-width: 480px) {
+    .audience-section {
+        padding: 40px 0;
+        /* Reduce vertical padding */
+
+        .container {
+            padding: 0 1rem;
+            /* Reduce side padding */
+        }
+    }
+
+    .audience-title {
+        font-size: 1.75rem;
+    }
+
+    /* Override previous query if needed, or just specific card adjustments */
+    .audience-carousel {
+        /* Ensure carousel starts from left edge of padding or screen? 
+           Usually carousel needs to overflow container?
+           If we want "margins", maybe user means gap between cards or card vs screen edge. */
+        gap: 16px;
+    }
+
+    .audience-card {
+        flex: 0 0 280px;
+        /* Fixed width often looks better than vw on small screens for cards */
+        width: 280px;
+        max-width: 85vw;
+        /* Cap at 85% if screen is even smaller */
+    }
+
+    .card-image-wrapper {
+        height: 200px;
+        margin-bottom: 16px;
+        /* Reduce bottom margin */
+    }
+
+    .card-title {
+        font-size: 1.15rem;
+        /* Slightly smaller title */
+    }
+
+    .card-desc {
+        font-size: 0.9rem;
+    }
+}
+
+/* Skeleton Styles */
+.skeleton-loader {
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-block {
+    background-color: #E5E7EB; // Light grey like generic skeletons
+    border-radius: 4px;
+    width: 100%;
+}
+
+.skeleton-image {
+    width: 100%;
+    height: 100%;
+    background-color: #E5E7EB;
+    border-radius: 12px;
+}
+
+.skeleton-text {
+    height: 1.25rem;
+    margin-bottom: 0.5rem;
+    background-color: #E5E7EB;
+    border-radius: 4px;
+    width: 80%;
+
+    &.title {
+        height: 1.5rem;
+        width: 60%;
+        margin-bottom: 0.75rem;
+    }
+
+    &.tags {
+        height: 1rem;
+        width: 40%;
+        margin-bottom: 1rem;
+    }
+
+    &.desc {
+        height: 4rem; // block for description
+        width: 100%;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+
+    100% {
+        opacity: 0.6;
+    }
+}

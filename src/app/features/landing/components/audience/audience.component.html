@@ -3,7 +3,7 @@
 
         <div class="audience-header">
             <h2 class="audience-title">
-                Nuestro Publico: Un ecosistema conectado para el desarrollo del país
+                {{ sectionTitle }}
             </h2>
 
             <div class="audience-nav">
@@ -24,18 +24,35 @@
         </div>
 
         <div class="audience-carousel" #carousel>
-            <div class="audience-card" *ngFor="let item of audienceList">
-                <div class="card-image-wrapper">
-                    <img [src]="item.image"
-                        onerror="this.src='https://images.unsplash.com/photo-1576086213369-97a306d36557?w=500&auto=format&fit=crop&q=60'"
-                        alt="{{item.title}}" class="card-image">
+
+            <ng-container *ngIf="loading && audienceList.length === 0">
+                <div class="audience-card skeleton-loader" *ngFor="let i of [1,2,3]">
+                    <div class="card-image-wrapper">
+                        <div class="skeleton-image"></div>
+                    </div>
+                    <div class="card-content">
+                        <div class="skeleton-text title"></div>
+                        <div class="skeleton-text tags"></div>
+                        <div class="skeleton-text desc"></div>
+                    </div>
                 </div>
-                <div class="card-content">
-                    <h3 class="card-title">{{ item.title }}</h3>
-                    <p class="card-tags">{{ item.tags }}</p>
-                    <p class="card-desc">{{ item.description }}</p>
+            </ng-container>
+
+            <ng-container *ngIf="!loading || audienceList.length > 0">
+                <div class="audience-card" *ngFor="let item of audienceList">
+                    <div class="card-image-wrapper">
+                        <img [src]="item.image"
+                            onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=600&auto=format&fit=crop'"
+                            alt="{{item.title}}" class="card-image">
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">{{ item.title }}</h3>
+                        <p class="card-tags">{{ item.tags }}</p>
+                        <p class="card-desc">{{ item.description }}</p>
+                    </div>
                 </div>
-            </div>
+            </ng-container>
+
         </div>
     </div>
 </section>

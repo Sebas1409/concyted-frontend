@@ -206,6 +206,7 @@
 
                     input[type="text"],
                     input[type="date"],
+                    input[type="datetime-local"],
                     textarea {
                         width: 100%;
                         padding: 10px 12px;
@@ -219,6 +220,16 @@
                             outline: none;
                             border-color: #005470;
                             box-shadow: 0 0 0 1px #005470;
+                        }
+
+                        &.input-error {
+                            border-color: #EF4444;
+                            background-color: #FEF2F2;
+
+                            &:focus {
+                                border-color: #EF4444;
+                                box-shadow: 0 0 0 1px #EF4444;
+                            }
                         }
                     }
                 }

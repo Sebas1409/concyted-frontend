@@ -20,35 +20,18 @@
     <!-- GRID DE ESTADÍSTICAS -->
     <div class="container reach-grid">
 
-        <div class="card">
-            <h3>+180,000</h3>
-            <p>Investigadores registrados en el directorio nacional</p>
+        <div class="card" *ngFor="let item of metrics">
+            <h3>{{ item.detalle1 }}</h3>
+            <p>{{ item.nombre }}</p>
         </div>
 
-        <div class="card">
-            <h3>+8,000</h3>
-            <p>Investigadores calificados RENACYT activos</p>
-        </div>
-
-        <div class="card">
-            <h3>S/ 500M+</h3>
-            <p>En fondos concursables gestionados a través del ecosistema</p>
-        </div>
-
-        <div class="card">
-            <h3>100%</h3>
-            <p>Visibilidad pública y transparencia en tu producción científica</p>
-        </div>
-
-        <div class="card">
-            <h3>+350,000</h3>
-            <p>Publicaciones científicas y tesis registradas</p>
-        </div>
-
-        <div class="card">
-            <h3>+1,500</h3>
-            <p>Patentes y registros de propiedad intelectual</p>
-        </div>
+        <!-- Fallback/Skeleton if loading or empty (Optional, but good UX) -->
+        <ng-container *ngIf="loading && metrics.length === 0">
+            <div class="card skeleton-loader" *ngFor="let i of [1,2,3,4,5,6]">
+                <h3 class="skeleton-text" style="width: 50%; height: 50px; margin-bottom: 20px;">000</h3>
+                <p class="skeleton-text" style="width: 80%; height: 20px;">Cargando metricas...</p>
+            </div>
+        </ng-container>
 
     </div>
 

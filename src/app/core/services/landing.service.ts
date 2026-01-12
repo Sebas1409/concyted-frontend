@@ -15,7 +15,7 @@ export interface LandingHeader {
 
 export interface LandingDetail {
     id: number;
-    codigoEncabezado: string;
+    codigoEncabezado?: string;
     nombre: string;
     detalle1: string;
     detalle2: string;
@@ -26,6 +26,11 @@ export interface LandingDetail {
     orden: number;
     publicado: boolean;
     activo: boolean;
+}
+
+export interface LandingSection {
+    encabezado: LandingHeader;
+    detalles: LandingDetail[];
 }
 
 @Injectable({
@@ -59,5 +64,9 @@ export class LandingService {
 
     deleteDetail(id: number): Observable<any> {
         return this.http.delete(`${this.detailsUrl}/${id}`);
+    }
+
+    getPublicContent(): Observable<any[]> {
+        return this.http.get<any[]>(`${environment.landingPublicUrl}/landing`);
     }
 }

@@ -72,6 +72,50 @@ export class RegisterComponent implements OnInit {
         this.loadDocumentTypes();
         this.loadCountries();
         this.setupCascadingDropdowns();
+        this.setupDocumentTypeValidation();
+    }
+
+    setupDocumentTypeValidation() {
+        const docTypeControl = this.step0Form.get('documentType');
+        const docNumControl = this.step0Form.get('documentNumber');
+
+        // Initial check
+        this.updateDocumentValidators(docTypeControl?.value);
+
+        docTypeControl?.valueChanges.subscribe(type => {
+            // Clear value when type changes to avoid invalid format staying
+            docNumControl?.setValue('');
+            this.updateDocumentValidators(type);
+        });
+    }
+
+    updateDocumentValidators(type: string) {
+        const docNumControl = this.step0Form.get('documentNumber');
+        docNumControl?.clearValidators();
+
+        // Base validator
+        const validators = [Validators.required];
+
+        if (type === 'DNI') {
+            // DNI: Exactly 8 digits, numeric
+            validators.push(Validators.pattern(/^[0-9]{8}$/));
+            validators.push(Validators.minLength(8));
+            validators.push(Validators.maxLength(8));
+        } else if (type === 'Carnet de Extranjería' || type === 'CARNET EXT') {
+            // CE: 9 to 12 chars (usually numeric but can be alphanumeric in legacy)
+            validators.push(Validators.minLength(9));
+            validators.push(Validators.maxLength(12));
+        } else if (type === 'Pasaporte' || type === 'PASAPORTE') {
+            // PAS: 6 to 12 chars
+            validators.push(Validators.minLength(6));
+            validators.push(Validators.maxLength(12));
+        } else {
+            // Default fallback
+            validators.push(Validators.minLength(8));
+        }
+
+        docNumControl?.setValidators(validators);
+        docNumControl?.updateValueAndValidity();
     }
 
     loadDocumentTypes() {
@@ -144,6 +188,41 @@ export class RegisterComponent implements OnInit {
 
         // Fallback for legacy literals if list not loaded yet or manual entry
         return type === 'CE' || type === 'PAS' || type === 'DNI_MENOR' || type === 'CARNET EXT' || type === 'PASAPORTE';
+    }
+
+    get documentNumberPlaceholder(): string {
+        const type = this.step0Form.get('documentType')?.value;
+        if (type === 'DNI') return 'ej. 12345678';
+        if (type === 'Carnet de Extranjería' || type === 'CARNET EXT') return 'ej. 000012345';
+        if (type === 'Pasaporte' || type === 'PASAPORTE' || type === 'PAS') return 'ej. A1234567';
+        return 'ej. 123456789';
+    }
+
+    get documentMaxLength(): number {
+        const type = this.step0Form.get('documentType')?.value;
+        if (type === 'DNI') return 8;
+        return 12; // Max for CE (12) and Passport (12)
+    }
+
+    onDocumentInput(event: any) {
+        const type = this.step0Form.get('documentType')?.value;
+        const input = event.target;
+        let value = input.value;
+
+        if (type === 'DNI') {
+            // Remove non-numeric characters for DNI
+            value = value.replace(/[^0-9]/g, '');
+        }
+
+        // Apply strict length limit manually if binding fails or for extra safety
+        if (value.length > this.documentMaxLength) {
+            value = value.slice(0, this.documentMaxLength);
+        }
+
+        if (input.value !== value) {
+            input.value = value;
+            this.step0Form.get('documentNumber')?.setValue(value);
+        }
     }
 
     updateStep1Validators() {
@@ -287,38 +366,39 @@ export class RegisterComponent implements OnInit {
             }
 
             const researcherPayload = {
-                active: true,
-                apellidoMaterno: step0.maternalSurname,
-                apellidoPaterno: step0.paternalSurname,
-                celular: step2.phone,
-                codigoUnico: null,
-                cvUrl: null,
-                departamento: deptName,
-                direccion: null,
-                distrito: distName,
-                email: step2.email,
-                emailAlternativo: null,
+                apellidoMaterno: step0.maternalSurname || "",
+                apellidoPaterno: step0.paternalSurname || "",
+                celular: step2.phone || "",
+                codigoUnico: "",
+                departamentoId: Number(step1.department) || 0,
+                direccion: "",
+                distritoId: Number(step1.district) || 0,
+                email: step2.email || "",
+                emailPublico: step2.email || "", // Defaulting public email to same as email
                 estado: "ACTIVO",
-                estadoRenacyt: null,
-                fechaNacimiento: step1.birthDate || null,
-                fotoUrl: null,
-                googleScholarId: null,
-                nacionalidad: countryName,
-                nombres: step0.names,
-                numeroDocumento: step0.documentNumber,
-                tipoDocumento: step0.documentType,
-                orcid: null,
-                paisNacimiento: countryName,
-                paisResidencia: countryName,
-                provincia: provName,
-                researcherId: null,
-                scopusAuthorId: null,
-                sexo: step1.gender === 'M' ? 'M' : 'F',
-                telefono: step2.phone,
-                telefonoAlternativo: null,
-                ubigeo: ubigeoCode,
-                validado: true,
-                password: step2.password
+                estadoRenacyt: "",
+                fechaNacimiento: step1.birthDate || "",
+                fechaValidacion: new Date().toISOString(),
+                fotoToken: "",
+                googleScholarId: "",
+                nacionalidad: countryName || "",
+                nombres: step0.names || "",
+                numDoc: step0.documentNumber || "",
+                orcid: "",
+                paisNacimientoId: Number(step1.country) || 0,
+                paisResidenciaId: Number(step1.country) || 0, // Assuming residence same as selection
+                password: step2.password || "",
+                provinciaId: Number(step1.province) || 0,
+                researcherId: "",
+                scopusAuthorId: "",
+                sexo: step1.gender || "",
+                telefono: step2.phone || "",
+                telefonoAlternativo: "",
+                tipoDoc: step0.documentType || "",
+                ubigeo: ubigeoCode || "",
+                usuarioId: 0,
+                validado: false,
+                validadoPor: 0
             };
 
             this.authService.registerResearcher(researcherPayload).subscribe({

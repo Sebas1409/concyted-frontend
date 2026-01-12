@@ -51,11 +51,11 @@ export class AuthService {
     registerResearcher(researcherData: any): Observable<any> {
         // As requested by user, utilizing the specific endpoint for researcher registration
         // covering both personal data and credentials
-        return this.http.post(`${environment.userServiceUrl}/investigadores`, researcherData);
+        return this.http.post(`${environment.userServiceUrl}/v2/investigadores`, researcherData);
     }
 
     getResearcherVisibility(userId: number): Observable<any[]> {
-        return this.http.get<any[]>(`${environment.userServiceUrl}/investigadores/${userId}/visibilidad`);
+        return this.http.get<any[]>(`${environment.userServiceUrl}/v2/investigadores/${userId}/visibilidad`);
     }
 
     updateResearcherVisibility(userId: number, visibilityData: any[]): Observable<any> {

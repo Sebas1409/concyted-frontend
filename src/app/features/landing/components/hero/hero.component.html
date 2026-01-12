@@ -2,16 +2,11 @@
     <div class="hero-container">
 
         <!-- IZQUIERDA -->
+        <!-- IZQUIERDA -->
         <div class="hero-content">
-            <h1>
-                El directorio oficial del <br />
-                <span class="text-primary">talento científico</span> del Perú
-            </h1>
+            <h1 [innerHTML]="titleHtml"></h1>
 
-            <p class="hero-desc">
-                Explora la producción académica y tecnológica del país. Conecta con
-                investigadores calificados y verifica su nivel RENACYT.
-            </p>
+            <p class="hero-desc">{{ description }}</p>
 
             <!-- BUSCADOR -->
             <div class="search-box">
@@ -33,19 +28,24 @@
 
         <!-- DERECHA (Full Height Image) -->
         <div class="hero-image-wrapper">
-            <img src="{{investigador}}" alt="Investigador" class="hero-img">
+            <!-- Skeleton Loader -->
+            <div class="skeleton-image" *ngIf="loading"></div>
 
-            <!-- Overlay Badge Top Left -->
-            <div class="hero-badge">
-                Investigador Nivel I
-            </div>
+            <ng-container *ngIf="!loading && currentSlide">
+                <img [src]="currentSlide.image" [alt]="currentSlide.name" class="hero-img fade-in-animation">
 
-            <!-- Overlay Card Bottom Left -->
-            <div class="hero-card">
-                <div class="card-name">Dr. Juan Campos Tallido</div>
-                <div class="card-role">Genética Molecular - UNMSM</div>
-                <div class="card-stat"><strong>12</strong> Publicaciones Scopus</div>
-            </div>
+                <!-- Overlay Badge Top Left -->
+                <div class="hero-badge" *ngIf="currentSlide.level">
+                    {{ currentSlide.level }}
+                </div>
+
+                <!-- Overlay Card Bottom Left -->
+                <div class="hero-card">
+                    <div class="card-name">{{ currentSlide.name }}</div>
+                    <div class="card-role">{{ currentSlide.role }}</div>
+                    <div class="card-stat" *ngIf="currentSlide.stats"><strong>{{ currentSlide.stats }}</strong></div>
+                </div>
+            </ng-container>
         </div>
 
     </div>

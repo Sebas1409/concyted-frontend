@@ -128,3 +128,47 @@
         grid-template-columns: 1fr;
     }
 }
+
+@media (max-width: 480px) {
+    .title-left h2 {
+        font-size: 32px;
+        line-height: 40px;
+    }
+
+    .reach-grid .card {
+        padding: 32px;
+    }
+
+    .reach-grid .card h3 {
+        font-size: 36px;
+        line-height: 42px;
+    }
+}
+
+/* Skeleton Loader */
+.skeleton-loader {
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+
+    100% {
+        opacity: 0.6;
+    }
+}
+
+.skeleton-text {
+    background-color: #e0e0e0;
+    color: transparent !important;
+    border-radius: 4px;
+    width: fit-content;
+    min-width: 100px;
+    user-select: none;
+}

@@ -3,20 +3,28 @@
 
         <!-- TEXTO IZQUIERDA -->
         <div class="left-text">
-            <h3>
-                Más de <span>120,000</span> usuarios <br>
-                registrados.
-            </h3>
+            <h3 *ngIf="!loading; else loadingText" [innerHTML]="sectionTitle"></h3>
+            <ng-template #loadingText>
+                <div class="skeleton-loader skeleton-text"></div>
+            </ng-template>
         </div>
 
         <!-- LOGOS DERECHA -->
-        <div class="logos-carousel">
-            <div class="track" #track>
-                <div class="logo" *ngFor="let l of logosToShow">
-                    <img [src]="l" alt="logo" />
+        <ng-container *ngIf="loading; else content">
+            <div class="skeleton-logos-container">
+                <div class="skeleton-loader skeleton-logo" *ngFor="let i of [1,2,3,4]"></div>
+            </div>
+        </ng-container>
+
+        <ng-template #content>
+            <div class="logos-carousel">
+                <div class="track" #track>
+                    <div class="logo" *ngFor="let l of logosToShow">
+                        <img [src]="l" alt="logo" />
+                    </div>
                 </div>
             </div>
-        </div>
+        </ng-template>
 
     </div>
 </section>
