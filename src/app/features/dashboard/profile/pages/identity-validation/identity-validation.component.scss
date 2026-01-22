@@ -32,6 +32,15 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     border: 1px solid #E5E7EB;
     width: 100%;
+    position: relative;
+    /* Added for absolute badge positioning */
+}
+
+.card-badges {
+    position: absolute;
+    top: 1.5rem;
+    right: 3rem;
+    z-index: 10;
 }
 
 /* Form Layout */
@@ -119,6 +128,13 @@
     &:hover {
         background-color: #0a4f5f;
     }
+
+    &:disabled {
+        background-color: #9CA3AF;
+        cursor: not-allowed !important;
+        pointer-events: auto !important;
+        /* Override framework defaults like Bootstrap that hide cursor on disabled */
+    }
 }
 
 .btn-validate {
@@ -148,33 +164,7 @@
     }
 }
 
-/* Card Styling */
-.card {
-    background: white;
-    border-radius: 8px;
-    padding: 2.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    border: 1px solid #E5E7EB;
-    width: 100%;
-    position: relative;
-    /* Added for absolute badge positioning */
-}
 
-.card-badges {
-    position: absolute;
-    top: 1.5rem;
-    right: 3rem;
-    z-index: 10;
-}
-
-/* User removed these lines to keep context short in thought block */
-/* Form Layout */
-.form-group {
-    margin-bottom: 1.5rem;
-    /* ... */
-}
-
-/* ... */
 .badge-reniec {
     display: inline-flex;
     align-items: center;
@@ -196,5 +186,100 @@
     &.badge-warning {
         background-color: #EF4444;
         /* Amber-500 */
+    }
+}
+
+/* Skeleton Loader */
+.skeleton-loader {
+    width: 100%;
+
+    .identity-grid {
+        // Inherits parent grid layout
+    }
+}
+
+.skeleton-text {
+    height: 1rem;
+    background-color: #e5e7eb;
+    border-radius: 4px;
+    margin-bottom: 0.75rem;
+    animation: pulse 1.5s infinite;
+
+    &.title {
+        height: 1.5rem;
+        width: 70%;
+        margin-bottom: 1.5rem;
+    }
+
+    &.paragraph {
+        width: 100%;
+
+        &:last-child {
+            width: 80%;
+        }
+    }
+}
+
+.skeleton-card {
+    background: white;
+    border-radius: 8px;
+    padding: 2.5rem;
+    border: 1px solid #E5E7EB;
+    height: 400px;
+    /* Approximate height */
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        transform: translateX(-100%);
+        background-image: linear-gradient(90deg,
+                rgba(255, 255, 255, 0) 0,
+                rgba(255, 255, 255, 0.2) 20%,
+                rgba(255, 255, 255, 0.5) 60%,
+                rgba(255, 255, 255, 0));
+        animation: shimmer 2s infinite;
+    }
+}
+
+.skeleton-field {
+    margin-bottom: 2rem;
+
+    .label {
+        height: 0.8rem;
+        width: 100px;
+        background-color: #f3f4f6;
+        margin-bottom: 0.5rem;
+        border-radius: 4px;
+    }
+
+    .input {
+        height: 42px;
+        background-color: #f9fafb;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: .5;
+    }
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
     }
 }

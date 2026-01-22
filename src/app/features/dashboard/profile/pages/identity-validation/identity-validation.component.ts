@@ -6,6 +6,7 @@ import { AuthService } from '../../../../../core/services/auth.service';
 import { ReniecService, ReniecValidationRequest } from '../../../../../core/services/reniec.service';
 import { AlertService } from '../../../../../core/services/alert.service';
 import { UbigeoService } from '../../../../../core/services/ubigeo.service';
+import { CatalogService } from '../../../../../core/services/catalog.service';
 
 @Component({
     selector: 'app-identity-validation',
@@ -18,11 +19,13 @@ export class IdentityValidationComponent implements OnInit {
     identityForm: FormGroup;
     currentUserData: any = null;
     isValidatingReniec = false;
+    documentTypes: any[] = [];
 
     private authService = inject(AuthService);
     private reniecService = inject(ReniecService);
     private alertService = inject(AlertService);
     private fb = inject(FormBuilder);
+    private catalogService = inject(CatalogService);
 
     private ubigeoService = inject(UbigeoService);
     private cdr = inject(ChangeDetectorRef);
@@ -47,24 +50,84 @@ export class IdentityValidationComponent implements OnInit {
         });
     }
 
+    isLoading = true;
+
     ngOnInit() {
-        this.loadUserData();
+        this.loadInitialData();
     }
 
-    loadUserData() {
+    loadInitialData() {
+        this.isLoading = true;
         const currentUser = this.authService.getCurrentUser();
-        if (currentUser && currentUser.id) {
-            this.authService.getUserById(currentUser.id).subscribe({
-                next: (res: any) => {
-                    this.currentUserData = res.data || res;
-                    console.log('Identity - User Data Loaded:', this.currentUserData);
-                    this.cdr.detectChanges();
-                    this.resolveLocationNames();
-                },
-                error: (err) => console.error('Failed to load user data', err)
-            });
+
+        if (!currentUser || !currentUser.id) {
+            this.isLoading = false;
+            return;
         }
+
+        forkJoin({
+            docTypes: this.catalogService.getMasterDetails(1),
+            userData: this.authService.getInvestigatorByUserId(currentUser.id)
+        }).subscribe({
+            next: (results: any) => {
+                // 1. Set Document Types
+                this.documentTypes = results.docTypes;
+
+                // 2. Set User Data
+                this.currentUserData = results.userData.data || results.userData;
+
+                // Normalize location fields
+                if (!this.currentUserData.paisId && this.currentUserData.paisResidenciaId) {
+                    this.currentUserData.paisId = this.currentUserData.paisResidenciaId;
+                }
+
+                console.log('Identity - Initial Data Loaded:', this.currentUserData);
+
+                // 3. Update View State
+                this.isLoading = false;
+                this.cdr.detectChanges();
+
+                // 4. Resolve secondary data (names) - Async, doesn't block form
+                this.resolveLocationNames();
+            },
+            error: (err) => {
+                console.error('Failed to load initial data', err);
+                this.isLoading = false;
+                this.cdr.detectChanges();
+            }
+        });
     }
+
+    get showReniec(): boolean {
+        return this.checkDocType(['DOC001', 'DNI']);
+    }
+
+    get showCe(): boolean {
+        return this.checkDocType(['DOC002', 'CARNET EXT', 'CE']);
+    }
+
+    get showPassport(): boolean {
+        return this.checkDocType(['DOC003', 'PASAPORTE', 'PAS']);
+    }
+
+    private checkDocType(codesOrNames: string[]): boolean {
+        if (!this.currentUserData) return false;
+        const type = this.currentUserData.tipoDoc || this.currentUserData.tipoDocumento;
+        if (!type) return false;
+
+        // Check exact match first
+        if (codesOrNames.includes(type)) return true;
+
+        // Check via catalog if type is ID
+        if (this.documentTypes.length > 0) {
+            const found = this.documentTypes.find(d => d.id == type || d.codigo === type || d.nombre === type);
+            if (found && codesOrNames.includes(found.codigo)) return true;
+        }
+
+        return false;
+    }
+
+
 
     resolveLocationNames() {
         if (!this.currentUserData) return;
@@ -258,8 +321,8 @@ export class IdentityValidationComponent implements OnInit {
             apellidoMaterno: reniecData.apellido_materno,
             numDoc: reniecData.dni,
             direccion: reniecData.direccion,
-            // Update location fields if found
-            paisId: paisId || this.currentUserData.paisId,
+            // Update location fields if found - map to Researcher API fields
+            paisResidenciaId: paisId || this.currentUserData.paisId,
             departamentoId: departamentoId || this.currentUserData.departamentoId,
             provinciaId: provinciaId || this.currentUserData.provinciaId,
             distritoId: distritoId || this.currentUserData.distritoId,
@@ -267,13 +330,13 @@ export class IdentityValidationComponent implements OnInit {
             updatedAt: new Date().toISOString()
         };
 
-        this.authService.updateUser(this.currentUserData.id, payload).subscribe({
+        this.authService.updateResearcher(this.currentUserData.id, payload).subscribe({
             next: (res) => {
                 console.log('User updated with Reniec data:', res);
                 this.isValidatingReniec = false;
                 this.alertService.success('Perfil Actualizado', 'Su información ha sido actualizada con los datos de RENIEC.');
                 this.authService.refreshCurrentUser().subscribe();
-                this.loadUserData(); // Reload to show new data
+                this.loadInitialData(); // Reload to show new data
             },
             error: (err) => {
                 console.error('Failed to update user after Reniec validation', err);

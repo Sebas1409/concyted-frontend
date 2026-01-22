@@ -152,12 +152,12 @@
                 <div class="form-group">
                     <label class="form-label">Genero <span class="required">*</span></label>
                     <div class="radio-inline-group" style="padding: 0.6rem 0;">
-                        <label class="radio-inline">
-                            <input type="radio" value="M" formControlName="gender"> Masculino
+                        <label class="radio-inline" *ngFor="let option of sexOptions">
+                            <input type="radio" [value]="option.codigo" formControlName="gender"> {{ option.nombre }}
                         </label>
-                        <label class="radio-inline">
-                            <input type="radio" value="F" formControlName="gender"> Femenino
-                        </label>
+                        <div *ngIf="sexOptions.length === 0" style="font-size: 0.85rem; color: #6b7280;">
+                            Cargando opciones...
+                        </div>
                     </div>
                 </div>
 

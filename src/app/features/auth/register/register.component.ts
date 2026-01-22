@@ -45,6 +45,8 @@ export class RegisterComponent implements OnInit {
     reniecMaternalSurname: string = '';
     reniecDni: string = '';
 
+    sexOptions: any[] = [];
+
     constructor(
         private fb: FormBuilder,
         private authService: AuthService,
@@ -68,7 +70,7 @@ export class RegisterComponent implements OnInit {
         // Step 1: Personal Data
         this.step1Form = this.fb.group({
             birthDate: ['', Validators.required],
-            gender: ['M', Validators.required],
+            gender: ['', Validators.required],
             country: ['', Validators.required],
             department: ['', Validators.required],
             province: ['', Validators.required],
@@ -90,8 +92,22 @@ export class RegisterComponent implements OnInit {
     ngOnInit() {
         this.loadDocumentTypes();
         this.loadCountries();
+        this.loadGenders();
         this.setupCascadingDropdowns();
         this.setupDocumentTypeValidation();
+    }
+
+    // ...
+
+    loadGenders() {
+        this.catalogService.getMasterDetails(2).subscribe({
+            next: (data) => {
+                this.sexOptions = data;
+                console.log('Genders Loaded:', data);
+                this.cdr.detectChanges();
+            },
+            error: (err) => console.error('Failed to load genders', err)
+        });
     }
 
     setupDocumentTypeValidation() {
@@ -491,76 +507,88 @@ export class RegisterComponent implements OnInit {
     }
 
     private handleReniecSuccess(response?: any) {
-        this.reniecValidated = true;
-        this.reniecServiceAvailable = true;
-        this.reniecError = null;
-
-        // Capturar datos oficiales "por lo bajo"
-        let ubicacionPayload = null;
-
-        if (response) {
-            if (response.direccion) this.reniecAddress = response.direccion;
-            if (response.nombres) this.reniecNames = response.nombres;
-            if (response.apellido_paterno) this.reniecPaternalSurname = response.apellido_paterno;
-            if (response.apellido_materno) this.reniecMaternalSurname = response.apellido_materno;
-            if (response.dni) this.reniecDni = response.dni;
-
-            // Preparar payload para reverse lookup de Ubigeo
-            if (response.departamento && response.provincia && response.distrito) {
-                ubicacionPayload = {
-                    pais: 'PERU',
-                    departamento: response.departamento,
-                    provincia: response.provincia,
-                    distrito: response.distrito
-                };
-            }
-
-            console.log('Datos RENIEC capturados internamente:', {
-                nombres: this.reniecNames,
-                paterno: this.reniecPaternalSurname,
-                materno: this.reniecMaternalSurname,
-                dni: this.reniecDni,
-                direccion: this.reniecAddress
-            });
-        }
-
-        // 1. Detener spinner INMEDIATAMENTE
+        console.log('--- handleReniecSuccess ---');
+        // 1. Detener spinner INMEDIATAMENTE para evitar bloqueos visuales
         this.reniecValidating = false;
-
-        // 2. Mostrar mensaje de éxito
-        this.reniecSuccessMessage = '¡Datos validados correctamente! Redirigiendo...';
         this.cdr.detectChanges();
 
-        const finish = () => {
-            setTimeout(() => {
-                console.log('Avanzando al siguiente paso...');
-                this.reniecSuccessMessage = null;
-                this.proceedToNextStep();
-            }, 1000);
-        };
+        try {
+            this.reniecValidated = true;
+            this.reniecServiceAvailable = true;
+            this.reniecError = null;
 
-        // 3. Autocompletar Ubigeo si es posible
-        if (ubicacionPayload) {
-            this.ubigeoService.getIdsByNames(ubicacionPayload).subscribe({
-                next: (ids) => {
-                    this.autoFillUbigeo(ids);
-                    finish();
-                },
-                error: (err) => {
-                    console.error('Error obteniendo IDs de ubigeo', err);
-                    finish();
+            // Capturar datos oficiales "por lo bajo"
+            let ubicacionPayload = null;
+
+            if (response) {
+                if (response.direccion) this.reniecAddress = response.direccion;
+                if (response.nombres) this.reniecNames = response.nombres;
+                if (response.apellido_paterno) this.reniecPaternalSurname = response.apellido_paterno;
+                if (response.apellido_materno) this.reniecMaternalSurname = response.apellido_materno;
+                if (response.dni) this.reniecDni = response.dni;
+
+                // Preparar payload para reverse lookup de Ubigeo
+                if (response.departamento && response.provincia && response.distrito) {
+                    ubicacionPayload = {
+                        pais: 'PERU',
+                        departamento: response.departamento,
+                        provincia: response.provincia,
+                        distrito: response.distrito
+                    };
                 }
-            });
-        } else {
-            finish();
+
+                console.log('Datos RENIEC capturados:', {
+                    dni: this.reniecDni,
+                    direccion: this.reniecAddress
+                });
+            }
+
+            // 2. Mostrar mensaje de éxito
+            this.reniecSuccessMessage = '¡Datos validados correctamente! Redirigiendo...';
+            this.cdr.detectChanges();
+
+            const finish = () => {
+                setTimeout(() => {
+                    console.log('Avanzando al siguiente paso...');
+                    this.reniecSuccessMessage = null;
+                    this.proceedToNextStep();
+                }, 1000);
+            };
+
+            // 3. Autocompletar Ubigeo si es posible
+            if (ubicacionPayload) {
+                console.log('Intentando resolver Ubigeo:', ubicacionPayload);
+                this.ubigeoService.getIdsByNames(ubicacionPayload).subscribe({
+                    next: (ids) => {
+                        try {
+                            this.autoFillUbigeo(ids);
+                        } catch (e) {
+                            console.error('Error en autoFillUbigeo', e);
+                        }
+                        finish();
+                    },
+                    error: (err) => {
+                        console.error('Error obteniendo IDs de ubigeo', err);
+                        finish();
+                    }
+                });
+            } else {
+                finish();
+            }
+        } catch (error) {
+            console.error('Error CRÍTICO en handleReniecSuccess', error);
+            // En caso de error inesperado, intentar avanzar de todas formas
+            this.proceedToNextStep();
         }
     }
 
     private handleReniecFailure() {
         console.log('RENIEC: Datos no coinciden (validado = false)');
+        this.reniecValidating = false; // Asegurar que se apaga
         this.reniecValidated = false;
         this.reniecServiceAvailable = true;
         this.reniecError = 'Los datos ingresados no coinciden con los registrados en RENIEC. Por favor, verifica la información.';
+        this.cdr.detectChanges();
     }
 
     private handleReniecServiceDown() {
@@ -699,9 +727,9 @@ export class RegisterComponent implements OnInit {
                 apellidoPaterno: finalPaternal,
                 celular: step2.phone || "",
                 codigoUnico: "",
-                departamentoId: Number(step1.department) || 0,
+                departamentoId: Number(step1.department) || null,
                 direccion: this.reniecAddress || "", // Dirección de RENIEC o vacía si no hay
-                distritoId: Number(step1.district) || 0,
+                distritoId: Number(step1.district) || null,
                 email: step2.email || "",
                 emailPublico: step2.email || "",
                 estado: isUserActive,
@@ -714,10 +742,10 @@ export class RegisterComponent implements OnInit {
                 nombres: finalNames,
                 numDoc: finalDni,
                 orcid: "",
-                paisNacimientoId: Number(step1.country) || 0,
-                paisResidenciaId: Number(step1.country) || 0,
+                paisNacimientoId: Number(step1.country) || null,
+                paisResidenciaId: Number(step1.country) || null,
                 password: step2.password || "",
-                provinciaId: Number(step1.province) || 0,
+                provinciaId: Number(step1.province) || null,
                 researcherId: "",
                 scopusAuthorId: "",
                 sexo: step1.gender || "",

@@ -96,7 +96,7 @@ export class GeneralInfoComponent implements OnInit {
         const currentUser = this.authService.getCurrentUser();
         if (currentUser && currentUser.id) {
             console.log('Loading user data for ID:', currentUser.id);
-            this.authService.getUserById(currentUser.id).subscribe({
+            this.authService.getInvestigatorByUserId(currentUser.id).subscribe({
                 next: (res: any) => {
                     // Check if response has data property or is direct
                     const userData = res.data || res;
@@ -119,7 +119,7 @@ export class GeneralInfoComponent implements OnInit {
                         fotoUrl: userData.fotoToken, // Assuming token or URL is stored here
 
                         // Map location IDs if available
-                        paisResidencia: userData.paisId,
+                        paisResidencia: userData.paisId || userData.paisResidenciaId,
                         departamento: userData.departamentoId,
                         provincia: userData.provinciaId,
                         distrito: userData.distritoId,
@@ -133,9 +133,10 @@ export class GeneralInfoComponent implements OnInit {
                     }
 
                     // Trigger location loading sequences if IDs exist
-                    // ADDING Change Detection here is critical for the cascading selects to update visually
-                    if (userData.paisId) {
-                        this.ubigeoService.getDepartments(userData.paisId).subscribe(depts => {
+                    const countryId = userData.paisId || userData.paisResidenciaId;
+
+                    if (countryId) {
+                        this.ubigeoService.getDepartments(countryId).subscribe(depts => {
                             this.departments = depts;
                             this.cdr.detectChanges(); // Update view so department select populates
 
@@ -351,26 +352,14 @@ export class GeneralInfoComponent implements OnInit {
                 nombres: formValue.nombres,
                 apellidoPaterno: formValue.apellidoPaterno,
                 apellidoMaterno: formValue.apellidoMaterno,
-                sexo: formValue.sexo, // Send as is (usually ID)
-                fechaNacimiento: formValue.fechaNacimiento,
-                tipoDoc: Number(formValue.tipoDocumento), // Corrected to tipoDoc
-                numDoc: formValue.numeroDocumento,
+                paisResidenciaId: Number(formValue.paisResidencia) || null,
+                departamentoId: Number(formValue.departamento) || null,
+                provinciaId: Number(formValue.provincia) || null,
+                distritoId: Number(formValue.distrito) || null,
 
-                emailPublico: formValue.emailAlternativo,
-                telefono: formValue.telefono,
-                celular: formValue.celular,
-                webPersonal: formValue.webPersonal,
-                resumenEjecutivo: formValue.summary,
-
-                // Ensure photo token is included if updated via upload
-                // Priorities: 1. Form (New Upload) 2. CurrentUserData (Existing or newly set)
-                fotoToken: formValue.fotoUrl || this.currentUserData.fotoToken,
-
-                // Location IDs
-                paisId: Number(formValue.paisResidencia) || 0,
-                departamentoId: Number(formValue.departamento) || 0,
-                provinciaId: Number(formValue.provincia) || 0,
-                distritoId: Number(formValue.distrito) || 0,
+                // Align Master parameters to Codes if possible, similar to Register
+                tipoDoc: this.documentTypes.find(d => d.id === Number(formValue.tipoDocumento))?.codigo || formValue.tipoDocumento,
+                sexo: this.sexOptions.find(s => s.id === Number(formValue.sexo))?.codigo || formValue.sexo,
 
                 // Ensure required boolean flags are present
                 accountNonExpired: this.currentUserData.accountNonExpired ?? true,
@@ -382,9 +371,9 @@ export class GeneralInfoComponent implements OnInit {
                 updatedAt: new Date().toISOString()
             };
 
-            console.log('Updating User Payload:', payload);
+            console.log('Updating Researcher Payload:', payload);
 
-            this.authService.updateUser(this.currentUserData.id, payload).subscribe({
+            this.authService.updateResearcher(this.currentUserData.usuarioId, payload).subscribe({
                 next: (res) => {
                     this.savingSource = null; // Stop loading
                     console.log('Update successful', res);

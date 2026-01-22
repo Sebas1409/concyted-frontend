@@ -1,4 +1,40 @@
-<div class="identity-grid">
+<div *ngIf="isLoading" class="skeleton-loader fade-in">
+    <div class="identity-grid">
+        <!-- Skeleton Left Col -->
+        <div class="info-column">
+            <div class="skeleton-text title"></div>
+            <div class="skeleton-text paragraph"></div>
+            <div class="skeleton-text paragraph"></div>
+            <div class="skeleton-text paragraph"></div>
+        </div>
+
+        <!-- Skeleton Right Col -->
+        <div class="skeleton-card">
+            <div class="row-2-col">
+                <div class="skeleton-field">
+                    <div class="label"></div>
+                    <div class="input"></div>
+                </div>
+                <div class="skeleton-field">
+                    <div class="label"></div>
+                    <div class="input"></div>
+                </div>
+            </div>
+            <div class="row-2-col">
+                <div class="skeleton-field">
+                    <div class="label"></div>
+                    <div class="input"></div>
+                </div>
+                <div class="skeleton-field">
+                    <div class="label"></div>
+                    <div class="input"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="identity-grid fade-in" *ngIf="showReniec && !isLoading">
 
     <!-- LEFT COLUMN: Description Text -->
     <div class="info-column">
@@ -192,8 +228,10 @@
                     [disabled]="isValidatingReniec || currentUserData?.validado">
                     <span *ngIf="isValidatingReniec" class="spinner-border spinner-border-sm me-2" role="status"
                         aria-hidden="true"></span>
-                    <span *ngIf="!isValidatingReniec">Validar datos Reniec</span>
                     <span *ngIf="isValidatingReniec">Validando...</span>
+                    <span *ngIf="!isValidatingReniec">
+                        {{ currentUserData?.validado ? 'Datos Validados' : 'Validar datos Reniec' }}
+                    </span>
                 </button>
             </div>
 
@@ -203,7 +241,7 @@
 </div>
 
 <!-- SECCION 2: Carné de Extranjería -->
-<div class="identity-grid mt-8">
+<div class="identity-grid mt-8" *ngIf="showCe && !isLoading">
     <!-- LEFT COLUMN: Description Text -->
     <div class="info-column">
         <h3>Carné de Extranjería (CE - Residentes)</h3>
@@ -257,7 +295,7 @@
 </div>
 
 <!-- SECCION 3: Pasaporte -->
-<div class="identity-grid mt-8">
+<div class="identity-grid mt-8" *ngIf="showPassport && !isLoading">
     <!-- LEFT COLUMN: Description Text -->
     <div class="info-column">
         <h3>Pasaporte (Internacional / Otros)</h3>

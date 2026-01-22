@@ -53,7 +53,15 @@ export class AuthService {
     }
 
     getResearcherVisibility(userId: number): Observable<any[]> {
-        return this.http.get<any[]>(`${environment.userServiceUrl}/v2/investigadores/${userId}/visibilidad`);
+        return this.http.get<any[]>(`${environment.userServiceUrl}/investigadores/${userId}/visibilidad`);
+    }
+
+    getInvestigatorByUserId(investigatorId: number): Observable<any> {
+        return this.http.get(`${environment.userServiceUrl}/v2/investigadores/usuario/${investigatorId}`);
+    }
+
+    updateResearcher(investigatorId: number, researcherData: any): Observable<any> {
+        return this.http.put(`${environment.userServiceUrl}/v2/investigadores/${investigatorId}`, researcherData);
     }
 
     updateResearcherVisibility(userId: number, visibilityData: any[]): Observable<any> {
