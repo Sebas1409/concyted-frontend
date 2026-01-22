@@ -7,6 +7,8 @@ import { AuthService } from '../../../core/services/auth.service';
 import { RecaptchaService } from '../../../core/services/recaptcha.service';
 import { UbigeoService } from '../../../core/services/ubigeo.service';
 import { CatalogService } from '../../../core/services/catalog.service';
+import { AlertService } from '../../../core/services/alert.service';
+import { ReniecService } from '../../../core/services/reniec.service';
 
 @Component({
     selector: 'app-register',
@@ -28,6 +30,21 @@ export class RegisterComponent implements OnInit {
     provinces: any[] = [];
     districts: any[] = [];
 
+    // RENIEC validation state
+    reniecValidated = false;
+    reniecValidating = false;
+    reniecServiceAvailable = true;
+    reniecError: string | null = null;
+    isLoading: boolean = false;
+    reniecSuccessMessage: string | null = null;
+
+    // Datos capturados de RENIEC internamente
+    reniecAddress: string = '';
+    reniecNames: string = '';
+    reniecPaternalSurname: string = '';
+    reniecMaternalSurname: string = '';
+    reniecDni: string = '';
+
     constructor(
         private fb: FormBuilder,
         private authService: AuthService,
@@ -35,7 +52,9 @@ export class RegisterComponent implements OnInit {
         private recaptchaService: RecaptchaService,
         private ubigeoService: UbigeoService,
         private catalogService: CatalogService,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private alertService: AlertService,
+        private reniecService: ReniecService
     ) {
         // Step 0: Validation
         this.step0Form = this.fb.group({
@@ -65,7 +84,7 @@ export class RegisterComponent implements OnInit {
             password: ['', [Validators.required, Validators.minLength(8)]],
             confirmPassword: ['', Validators.required],
             terms: [false, Validators.requiredTrue]
-        }, { validators: [this.checkPasswords, this.checkEmails] });
+        }, { validators: [this.checkPasswords.bind(this), this.checkEmails.bind(this)] });
     }
 
     ngOnInit() {
@@ -141,16 +160,78 @@ export class RegisterComponent implements OnInit {
     }
 
     setupCascadingDropdowns() {
+        // Document Type Changes -> Reset SENSITIVE and PERSONAL fields comprehensively
+        this.step0Form.get('documentType')?.valueChanges.subscribe(() => {
+            console.log('Cambio de tipo de documento detectado: Limpiando formulario...');
+
+            // 1. Limpiar campos del Paso 0 (Identidad)
+            this.step0Form.patchValue({
+                documentNumber: '',
+                names: '',
+                paternalSurname: '',
+                maternalSurname: ''
+            });
+
+            // Marcar como NO tocados para ocultar errores rojos
+            ['documentNumber', 'names', 'paternalSurname', 'maternalSurname'].forEach(field => {
+                const control = this.step0Form.get(field);
+                control?.markAsUntouched();
+                control?.markAsPristine();
+                control?.setErrors(null); // Limpiar errores específicos previos
+            });
+
+            // 2. Limpiar campos del Paso 1 (Datos Personales y Ubicación)
+            // Se limpia País, lo que a su vez disparará la limpieza de Dep/Prov/Dist por el otro suscriptor
+            this.step1Form.patchValue({
+                birthDate: '',
+                gender: '',
+                country: '', // Al limpiar esto, se dispara la limpieza de ubicación en cascada
+                department: '',
+                province: '',
+                district: '',
+                dniFile: null
+            });
+
+            // Marcar como NO tocados para ocultar errores rojos en Paso 1
+            ['birthDate', 'gender', 'country', 'department', 'province', 'district', 'dniFile'].forEach(field => {
+                const control = this.step1Form.get(field);
+                control?.markAsUntouched();
+                control?.markAsPristine();
+                control?.setErrors(null);
+            });
+
+            // 3. Resetear estados internos y validación RENIEC
+            this.reniecValidated = false;
+            this.reniecError = null;
+            this.reniecValidating = false;
+
+            // Limpiar datos capturados internamente
+            this.reniecAddress = '';
+            this.reniecNames = '';
+            this.reniecPaternalSurname = '';
+            this.reniecMaternalSurname = '';
+            this.reniecDni = '';
+        });
+
         // Country -> Dept
         this.step1Form.get('country')?.valueChanges.subscribe(countryId => {
             this.departments = [];
             this.provinces = [];
             this.districts = [];
-            this.step1Form.patchValue({ department: '', province: '', district: '' }, { emitEvent: false });
+
+            // SIEMPRE limpiar los valores al cambiar de país
+            this.step1Form.patchValue({
+                department: '',
+                province: '',
+                district: ''
+            }, { emitEvent: false });
 
             if (countryId) {
+                // Solo cargar departamentos si es necesario (generalmente para Perú o si el backend lo soporta)
                 this.ubigeoService.getDepartments(countryId).subscribe(data => this.departments = data);
             }
+
+            // Actualizar validadores inmediatamente
             this.updateStep1Validators();
         });
 
@@ -226,40 +307,48 @@ export class RegisterComponent implements OnInit {
     }
 
     updateStep1Validators() {
-        const countryId = this.step1Form.get('country')?.value;
-        // Find country by ID to check if it represents Peru.
-        // Assuming API returns { id: number, nombre: string, ... }
-        const countryObj = this.countries.find(c => c.id === countryId);
-        // Robust check for Peru:
-        const isPeru = countryObj ? (countryObj.nombre?.toUpperCase() === 'PERU' || countryObj.nombre?.toUpperCase() === 'PERÚ') : false;
+        const countryCtrl = this.step1Form.get('country');
+        const deptCtrl = this.step1Form.get('department');
+        const provCtrl = this.step1Form.get('province');
+        const distCtrl = this.step1Form.get('district');
+        const dniFileCtrl = this.step1Form.get('dniFile');
 
-        const locationFields = ['department', 'province', 'district'];
-        const dniFileControl = this.step1Form.get('dniFile');
+        const countryId = countryCtrl?.value;
+        const selectedCountry = this.countries.find(c => c.id === countryId);
+        const isPeru = selectedCountry && (selectedCountry.nombre.toUpperCase() === 'PERU' || selectedCountry.nombre.toUpperCase() === 'PERÚ');
 
-        if (this.isForeignDocument) {
-            // Foreign doc: Hide location and file
-            locationFields.forEach(field => {
-                this.step1Form.get(field)?.clearValidators();
-                this.step1Form.get(field)?.updateValueAndValidity();
-            });
-            dniFileControl?.clearValidators();
-            dniFileControl?.updateValueAndValidity();
+        if (isPeru) {
+            deptCtrl?.setValidators([Validators.required]);
+            provCtrl?.setValidators([Validators.required]);
+            distCtrl?.setValidators([Validators.required]);
         } else {
-            // DNI: Require File
-            dniFileControl?.setValidators(Validators.required);
-            dniFileControl?.updateValueAndValidity();
-
-            // Location based on Country
-            locationFields.forEach(field => {
-                const control = this.step1Form.get(field);
-                if (isPeru) {
-                    control?.setValidators(Validators.required);
-                } else {
-                    control?.clearValidators();
-                }
-                control?.updateValueAndValidity();
-            });
+            deptCtrl?.clearValidators();
+            provCtrl?.clearValidators();
+            distCtrl?.clearValidators();
+            deptCtrl?.setValue('');
+            provCtrl?.setValue('');
+            distCtrl?.setValue('');
         }
+
+        deptCtrl?.updateValueAndValidity();
+        provCtrl?.updateValueAndValidity();
+        distCtrl?.updateValueAndValidity();
+
+        // Validar lógica de archivo:
+        const isReniecSuccess = this.reniecValidated && this.reniecServiceAvailable && !this.reniecError;
+
+        if (!isReniecSuccess || this.isForeignDocument) {
+            dniFileCtrl?.setValidators([Validators.required]);
+        } else {
+            dniFileCtrl?.clearValidators();
+        }
+        dniFileCtrl?.updateValueAndValidity();
+    }
+
+    get isPeruSelected(): boolean {
+        const countryId = this.step1Form.get('country')?.value;
+        const selectedCountry = this.countries.find(c => c.id === countryId);
+        return !!selectedCountry && (selectedCountry.nombre.toUpperCase() === 'PERU' || selectedCountry.nombre.toUpperCase() === 'PERÚ');
     }
 
     showPassword = false;
@@ -286,27 +375,259 @@ export class RegisterComponent implements OnInit {
     }
 
     goToStep(step: number) {
+        console.log(`Changing step to ${step}`);
         this.currentStep = step;
-        // Scroll to top
+        this.cdr.detectChanges(); // Forzar actualización de vista
         window.scrollTo(0, 0);
     }
 
     onStep0Submit() {
+        console.log('--- onStep0Submit Iniciado ---');
+        console.log('Formulario válido:', this.step0Form.valid);
+        console.log('Valores:', this.step0Form.value);
+        console.log('Document Type:', this.step0Form.get('documentType')?.value);
+        console.log('RENIEC Service Available:', this.reniecServiceAvailable);
+
         if (this.step0Form.valid) {
-            this.recaptchaService.execute('step0').subscribe({
-                next: (token: string) => {
-                    console.log('Recaptcha V3 Token:', token);
-                    // Apply validator logic based on doc type
-                    this.updateStep1Validators();
-                    this.goToStep(1);
+            const documentType = this.step0Form.get('documentType')?.value;
+
+            // If DNI, validate with RENIEC only if service is available
+            if (documentType === 'DNI' && this.reniecServiceAvailable) {
+                console.log('Intentando validar con RENIEC...');
+                this.validateWithReniec();
+            } else {
+                console.log('Saltando RENIEC (Servicio no disponible o no es DNI), avanzando...');
+                // For other document types or if RENIEC is down, proceed directly
+                this.proceedToNextStep();
+            }
+        } else {
+            console.log('Formulario inválido, marcando campos...');
+            this.step0Form.markAllAsTouched();
+        }
+    }
+
+    validateWithReniec() {
+        if (this.reniecValidating) return;
+
+        this.reniecValidating = true;
+        this.reniecError = null;
+        this.reniecSuccessMessage = null;
+
+        const reniecData = {
+            dni: this.step0Form.get('documentNumber')?.value,
+            nombres: this.step0Form.get('names')?.value,
+            apellido_paterno: this.step0Form.get('paternalSurname')?.value,
+            apellido_materno: this.step0Form.get('maternalSurname')?.value
+        };
+
+        this.reniecService.validate(reniecData).subscribe({
+            next: (response) => this.handleReniecResponse(response),
+            error: (error) => this.handleReniecError(error)
+        });
+    }
+
+    private handleReniecResponse(response: any) {
+        setTimeout(() => {
+            if (response && typeof response.validado === 'boolean') {
+                if (response.validado) {
+                    this.handleReniecSuccess(response);
+                } else {
+                    this.reniecValidating = false;
+                    this.handleReniecFailure();
+                }
+            } else {
+                this.reniecValidating = false;
+                this.handleUnexpectedResponse(response?.validado);
+            }
+            this.cdr.detectChanges();
+        }, 0);
+    }
+
+    private autoFillUbigeo(ids: any) {
+        if (!ids) return;
+        console.log('Autorellenando Ubigeo (IDs):', ids);
+
+        if (ids.paisId) {
+            this.step1Form.patchValue({ country: ids.paisId }, { emitEvent: false });
+
+            // Manually load departments cascade
+            this.ubigeoService.getDepartments(ids.paisId).subscribe(depts => {
+                this.departments = depts;
+                this.cdr.detectChanges();
+
+                if (ids.departamentoId) {
+                    setTimeout(() => {
+                        this.step1Form.patchValue({ department: ids.departamentoId }, { emitEvent: false });
+
+                        this.ubigeoService.getProvinces(ids.departamentoId).subscribe(provs => {
+                            this.provinces = provs;
+                            this.cdr.detectChanges();
+
+                            if (ids.provinciaId) {
+                                // Aumentamos timeout a 300ms para asegurar renderizado de lista grande de provincias
+                                setTimeout(() => {
+                                    console.log('Setting province to:', ids.provinciaId);
+                                    this.step1Form.patchValue({ province: ids.provinciaId }, { emitEvent: false });
+
+                                    this.ubigeoService.getDistricts(ids.provinciaId).subscribe(dists => {
+                                        this.districts = dists;
+                                        this.cdr.detectChanges();
+
+                                        if (ids.distritoId) {
+                                            setTimeout(() => {
+                                                console.log('Setting district to:', ids.distritoId);
+                                                this.step1Form.patchValue({ district: ids.distritoId }, { emitEvent: false });
+                                                this.cdr.detectChanges();
+                                            }, 150);
+                                        }
+                                    });
+                                }, 300);
+                            }
+                        });
+                    }, 100);
+                }
+            });
+        }
+    }
+
+    private handleReniecSuccess(response?: any) {
+        this.reniecValidated = true;
+        this.reniecServiceAvailable = true;
+        this.reniecError = null;
+
+        // Capturar datos oficiales "por lo bajo"
+        let ubicacionPayload = null;
+
+        if (response) {
+            if (response.direccion) this.reniecAddress = response.direccion;
+            if (response.nombres) this.reniecNames = response.nombres;
+            if (response.apellido_paterno) this.reniecPaternalSurname = response.apellido_paterno;
+            if (response.apellido_materno) this.reniecMaternalSurname = response.apellido_materno;
+            if (response.dni) this.reniecDni = response.dni;
+
+            // Preparar payload para reverse lookup de Ubigeo
+            if (response.departamento && response.provincia && response.distrito) {
+                ubicacionPayload = {
+                    pais: 'PERU',
+                    departamento: response.departamento,
+                    provincia: response.provincia,
+                    distrito: response.distrito
+                };
+            }
+
+            console.log('Datos RENIEC capturados internamente:', {
+                nombres: this.reniecNames,
+                paterno: this.reniecPaternalSurname,
+                materno: this.reniecMaternalSurname,
+                dni: this.reniecDni,
+                direccion: this.reniecAddress
+            });
+        }
+
+        // 1. Detener spinner INMEDIATAMENTE
+        this.reniecValidating = false;
+
+        // 2. Mostrar mensaje de éxito
+        this.reniecSuccessMessage = '¡Datos validados correctamente! Redirigiendo...';
+        this.cdr.detectChanges();
+
+        const finish = () => {
+            setTimeout(() => {
+                console.log('Avanzando al siguiente paso...');
+                this.reniecSuccessMessage = null;
+                this.proceedToNextStep();
+            }, 1000);
+        };
+
+        // 3. Autocompletar Ubigeo si es posible
+        if (ubicacionPayload) {
+            this.ubigeoService.getIdsByNames(ubicacionPayload).subscribe({
+                next: (ids) => {
+                    this.autoFillUbigeo(ids);
+                    finish();
                 },
-                error: (error: any) => {
-                    console.error('Recaptcha V3 Error:', error);
-                    alert('Validación de seguridad fallida. Por favor intente nuevamente.');
+                error: (err) => {
+                    console.error('Error obteniendo IDs de ubigeo', err);
+                    finish();
                 }
             });
         } else {
-            this.step0Form.markAllAsTouched();
+            finish();
+        }
+    }
+
+    private handleReniecFailure() {
+        console.log('RENIEC: Datos no coinciden (validado = false)');
+        this.reniecValidated = false;
+        this.reniecServiceAvailable = true;
+        this.reniecError = 'Los datos ingresados no coinciden con los registrados en RENIEC. Por favor, verifica la información.';
+    }
+
+    private handleReniecServiceDown() {
+        console.log('RENIEC: Servicio caído (respuesta vacía o validado null)');
+        this.reniecServiceAvailable = false;
+        this.reniecValidated = false;
+        this.reniecError = 'El servicio de validación de RENIEC no está disponible en este momento. Podrás continuar con el registro, pero deberás subir una foto de tu DNI en el siguiente paso.';
+    }
+
+    private handleUnexpectedResponse(validadoValue: any) {
+        console.log('RENIEC: Caso no manejado, validado =', validadoValue);
+        this.reniecServiceAvailable = false;
+        this.reniecValidated = false;
+        this.reniecError = 'Respuesta inesperada del servicio RENIEC. Por favor, intenta nuevamente.';
+    }
+
+    private handleReniecError(error: any) {
+        console.error('RENIEC validation error:', error);
+
+        // Usar setTimeout para evitar ExpressionChangedAfterItHasBeenCheckedError
+        setTimeout(() => {
+            this.reniecValidating = false;
+            this.reniecServiceAvailable = false;
+            this.reniecValidated = false;
+
+            // Mostrar mensaje en línea (recuadro rojo) en lugar de popup
+            this.reniecError = 'El servicio de validación de RENIEC no está disponible en este momento. Podrás continuar con el registro, pero deberás subir una foto de tu DNI en el siguiente paso.';
+
+            // Forzar actualización de la vista INMEDIATAMENTE
+            this.cdr.detectChanges();
+        }, 0);
+    }
+
+    proceedToNextStep() {
+        console.log('Ejecutando proceedToNextStep...');
+
+        try {
+            // Si es DNI, SIEMPRE seleccionamos Perú por defecto, SALVO que RENIEC ya haya rellenado el formulario.
+            const isDni = this.step0Form.get('documentType')?.value === 'DNI';
+
+            if (isDni && !this.reniecValidated) {
+                this.setPeruAsDefault();
+            }
+
+            // Aplicar validadores
+            this.updateStep1Validators();
+        } catch (error) {
+            console.error('Error en configuración previa al siguiente paso:', error);
+        }
+
+        // Navegar SIEMPRE, incluso si hubo error arriba
+        console.log('Llamando a goToStep(1)');
+        this.goToStep(1);
+    }
+
+    setPeruAsDefault() {
+        // Find Peru in countries list
+        const peru = this.countries.find(c =>
+            c.nombre?.toUpperCase() === 'PERU' || c.nombre?.toUpperCase() === 'PERÚ'
+        );
+
+        if (peru) {
+            this.step1Form.patchValue({ country: peru.id });
+            // Trigger the cascade to load departments
+            this.ubigeoService.getDepartments(peru.id).subscribe(data => {
+                this.departments = data;
+            });
         }
     }
 
@@ -345,6 +666,7 @@ export class RegisterComponent implements OnInit {
     onSubmit() {
         if (this.step2Form.valid) {
             console.log('Registration Complete');
+            this.isLoading = true; // Activar spinner del botón registrar
 
             const step0 = this.step0Form.value;
             const step1 = this.step1Form.value;
@@ -352,9 +674,10 @@ export class RegisterComponent implements OnInit {
 
             // Resolve Names from IDs
             const countryName = this.getName(this.countries, step1.country);
-            const deptName = this.getName(this.departments, step1.department);
-            const provName = this.getName(this.provinces, step1.province);
-            const distName = this.getName(this.districts, step1.district);
+            // ... (rest of resolution logic happens inside service or usually here but simplifying for brevity as getName handles nulls)
+
+            // Determine active status: True ONLY if validated with RENIEC
+            const isUserActive = this.reniecValidated;
 
             // Locate District object to get Ubigeo code if available
             let ubigeoCode = null;
@@ -365,28 +688,34 @@ export class RegisterComponent implements OnInit {
                 }
             }
 
+            // Lógica de preferencia de datos: Si RENIEC validó, usar datos capturados internamente
+            const finalNames = (this.reniecValidated && this.reniecNames) ? this.reniecNames : (step0.names || "");
+            const finalPaternal = (this.reniecValidated && this.reniecPaternalSurname) ? this.reniecPaternalSurname : (step0.paternalSurname || "");
+            const finalMaternal = (this.reniecValidated && this.reniecMaternalSurname) ? this.reniecMaternalSurname : (step0.maternalSurname || "");
+            const finalDni = (this.reniecValidated && this.reniecDni) ? this.reniecDni : (step0.documentNumber || "");
+
             const researcherPayload = {
-                apellidoMaterno: step0.maternalSurname || "",
-                apellidoPaterno: step0.paternalSurname || "",
+                apellidoMaterno: finalMaternal,
+                apellidoPaterno: finalPaternal,
                 celular: step2.phone || "",
                 codigoUnico: "",
                 departamentoId: Number(step1.department) || 0,
-                direccion: "",
+                direccion: this.reniecAddress || "", // Dirección de RENIEC o vacía si no hay
                 distritoId: Number(step1.district) || 0,
                 email: step2.email || "",
-                emailPublico: step2.email || "", // Defaulting public email to same as email
-                estado: "ACTIVO",
+                emailPublico: step2.email || "",
+                estado: isUserActive,
                 estadoRenacyt: "",
                 fechaNacimiento: step1.birthDate || "",
                 fechaValidacion: new Date().toISOString(),
                 fotoToken: "",
                 googleScholarId: "",
                 nacionalidad: countryName || "",
-                nombres: step0.names || "",
-                numDoc: step0.documentNumber || "",
+                nombres: finalNames,
+                numDoc: finalDni,
                 orcid: "",
                 paisNacimientoId: Number(step1.country) || 0,
-                paisResidenciaId: Number(step1.country) || 0, // Assuming residence same as selection
+                paisResidenciaId: Number(step1.country) || 0,
                 password: step2.password || "",
                 provinciaId: Number(step1.province) || 0,
                 researcherId: "",
@@ -394,23 +723,53 @@ export class RegisterComponent implements OnInit {
                 sexo: step1.gender || "",
                 telefono: step2.phone || "",
                 telefonoAlternativo: "",
-                tipoDoc: step0.documentType || "",
+                tipoDoc: this.documentTypes.find(d => d.nombre === step0.documentType)?.codigo || step0.documentType,
                 ubigeo: ubigeoCode || "",
                 usuarioId: 0,
-                validado: false,
-                validadoPor: 0,
-                activo: true
+                validado: this.reniecValidated,
+                validadoPor: 0
             };
 
             this.authService.registerResearcher(researcherPayload).subscribe({
                 next: (response) => {
                     console.log('Researcher registered successfully', response);
-                    alert('Usuario registrado exitosamente');
-                    this.router.navigate(['/auth/login']);
+                    this.isLoading = false;
+
+                    let title = '¡Registro exitoso!';
+                    let message = 'Tu cuenta ha sido creada correctamente. Ahora puedes iniciar sesión con tus credenciales.';
+                    let icon: 'success' | 'warning' = 'success';
+
+                    if (!isUserActive) {
+                        title = 'Registro en proceso';
+                        message = 'Tu cuenta ha sido creada, pero requiere validación manual por un administrador. Te notificaremos por correo cuando tu cuenta sea activada.';
+                        icon = 'warning';
+                    }
+
+                    if (icon === 'success') {
+                        this.alertService.success(title, message).then(() => {
+                            this.router.navigate(['/auth/login']);
+                        });
+                    } else {
+                        this.alertService.warning(title, message).then(() => {
+                            this.router.navigate(['/auth/login']);
+                        });
+                    }
                 },
                 error: (error) => {
+                    this.isLoading = false;
                     console.error('Registration failed', error);
-                    alert('Error al registrar usuario');
+
+                    if (error.status === 409) {
+                        const errorMessage = error.error?.message || error.error?.error || 'El usuario ya está registrado';
+                        this.alertService.warning('Usuario duplicado', `${errorMessage}. Por favor, utiliza otro número de documento o correo electrónico.`);
+                    } else if (error.status === 400) {
+                        const errorMessage = error.error?.message || error.error?.error || 'Los datos ingresados no son válidos';
+                        this.alertService.error('Error de validación', errorMessage);
+                    } else if (error.status === 0) {
+                        this.alertService.error('Error de conexión', 'No se pudo conectar con el servidor.');
+                    } else {
+                        this.alertService.error('Error al registrar', 'Ocurrió un error al registrar el usuario.');
+                    }
                 }
             });
 

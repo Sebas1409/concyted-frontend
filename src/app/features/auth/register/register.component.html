@@ -104,9 +104,28 @@
                 </div>
 
 
+                <!-- RENIEC Error Message -->
+                <div class="alert alert-danger mt-3" *ngIf="reniecError"
+                    style="margin-bottom: 1rem !important; text-align: center !important; background-color: #f8d7da; color: #842029; border: 1px solid #f5c2c7; padding: 15px; border-radius: 8px; font-size: 0.95rem;">
+                    <i class="fas fa-exclamation-circle me-2"></i> {{ reniecError }}
+                </div>
 
-                <button type="submit" class="btn btn-primary btn-block mt-4">
-                    {{ isForeignDocument ? 'Registrar' : 'Validar con Reniec' }}
+                <!-- RENIEC Success Message -->
+                <div class="alert alert-success mt-3" *ngIf="reniecSuccessMessage"
+                    style="margin-bottom: 1rem !important; text-align: center !important; background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; padding: 15px; border-radius: 8px; font-size: 0.95rem;">
+                    <i class="fas fa-check-circle me-2"></i> {{ reniecSuccessMessage }}
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block mt-3"
+                    [disabled]="reniecValidating || reniecSuccessMessage">
+                    <span *ngIf="reniecValidating" class="spinner-border spinner-border-sm me-2" role="status"
+                        aria-hidden="true"></span>
+                    <span
+                        *ngIf="!reniecValidating && step0Form.get('documentType')?.value === 'DNI' && reniecServiceAvailable">Validar
+                        con RENIEC</span>
+                    <span
+                        *ngIf="!reniecValidating && (step0Form.get('documentType')?.value !== 'DNI' || !reniecServiceAvailable)">Continuar</span>
+                    <span *ngIf="reniecValidating">Validando...</span>
                 </button>
 
                 <div class="divider">
@@ -155,8 +174,8 @@
                     </div>
                 </div>
 
-                <!-- Location fields only visible if not foreign doc and departments are loaded (implies Peru/Supported) -->
-                <ng-container *ngIf="!isForeignDocument && departments.length > 0">
+                <!-- Location fields only visible if Peru is selected and departments are loaded -->
+                <ng-container *ngIf="isPeruSelected && departments.length > 0">
                     <div class="form-group">
                         <label class="form-label">Departamento <span class="required">*</span></label>
                         <select class="form-control" formControlName="department"
@@ -194,8 +213,18 @@
                     </div>
                 </ng-container>
 
-                <div class="form-group" *ngIf="!isForeignDocument">
-                    <label class="form-label">Foto DNI ambas caras en PDF <span class="required">*</span></label>
+                <!-- File upload: Show for DNI only if NOT validated with RENIEC, or always for foreign docs -->
+                <div class="form-group"
+                    *ngIf="(!isForeignDocument && (!reniecValidated || !reniecServiceAvailable)) || isForeignDocument">
+                    <label class="form-label">
+                        <span *ngIf="!isForeignDocument">Foto DNI ambas caras en PDF</span>
+                        <span *ngIf="isForeignDocument && step0Form.get('documentType')?.value === 'Pasaporte'">Foto del
+                            Pasaporte en PDF</span>
+                        <span
+                            *ngIf="isForeignDocument && step0Form.get('documentType')?.value === 'Carnet de Extranjería'">Foto
+                            del Carnet de Extranjería en PDF</span>
+                        <span class="required">*</span>
+                    </label>
                     <div class="file-upload-box" (click)="fileInput.click()"
                         [class.is-invalid]="isFieldInvalid(step1Form, 'dniFile')">
                         <span class="file-placeholder" *ngIf="!step1Form.get('dniFile')?.value">Selecciona un archivo
@@ -217,7 +246,7 @@
                         </svg>
                     </div>
                     <div class="invalid-feedback" *ngIf="isFieldInvalid(step1Form, 'dniFile')">
-                        <span *ngIf="step1Form.get('dniFile')?.errors?.['required']">El archivo del DNI es
+                        <span *ngIf="step1Form.get('dniFile')?.errors?.['required']">El archivo del documento es
                             requerido</span>
                         <span *ngIf="step1Form.get('dniFile')?.errors?.['maxSize']">El archivo excede el tamaño máximo
                             permitido de 5MB</span>
@@ -270,12 +299,23 @@
                     <label class="form-label">Contraseña <span class="required">*</span>
                         <span class="info-icon" title="Ayuda">?</span>
                     </label>
-                    <div style="position: relative;">
+                    <div class="input-wrapper">
                         <input [type]="showPassword ? 'text' : 'password'" class="form-control"
                             formControlName="password" placeholder="XXXXXXX"
                             [class.is-invalid]="isFieldInvalid(step2Form, 'password')">
                         <button type="button" class="btn-eye" (click)="togglePasswordVisibility()">
-                            {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+                            <svg *ngIf="!showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg *ngIf="showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                                </path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
                         </button>
                     </div>
 
@@ -306,12 +346,23 @@
 
                 <div class="form-group">
                     <label class="form-label">Confirmar contraseña <span class="required">*</span></label>
-                    <div style="position: relative;">
+                    <div class="input-wrapper">
                         <input [type]="showConfirmPassword ? 'text' : 'password'" class="form-control"
                             formControlName="confirmPassword" placeholder="XXXXXXX"
                             [class.is-invalid]="isFieldInvalid(step2Form, 'confirmPassword') || (step2Form.errors?.['notSame'] && (step2Form.touched || step2Form.dirty))">
                         <button type="button" class="btn-eye" (click)="toggleConfirmPasswordVisibility()">
-                            {{ showConfirmPassword ? '👁️' : '👁️‍🗨️' }}
+                            <svg *ngIf="!showConfirmPassword" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg *ngIf="showConfirmPassword" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                                </path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
                         </button>
                     </div>
                     <div class="invalid-feedback" *ngIf="isFieldInvalid(step2Form, 'confirmPassword')">
@@ -336,7 +387,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-block mt-4"
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 2.5rem;"
                     [disabled]="step2Form.invalid">Registrarme</button>
             </form>
 

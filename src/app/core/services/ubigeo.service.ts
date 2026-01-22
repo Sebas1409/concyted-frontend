@@ -26,4 +26,8 @@ export class UbigeoService {
     getDistricts(provinceId: number): Observable<any[]> {
         return this.http.get<any[]>(`${this.apiUrl}/provincias/${provinceId}/distritos`);
     }
+
+    getIdsByNames(payload: { pais: string, departamento: string, provincia: string, distrito: string }): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/ids`, payload);
+    }
 }

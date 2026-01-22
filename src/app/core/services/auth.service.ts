@@ -49,8 +49,6 @@ export class AuthService {
     }
 
     registerResearcher(researcherData: any): Observable<any> {
-        // As requested by user, utilizing the specific endpoint for researcher registration
-        // covering both personal data and credentials
         return this.http.post(`${environment.userServiceUrl}/v2/investigadores`, researcherData);
     }
 

@@ -256,7 +256,27 @@ export class UserRegistryModalComponent implements OnInit {
                 error: (err) => {
                     console.error(err);
                     this.alertService.close();
-                    this.alertService.error('Error', 'No se pudo actualizar el usuario');
+
+                    if (err.status === 409) {
+                        const errorMessage = err.error?.message || err.error?.error || 'El usuario ya existe';
+                        this.alertService.warning(
+                            'Usuario duplicado',
+                            `${errorMessage}. Por favor, utiliza otro nombre de usuario o correo electrónico.`
+                        );
+                    } else if (err.status === 400) {
+                        const errorMessage = err.error?.message || err.error?.error || 'Los datos ingresados no son válidos';
+                        this.alertService.error('Error de validación', errorMessage);
+                    } else if (err.status === 404) {
+                        this.alertService.error('Error', 'El usuario no fue encontrado');
+                    } else if (err.status === 0) {
+                        this.alertService.error(
+                            'Error de conexión',
+                            'No se pudo conectar con el servidor. Verifica tu conexión a internet.'
+                        );
+                    } else {
+                        const errorMessage = err.error?.message || err.error?.error || 'No se pudo actualizar el usuario';
+                        this.alertService.error('Error', errorMessage);
+                    }
                 }
             });
         } else {
@@ -270,7 +290,30 @@ export class UserRegistryModalComponent implements OnInit {
                 error: (err) => {
                     console.error(err);
                     this.alertService.close();
-                    this.alertService.error('Error', 'No se pudo crear el usuario');
+
+                    if (err.status === 409) {
+                        const errorMessage = err.error?.message || err.error?.error || 'El usuario ya existe';
+                        this.alertService.warning(
+                            'Usuario duplicado',
+                            `${errorMessage}. Por favor, utiliza otro nombre de usuario o correo electrónico.`
+                        );
+                    } else if (err.status === 400) {
+                        const errorMessage = err.error?.message || err.error?.error || 'Los datos ingresados no son válidos';
+                        this.alertService.error('Error de validación', errorMessage);
+                    } else if (err.status === 0) {
+                        this.alertService.error(
+                            'Error de conexión',
+                            'No se pudo conectar con el servidor. Verifica tu conexión a internet.'
+                        );
+                    } else if (err.status === 500) {
+                        this.alertService.error(
+                            'Error del servidor',
+                            'Ocurrió un error en el servidor. Por favor, intenta nuevamente más tarde.'
+                        );
+                    } else {
+                        const errorMessage = err.error?.message || err.error?.error || 'No se pudo crear el usuario';
+                        this.alertService.error('Error', errorMessage);
+                    }
                 }
             });
         }
