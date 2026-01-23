@@ -23,9 +23,10 @@
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
-                    <input type="text" placeholder="Buscar por Título, nombre etc" [(ngModel)]="searchTerm">
+                    <input type="text" placeholder="Buscar por Título, nombre etc" [(ngModel)]="searchTerm"
+                        (input)="onSearchChange()">
                 </div>
-                <button class="btn-search">
+                <button class="btn-search" (click)="search()">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
                         <circle cx="11" cy="11" r="8"></circle>
@@ -38,7 +39,7 @@
             <!-- Actions Row -->
             <div class="actions-row">
                 <div class="export-actions">
-                    <button class="btn-outline">
+                    <button class="btn-outline" (click)="copyToClipboard()">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -46,7 +47,7 @@
                         </svg>
                         Copy
                     </button>
-                    <button class="btn-outline">
+                    <button class="btn-outline" (click)="downloadExcel()">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -57,7 +58,7 @@
                         </svg>
                         Excel
                     </button>
-                    <button class="btn-outline">
+                    <button class="btn-outline" (click)="downloadCSV()">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -67,7 +68,7 @@
                         </svg>
                         CSV
                     </button>
-                    <button class="btn-outline">
+                    <button class="btn-outline" (click)="printPDF()">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -78,13 +79,13 @@
                         PDF
                     </button>
                 </div>
-                <button class="btn-outline ms-auto">
+                <!-- <button class="btn-outline ms-auto">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                     </svg>
                     Filtros Avanzados
-                </button>
+                </button> -->
             </div>
 
             <!-- Table - Directory -->
@@ -105,7 +106,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let item of researchers; let i = index">
+                        <tr *ngFor="let item of paginatedResearchers; let i = index">
                             <td>{{ item.id }}</td>
                             <td>{{ item.gender }}</td>
                             <td class="name-cell">{{ item.name }}</td>
@@ -213,14 +214,16 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let req of requests">
+                        <tr *ngFor="let req of paginatedRequests">
                             <td>{{ req.id }}</td>
-                            <td>{{ req.date }}</td>
+                            <td>{{ req.date | dateFormat }}</td>
                             <td class="name-cell">{{ req.researcherName }}</td>
                             <td>{{ req.reason }}</td>
                             <td>
-                                <span class="status-badge" [class.pending]="req.status === 'Pendiente'"
-                                    [class.cancelled]="req.status === 'Anulado'">
+                                <span class="status-badge"
+                                    [class.pending]="req.status === 'Pendiente' || req.status === 'PENDIENTE'"
+                                    [class.cancelled]="req.status === 'Anulado' || req.status === 'ANULADO'"
+                                    [class.approved]="req.status === 'Aprobado' || req.status === 'APROBADA'">
                                     <span class="dot"></span> {{ req.status }}
                                 </span>
                             </td>
@@ -244,21 +247,25 @@
             <div class="pagination-container">
                 <div class="items-per-page">
                     <span>Mostrar</span>
-                    <select [(ngModel)]="pageSize">
+                    <select [(ngModel)]="pageSize" (change)="setPage(1)">
                         <option [value]="10">10</option>
                         <option [value]="20">20</option>
                         <option [value]="50">50</option>
                     </select>
-                    <span>elementos</span>
+                    <span>elementos de {{ totalItemsDisplay }}</span>
                 </div>
 
                 <div class="page-controls">
-                    <button class="btn-page text">Anterior</button>
-                    <button class="btn-page number active">1</button>
-                    <button class="btn-page number">2</button>
-                    <span class="dots">...</span>
-                    <button class="btn-page number">5</button>
-                    <button class="btn-page text">Siguiente</button>
+                    <button class="btn-page text" (click)="setPage(currentPage - 1)"
+                        [disabled]="currentPage === 1">Anterior</button>
+
+                    <button *ngFor="let p of pagesArray" class="btn-page number" [class.active]="p === currentPage"
+                        (click)="setPage(p)">
+                        {{ p }}
+                    </button>
+
+                    <button class="btn-page text" (click)="setPage(currentPage + 1)"
+                        [disabled]="currentPage === totalPages">Siguiente</button>
                 </div>
             </div>
         </div>
@@ -388,14 +395,19 @@
                 <textarea class="input-disabled" disabled rows="3">{{ selectedRequest.researcherReasonFull }}</textarea>
             </div>
             <div class="form-group full-width">
-                <label>Observación del Administrador</label>
+                <label>Observación del Administrador <span style="color: red;">*</span></label>
                 <textarea rows="3" placeholder="Indica el motivo de la aprobación o rechazo de la solicitud..."
-                    [(ngModel)]="reviewForm.adminObservation"></textarea>
+                    [(ngModel)]="reviewForm.adminObservation" required #adminObs="ngModel"
+                    [class.input-error]="adminObs.invalid && (adminObs.dirty || adminObs.touched)"></textarea>
             </div>
         </div>
 
         <div class="modal-actions">
             <button class="btn-cancel" (click)="showReviewModal = false">Cancelar</button>
-            <button class="btn-save" (click)="approveDerecognition()">Aprobar Anulación</button>
+            <button class="btn-save" (click)="adminObs.control.markAsTouched(); approveDerecognition(!!adminObs.valid)"
+                [disabled]="selectedRequest.status === 'APROBADA' || selectedRequest.status === 'Aprobado'"
+                [style.opacity]="(selectedRequest.status === 'APROBADA' || selectedRequest.status === 'Aprobado') ? '0.5' : '1'">
+                Aprobar Anulación
+            </button>
         </div>
     </app-form-modal>

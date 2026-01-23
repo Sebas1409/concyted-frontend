@@ -31,6 +31,8 @@ export class UserManagementComponent implements OnInit {
     activeTab: 'users' | 'roles' = 'users';
     searchTerm: string = '';
 
+    appliedSearchTerm: string = '';
+
     // Data
     users: User[] = [];
     selectedUser: UserProfileApi | null = null;
@@ -38,7 +40,6 @@ export class UserManagementComponent implements OnInit {
     // Pagination
     currentPage: number = 1;
     pageSize: number = 10;
-    totalItems: number = 0;
 
     // Modals
     showRegistryModal: boolean = false;
@@ -48,6 +49,34 @@ export class UserManagementComponent implements OnInit {
 
     ngOnInit() {
         this.loadUsers();
+    }
+
+    /* Computed Properties */
+    get filteredUsers() {
+        if (!this.appliedSearchTerm) return this.users;
+        const term = this.appliedSearchTerm.toLowerCase();
+        return this.users.filter(u =>
+            u.name.toLowerCase().includes(term) ||
+            u.account.toLowerCase().includes(term) ||
+            u.email.toLowerCase().includes(term)
+        );
+    }
+
+    get paginatedUsers() {
+        const start = (this.currentPage - 1) * this.pageSize;
+        return this.filteredUsers.slice(start, start + this.pageSize);
+    }
+
+    get totalPages() {
+        return Math.ceil(this.filteredUsers.length / this.pageSize) || 1;
+    }
+
+    get totalFilteredItems() {
+        return this.filteredUsers.length;
+    }
+
+    get pagesArray() {
+        return Array(this.totalPages).fill(0).map((x, i) => i + 1);
     }
 
     loadUsers() {
@@ -63,7 +92,8 @@ export class UserManagementComponent implements OnInit {
                     selected: false,
                     raw: u
                 }));
-                this.totalItems = this.users.length;
+                // totalItems will be replaced by computed property usage in template usually, 
+                // but let's keep it if strict binding needed, though getter is better.
                 this.cdr.markForCheck();
             },
             error: (err) => {
@@ -126,9 +156,14 @@ export class UserManagementComponent implements OnInit {
         });
     }
 
-
-
     onSearch() {
-        console.log('Search:', this.searchTerm);
+        this.appliedSearchTerm = this.searchTerm;
+        this.currentPage = 1;
+    }
+
+    setPage(page: number) {
+        if (page >= 1 && page <= this.totalPages) {
+            this.currentPage = page;
+        }
     }
 }

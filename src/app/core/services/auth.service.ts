@@ -92,6 +92,18 @@ export class AuthService {
         return this.http.post(`${environment.userServiceUrl}/solicitud-anulacion`, payload);
     }
 
+    getDerecognitionRequests(): Observable<any[]> {
+        return this.http.get<any[]>(`${environment.userServiceUrl}/solicitud-anulacion`);
+    }
+
+    processAccountDeletion(payload: any): Observable<any> {
+        return this.http.put(`${environment.userServiceUrl}/solicitud-anulacion/${payload.id}/atender`, {
+            adminId: payload.adminId,
+            estado: payload.estado,
+            observacionAdmin: payload.observacionAdmin
+        });
+    }
+
     sendContactMessage(payload: { celular: string, email: string, mensaje: string }): Observable<any> {
         return this.http.post(`${environment.userServiceUrl}/contacto`, payload);
     }

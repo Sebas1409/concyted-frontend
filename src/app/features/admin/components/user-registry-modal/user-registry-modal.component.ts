@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FormModalComponent } from '../../../../shared/components/form-modal/form-modal.component';
 import { UserService, UserProfileApi, UserRequestDTO } from '../../../../core/services/user.service';
+import { CatalogService } from '../../../../core/services/catalog.service';
 import { AlertService } from '../../../../core/services/alert.service';
 
 @Component({
@@ -10,12 +11,12 @@ import { AlertService } from '../../../../core/services/alert.service';
     standalone: true,
     imports: [CommonModule, FormsModule, FormModalComponent],
     template: `
-    <app-form-modal title="Registrar Nuevo Usuario" (close)="close.emit()" (save)="save()">
+    <app-form-modal [title]="userData ? 'Edición Usuario' : 'Registrar Nuevo Usuario'" (close)="close.emit()" (save)="save()">
         <p class="description">Ingresa las credenciales de acceso y los datos personales para dar de alta a un nuevo administrador en el sistema.</p>
         
         <div class="form-grid">
             <div class="form-group full-width">
-                 <label>Nombre de Usuario *</label>
+                 <label>Cuenta de Usuario *</label>
                  <input type="text" [(ngModel)]="data.username" placeholder="Ingresa el usuario (ej. jperez)">
             </div>
             
@@ -23,8 +24,7 @@ import { AlertService } from '../../../../core/services/alert.service';
                  <label>Área *</label>
                  <select [(ngModel)]="data.area">
                     <option value="">Selecciona el área...</option>
-                    <option value="sistemas">Sistemas</option>
-                    <option value="rrhh">Recursos Humanos</option>
+                    <option *ngFor="let area of areas" [value]="area.id">{{ area.nombre || area.descripcion || area.name || area.label || ' - ' }}</option>
                  </select>
             </div>
 
@@ -187,6 +187,9 @@ export class UserRegistryModalComponent implements OnInit {
 
     private userService = inject(UserService);
     private alertService = inject(AlertService);
+    private catalogService = inject(CatalogService);
+
+    areas: any[] = [];
 
     data = {
         username: '', area: '', password: '', confirmPassword: '',
@@ -198,6 +201,11 @@ export class UserRegistryModalComponent implements OnInit {
     showConfirmPassword = false;
 
     ngOnInit() {
+        this.catalogService.getAreas().subscribe(res => {
+            console.log('Areas Data:', res);
+            this.areas = res;
+        });
+
         if (this.userData) {
             this.data.username = this.userData.username;
             this.data.names = this.userData.nombres;
@@ -205,6 +213,7 @@ export class UserRegistryModalComponent implements OnInit {
             this.data.surname2 = this.userData.apellidoMaterno;
             this.data.email = this.userData.email || '';
             this.data.active = this.userData.enabled;
+            this.data.area = this.userData.areaId ? this.userData.areaId.toString() : '';
             // Password fields remain empty unless changed
         }
     }
@@ -240,7 +249,8 @@ export class UserRegistryModalComponent implements OnInit {
             password: this.data.password,
             accountNonExpired: true,
             accountNonLocked: true,
-            credentialsNonExpired: true
+            credentialsNonExpired: true,
+            areaId: this.data.area ? Number(this.data.area) : undefined
         };
 
         if (this.userData) {

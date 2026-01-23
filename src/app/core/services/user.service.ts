@@ -20,6 +20,7 @@ export interface UserProfileApi {
     createdAt?: string;
     credentialsNonExpired?: boolean;
     updatedAt?: string;
+    areaId?: number; // Added
 }
 
 export interface UserRequestDTO {
@@ -38,6 +39,7 @@ export interface UserRequestDTO {
     accountNonExpired: boolean;
     accountNonLocked: boolean;
     credentialsNonExpired: boolean;
+    areaId?: number; // Added
 }
 
 @Injectable({
@@ -49,18 +51,18 @@ export class UserService {
     constructor(private http: HttpClient) { }
 
     getUsers(): Observable<UserProfileApi[]> {
-        return this.http.get<UserProfileApi[]>(`${this.apiUrl}/v2/users`);
+        return this.http.get<UserProfileApi[]>(`${this.apiUrl}/v2/usuarios`);
     }
 
     createUser(user: UserRequestDTO): Observable<UserProfileApi> {
-        return this.http.post<UserProfileApi>(`${this.apiUrl}/v2/users`, user);
+        return this.http.post<UserProfileApi>(`${this.apiUrl}/v2/usuarios`, user);
     }
 
     updateUser(id: number | string, user: UserRequestDTO): Observable<UserProfileApi> {
-        return this.http.put<UserProfileApi>(`${this.apiUrl}/v2/users/${id}`, user);
+        return this.http.put<UserProfileApi>(`${this.apiUrl}/v2/usuarios/${id}`, user);
     }
 
     deleteUser(id: number | string): Observable<void> {
-        return this.http.delete<void>(`${this.apiUrl}/v2/users/${id}`);
+        return this.http.delete<void>(`${this.apiUrl}/v2/usuarios/${id}`);
     }
 }

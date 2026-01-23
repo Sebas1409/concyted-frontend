@@ -163,7 +163,10 @@ export class EducationComponent implements OnInit {
         });
 
         this.technicalForm = this.fb.group({
+            academicLevelId: [''],
+            countryId: [0],
             institution: ['', Validators.required],
+            institutionId: [''],
             careerName: ['', Validators.required],
             startDate: ['', Validators.required],
             endDate: ['', Validators.required],
@@ -440,7 +443,15 @@ export class EducationComponent implements OnInit {
         this.isEditing = false;
         this.currentEditId = null;
         this.technicalFiles = [];
-        this.technicalForm.reset();
+        this.technicalForm.reset({
+            academicLevelId: '',
+            countryId: 0,
+            institution: '',
+            institutionId: '',
+            careerName: '',
+            startDate: '',
+            endDate: ''
+        });
     }
 
     editTechnical(item: TechnicalEntry) {
@@ -450,7 +461,10 @@ export class EducationComponent implements OnInit {
         const raw = item.originalItem || item;
 
         this.technicalForm.patchValue({
+            academicLevelId: raw.nivelAcademicoId || '',
+            countryId: raw.paisId || 0,
             institution: raw.institucion || item.institution,
+            institutionId: raw.institucionId || '',
             careerName: raw.carrera || item.career,
             startDate: item.startDate,
             endDate: item.endDate
@@ -479,16 +493,26 @@ export class EducationComponent implements OnInit {
         if (!currentUser?.id) return;
 
         const val = this.technicalForm.value;
+
+        // Construct payload as requested
         const payload = {
             active: true,
-            investigadorId: currentUser.id,
-            institucion: val.institution,
-            carrera: val.careerName,
+            carreraTecnica: val.careerName,
+            enCurso: false,
+            fechaFin: val.endDate,
             fechaInicio: val.startDate,
-            fechaFin: val.endDate
+            institucionId: val.institutionId || '',
+            investigadorId: currentUser.id,
+            nivelAcademicoId: val.academicLevelId || '',
+            paisId: val.countryId || 0,
+            tokens: [] as string[]
         };
 
-        this.alertService.confirm('Confirmación', '¿Guardar registro técnico?').then(confirmed => {
+        const confirmMessage = this.isEditing
+            ? '¿Está seguro de actualizar el registro técnico?'
+            : '¿Está seguro de guardar el registro técnico?';
+
+        this.alertService.confirm('Confirmación', confirmMessage).then(confirmed => {
             if (confirmed) {
                 this.uploadFiles(this.technicalFiles, this.INVESTIGATOR_MODULE, FileType.DOCUMENT, this.EDUCATION_CATEGORY, this.TECHNICAL_SECTION)
                     .subscribe(uploaded => {
@@ -505,7 +529,10 @@ export class EducationComponent implements OnInit {
                                 this.loadTechnical(currentUser.id);
                                 this.closeTechnicalModal();
                             },
-                            error: (err: any) => this.alertService.error('Error', 'Error al guardar estudio técnico')
+                            error: (err: any) => {
+                                console.error('Error saving technical', err);
+                                this.alertService.error('Error', 'Error al guardar estudio técnico');
+                            }
                         });
                     });
             }
@@ -781,11 +808,15 @@ export class EducationComponent implements OnInit {
         // Set display name
         this.educationForm.patchValue({
             institution: item.nombre,
-            institutionId: item.id.toString() // Capture ID as string for payload
+            institutionId: item.codigo
         });
     }
     selectTechnicalInstitution(item: any) {
-        this.technicalForm.patchValue({ institution: item.nombre });
+        console.log('Selected Technical Institution:', item);
+        this.technicalForm.patchValue({
+            institution: item.nombre,
+            institutionId: item.codigo
+        });
     }
     selectInProgressInstitution(item: any) {
         this.inProgressForm.patchValue({ institution: item.nombre });

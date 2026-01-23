@@ -12,7 +12,7 @@
     <!-- Tabs -->
     <div class="tabs-container">
         <button class="tab-btn" [class.active]="activeTab === 'users'" (click)="toggleTab('users')">
-            Usuarios <span class="badge">{{ totalItems }}</span>
+            Usuarios <span class="badge">{{ totalFilteredItems }}</span>
         </button>
         <button class="tab-btn" [class.active]="activeTab === 'roles'" (click)="toggleTab('roles')">
             Usuarios con roles <span class="badge">02</span>
@@ -57,7 +57,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let user of users">
+                    <tr *ngFor="let user of paginatedUsers">
                         <td class="w-checkbox">
                             <input type="checkbox" [(ngModel)]="user.selected">
                         </td>
@@ -102,7 +102,7 @@
         <div class="pagination-container">
             <div class="items-per-page">
                 <span>Mostrar</span>
-                <select [(ngModel)]="pageSize">
+                <select [(ngModel)]="pageSize" (change)="setPage(1)">
                     <option [value]="10">10</option>
                     <option [value]="20">20</option>
                     <option [value]="50">50</option>
@@ -111,10 +111,12 @@
             </div>
 
             <div class="page-controls">
-                <button class="btn-page number active">1</button>
-                <button class="btn-page number">2</button>
-                <span class="dots">...</span>
-                <button class="btn-page number">5</button>
+                <button class="btn-page text" (click)="setPage(currentPage - 1)"
+                    [disabled]="currentPage === 1">Anterior</button>
+                <button *ngFor="let p of pagesArray" class="btn-page number" [class.active]="p === currentPage"
+                    (click)="setPage(p)">{{ p }}</button>
+                <button class="btn-page text" (click)="setPage(currentPage + 1)"
+                    [disabled]="currentPage === totalPages">Siguiente</button>
             </div>
         </div>
     </div>

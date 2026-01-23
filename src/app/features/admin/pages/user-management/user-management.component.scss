@@ -281,6 +281,11 @@
                     color: #64748B;
                     font-weight: 500;
 
+                    &.text {
+                        width: auto;
+                        padding: 0 12px;
+                    }
+
                     &:hover:not(:disabled) {
                         background: #F8FAFC;
                         color: #0F172A;
