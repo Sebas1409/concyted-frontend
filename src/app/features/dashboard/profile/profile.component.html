@@ -16,14 +16,15 @@
                 </div>
                 <!-- Email below name for cleaner look -->
                 <!-- <div class="username-email">{{ user.email }}</div> -->
-                <div class="username">{{ user.dni || 'DNI no registrado' }}</div>
+                <div class="username">{{ user.numDoc || 'DNI no registrado' }}</div>
             </div>
 
             <!-- Meta Stats (Right Aligned) -->
             <div class="user-meta-grid">
                 <div class="meta-item">
                     <label>Ficha Pública CTI</label>
-                    <a href="#" class="link-external" *ngIf="user.fichaCti; else noFicha">
+                    <!-- fichaCti no longer in response, using codigoUnico if available or placeholder -->
+                    <a href="#" class="link-external" *ngIf="user.codigoUnico; else noFicha">
                         <span class="icon">📄</span> Ver ficha <span class="copy-icon" title="Copiar enlace">❐</span>
                     </a>
                     <ng-template #noFicha>
@@ -36,7 +37,7 @@
                 </div>
                 <div class="meta-item">
                     <label>ORCID ID</label>
-                    <div class="value">{{ user.orcidId || '---' }}</div>
+                    <div class="value">{{ user.orcid || '---' }}</div>
                 </div>
             </div>
         </div>

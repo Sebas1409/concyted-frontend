@@ -65,8 +65,10 @@ export class LanguagesComponent implements OnInit {
     }
 
     loadUserLanguages() {
+        if (!this.userId) return;
+
         // Relying on token
-        this.languageService.getLanguages().subscribe({
+        this.languageService.getLanguagesByInvestigator(this.userId).subscribe({
             next: (data) => {
                 console.log('API Response Raw:', data);
                 if (Array.isArray(data)) {

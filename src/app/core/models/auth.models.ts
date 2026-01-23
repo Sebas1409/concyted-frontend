@@ -1,22 +1,44 @@
 export interface AuthResponse {
-    recaptchaStatus: boolean;
-    recaptchaErrorCode: string | null;
-    recaptchaErrorMessage: string | null;
     id: number;
-    username: string;
+    numDoc: string;
+    tipoDoc: string;
+    codigoUnico: string;
     nombres: string;
     apellidoPaterno: string;
     apellidoMaterno: string;
-    direccion: string;
-    pais: string;
-    departamento: string;
-    provincia: string;
-    distrito: string;
-    orcidId: string | null;
-    fichaCti: string | null;
-    dni: string;
+    fechaNacimiento: string;
+    sexo: string;
+    nacionalidad: string;
+    paisNacimientoId: number;
+    paisResidenciaId: number;
+    departamentoId: number;
+    provinciaId: number;
+    distritoId: number;
     email: string;
-    fotoToken?: string | null;
+    emailPublico: string;
+    telefono: string;
+    telefonoAlternativo: string;
+    celular: string;
+    direccion: string;
+    ubigeo: string;
+    orcid: string;
+    scopusAuthorId: string; // Can be empty string
+    researcherId: string;
+    googleScholarId: string;
+    estado: string; // "true" in JSON
+    estadoRenacyt: string;
+    validado: boolean;
+    fechaValidacion: string;
+    validadoPor: number;
+    fotoToken: string;
+    activo: boolean;
+    fechaCreacion: string;
+    fechaActualizacion: string;
+    usuarioId: number;
+
+    // Optional fields for compatibility if needed (though not in JSON)
+    username?: string;
+    recaptchaStatus?: boolean;
 }
 
 export interface LoginRequest {

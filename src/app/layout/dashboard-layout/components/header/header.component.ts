@@ -33,8 +33,8 @@ export class HeaderComponent {
 
     getPhotoUrl(): string {
         if (this.user && this.user.fotoToken) {
-            console.log('User photo token:', this.user.fotoToken);
-            return this.fileService.getFileUrl(this.user.fotoToken);
+            // Photos are public by default based on upload config
+            return this.fileService.getFileUrl(this.user.fotoToken, true);
         }
         // Fallback to placeholder
         const username = this.user ? this.user.username : 'User';

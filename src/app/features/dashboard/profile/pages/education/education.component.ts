@@ -191,7 +191,7 @@ export class EducationComponent implements OnInit {
         this.authService.currentUser$.subscribe(user => {
             if (user) {
                 this.fullName = `${user.nombres} ${user.apellidoPaterno} ${user.apellidoMaterno}`;
-                this.dni = user.dni || '';
+                this.dni = user.numDoc || '';
                 this.loadAllData();
             }
         });

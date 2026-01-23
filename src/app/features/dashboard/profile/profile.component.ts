@@ -41,8 +41,8 @@ export class ProfileLayoutComponent implements OnInit {
 
     getLocation(user: AuthResponse | null): string {
         if (!user) return 'No especificado';
-        const parts = [user.distrito, user.provincia, user.departamento].filter(Boolean);
-        return parts.length > 0 ? parts.join(', ') : 'Perú';
+        // Use nacionalidad directly as we only have IDs for location
+        return user.nacionalidad || 'Perú';
     }
 
     private checkSubTabsVisibility() {

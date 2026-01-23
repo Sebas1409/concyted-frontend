@@ -1,11 +1,11 @@
 export interface LanguageItem {
     id: number;
     investigadorId: number;
-    idioma: string;        // IDI028
-    idiomaNombre: string;  // CHECO
+    idioma: string;
+    idiomaNombre: string;
     esLenguaMaterna: boolean;
-    nivelLectura: string;        // NIV001
-    nivelLecturaNombre: string;  // AVANZADO
+    nivelLectura: string;
+    nivelLecturaNombre: string;
     nivelEscritura: string;
     nivelEscrituraNombre: string;
     nivelConversacion: string;
@@ -15,7 +15,6 @@ export interface LanguageItem {
     active: boolean;
     createdAt?: string;
     updatedAt?: string;
-    codigo?: string; // Keeping just in case, though 'idioma' seems to be the code now
 }
 
 export interface LanguagePayload {

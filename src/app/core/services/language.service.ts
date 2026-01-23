@@ -16,6 +16,10 @@ export class LanguageService {
         return this.http.get<LanguageItem[]>(this.apiUrl);
     }
 
+    getLanguagesByInvestigator(investigatorId: number): Observable<LanguageItem[]> {
+        return this.http.get<LanguageItem[]>(`${this.apiUrl}/investigador/${investigatorId}`);
+    }
+
     createLanguage(payload: LanguagePayload): Observable<any> {
         return this.http.post(this.apiUrl, payload);
     }

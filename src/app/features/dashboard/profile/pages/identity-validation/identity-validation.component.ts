@@ -67,7 +67,7 @@ export class IdentityValidationComponent implements OnInit {
 
         forkJoin({
             docTypes: this.catalogService.getMasterDetails(1),
-            userData: this.authService.getInvestigatorByUserId(currentUser.id)
+            userData: this.authService.getInvestigatorByUserId(currentUser.usuarioId)
         }).subscribe({
             next: (results: any) => {
                 // 1. Set Document Types
@@ -195,7 +195,7 @@ export class IdentityValidationComponent implements OnInit {
         this.isValidatingReniec = true;
 
         const request: ReniecValidationRequest = {
-            dni: this.currentUserData.numDoc || this.currentUserData.dni, // Adjust based on actual field name
+            dni: this.currentUserData.numDoc, // Adjust based on actual field name
             nombres: this.currentUserData.nombres,
             apellido_paterno: this.currentUserData.apellidoPaterno,
             apellido_materno: this.currentUserData.apellidoMaterno

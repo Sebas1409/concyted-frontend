@@ -88,6 +88,14 @@ export class AuthService {
         return this.http.put(`${this.usuariosUrl}/${userId}`, payload);
     }
 
+    requestAccountDeletion(payload: { correo: string, documento: string, investigadorId: number, motivoInvestigador: string }): Observable<any> {
+        return this.http.post(`${environment.userServiceUrl}/solicitud-anulacion`, payload);
+    }
+
+    sendContactMessage(payload: { celular: string, email: string, mensaje: string }): Observable<any> {
+        return this.http.post(`${environment.userServiceUrl}/contacto`, payload);
+    }
+
     saveUserUnified(payload: any): Observable<any> {
         return this.http.post(`${this.usuariosUrl}`, payload);
     }
@@ -138,7 +146,8 @@ export class AuthService {
                 // Save token immediately for interceptor
                 localStorage.setItem('accessToken', response.accessToken);
 
-                return this.http.get<AuthResponse>(`${environment.apiUrl}/usuarios/${userId}/info`).pipe(
+                // Updated API endpoint as per user request (User Service v2)
+                return this.http.get<AuthResponse>(`${environment.userServiceUrl}/v2/investigadores/usuario/${userId}`).pipe(
                     map(userInfo => {
                         console.log('User Info retrieved:', userInfo);
                         this.setCurrentUser(userInfo);
@@ -192,11 +201,13 @@ export class AuthService {
     }
     refreshCurrentUser(): Observable<AuthResponse> {
         const currentUser = this.getCurrentUser();
-        if (!currentUser || !currentUser.id) {
+        // We need usuarioId (the user ID) to query this endpoint, not the researcher ID (id)
+        // If currentUser is valid, it should have usuarioId. 
+        if (!currentUser || !currentUser.usuarioId) {
             return of(null as any);
         }
 
-        return this.http.get<AuthResponse>(`${environment.apiUrl}/usuarios/${currentUser.id}/info`).pipe(
+        return this.http.get<AuthResponse>(`${environment.userServiceUrl}/v2/investigadores/usuario/${currentUser.usuarioId}`).pipe(
             map(userInfo => {
                 console.log('Refreshing User Info:', userInfo);
                 this.setCurrentUser(userInfo);

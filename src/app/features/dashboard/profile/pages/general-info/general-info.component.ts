@@ -94,9 +94,9 @@ export class GeneralInfoComponent implements OnInit {
 
     loadUserData() {
         const currentUser = this.authService.getCurrentUser();
-        if (currentUser && currentUser.id) {
-            console.log('Loading user data for ID:', currentUser.id);
-            this.authService.getInvestigatorByUserId(currentUser.id).subscribe({
+        if (currentUser && currentUser.usuarioId) {
+            console.log('Loading user data for ID:', currentUser.usuarioId);
+            this.authService.getInvestigatorByUserId(currentUser.usuarioId).subscribe({
                 next: (res: any) => {
                     // Check if response has data property or is direct
                     const userData = res.data || res;
@@ -325,11 +325,13 @@ export class GeneralInfoComponent implements OnInit {
                         console.warn('Token not found in response:', res);
                         // Still allow saving in case response structure is weird but upload worked
                     }
+                    this.cdr.detectChanges();
                 },
                 error: (err) => {
                     console.error('Upload failed:', err);
                     this.isUploadingPhoto = false;
                     this.alertService.error('Error', 'No se pudo subir la imagen.');
+                    this.cdr.detectChanges();
                 }
             });
         }
@@ -357,6 +359,9 @@ export class GeneralInfoComponent implements OnInit {
                 provinciaId: Number(formValue.provincia) || null,
                 distritoId: Number(formValue.distrito) || null,
 
+                // Explicitly send the fresh token from form if available, else keep existing
+                fotoToken: formValue.fotoUrl || this.currentUserData.fotoToken,
+
                 // Align Master parameters to Codes if possible, similar to Register
                 tipoDoc: this.documentTypes.find(d => d.id === Number(formValue.tipoDocumento))?.codigo || formValue.tipoDocumento,
                 sexo: this.sexOptions.find(s => s.id === Number(formValue.sexo))?.codigo || formValue.sexo,
@@ -373,7 +378,7 @@ export class GeneralInfoComponent implements OnInit {
 
             console.log('Updating Researcher Payload:', payload);
 
-            this.authService.updateResearcher(this.currentUserData.usuarioId, payload).subscribe({
+            this.authService.updateResearcher(this.currentUserData.id, payload).subscribe({
                 next: (res) => {
                     this.savingSource = null; // Stop loading
                     console.log('Update successful', res);

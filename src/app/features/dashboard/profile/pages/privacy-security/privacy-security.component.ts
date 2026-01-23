@@ -26,6 +26,7 @@ export class PrivacySecurityComponent implements OnInit {
         const user = this.authService.getCurrentUser();
         if (user && user.id) {
             this.currentUser = user;
+            console.log('userrrrrr', user)
             this.loadVisibilitySettings(user.id);
         }
     }
