@@ -29,19 +29,20 @@
     <!-- TABS -->
     <div class="tabs-container mb-4">
         <div class="tab-item" [class.active]="activeTab === 'all'" (click)="setActiveTab('all')">
-            Todas las formaciones <span class="badge">02</span>
+            Todas las formaciones <span class="badge">{{ (educationList.length + technicalList.length +
+                inProgressList.length + complementaryList.length) | number:'2.0-0' }}</span>
         </div>
         <div class="tab-item" [class.active]="activeTab === 'education'" (click)="setActiveTab('education')">
-            Formación académica <span class="badge">02</span>
+            Formación académica <span class="badge">{{ educationList.length | number:'2.0-0' }}</span>
         </div>
         <div class="tab-item" [class.active]="activeTab === 'technical'" (click)="setActiveTab('technical')">
-            Tecnicos superiores <span class="badge">00</span>
+            Tecnicos superiores <span class="badge">{{ technicalList.length | number:'2.0-0' }}</span>
         </div>
         <div class="tab-item" [class.active]="activeTab === 'inProgress'" (click)="setActiveTab('inProgress')">
-            Tecnicos superiores en curso <span class="badge">00</span>
+            Tecnicos superiores en curso <span class="badge">{{ inProgressList.length | number:'2.0-0' }}</span>
         </div>
         <div class="tab-item" [class.active]="activeTab === 'complementary'" (click)="setActiveTab('complementary')">
-            Formación complementaria <span class="badge">00</span>
+            Formación complementaria <span class="badge">{{ complementaryList.length | number:'2.0-0' }}</span>
         </div>
     </div>
 
@@ -74,8 +75,8 @@
                             <td>{{ item.institution }}</td>
                             <td>{{ item.degreeType }}</td>
                             <td>{{ item.titleName }}</td>
-                            <td>{{ item.startDate }}</td>
-                            <td>{{ item.endDate }}</td>
+                            <td>{{ item.startDate | date:'dd/MM/yyyy' }}</td>
+                            <td>{{ item.endDate | date:'dd/MM/yyyy' }}</td>
                             <td><a href="javascript:void(0)" class="link-view"
                                     (click)="openFileViewer(item, ACADEMIC_SECTION)">Ver archivos</a></td>
                             <td class="text-center">
@@ -120,8 +121,8 @@
                             <td>{{ item.code }}</td>
                             <td>{{ item.institution }}</td>
                             <td>{{ item.career }}</td>
-                            <td>{{ item.startDate }}</td>
-                            <td>{{ item.endDate }}</td>
+                            <td>{{ item.startDate | date:'dd/MM/yyyy' }}</td>
+                            <td>{{ item.endDate | date:'dd/MM/yyyy' }}</td>
                             <td><a href="javascript:void(0)" class="link-view"
                                     (click)="openFileViewer(item, TECHNICAL_SECTION)">Ver archivos</a></td>
                             <td class="actions">
@@ -141,7 +142,8 @@
     <div class="section-container mb-5" *ngIf="activeTab === 'all' || activeTab === 'inProgress'">
         <div class="card-header-simple">
             <h3 class="section-title">Estudios academico/tecnico superior en curso <i
-                    class="fas fa-book-reader ml-2"></i></h3>
+                    class="fas fa-book-reader ml-2"></i>
+            </h3>
         </div>
         <div class="card table-card">
             <div class="table-responsive">
@@ -163,7 +165,7 @@
                             <td>{{ item.institution }}</td>
                             <td>{{ item.courseName }}</td>
                             <td>{{ item.studyType }}</td>
-                            <td>{{ item.startDate }}</td>
+                            <td>{{ item.startDate | date:'dd/MM/yyyy' }}</td>
                             <td><a href="javascript:void(0)" class="link-view"
                                     (click)="openFileViewer(item, IN_PROGRESS_SECTION)">Ver archivos</a></td>
                             <td class="actions">
@@ -211,7 +213,7 @@
                             <td>{{ item.courseName }}</td>
                             <td>{{ item.measureUnit }}</td>
                             <td>{{ item.totalHours }}</td>
-                            <td>{{ item.startDate }}</td>
+                            <td>{{ item.startDate | date:'dd/MM/yyyy' }}</td>
                             <td><a href="javascript:void(0)" class="link-view"
                                     (click)="openFileViewer(item, COMPLEMENTARY_SECTION)">Ver archivos</a></td>
                             <td class="actions">
@@ -242,14 +244,14 @@
             <div class="form-group">
                 <label>Grado Obtenido <span class="required">*</span></label>
                 <select formControlName="academicLevelId" class="form-input">
-                    <option value="">Seleccionar nivel...</option>
+                    <option value="">Seleccione</option>
                     <option *ngFor="let item of academicLevels" [value]="item.codigo">{{ item.nombre }}</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>País <span class="required">*</span></label>
                 <select formControlName="countryId" class="form-input">
-                    <option value="">Seleccionar país...</option>
+                    <option value="">Seleccione</option>
                     <option *ngFor="let item of countries" [value]="item.id">{{ item.nombre }}</option>
                 </select>
             </div>
@@ -413,11 +415,8 @@
             <div class="form-group">
                 <label>Tipo de Estudio <span class="required">*</span></label>
                 <select formControlName="studyType" class="form-input">
-                    <option value="">Seleccionar nivel...</option>
-                    <option value="Pregrado">Pregrado</option>
-                    <option value="Maestría">Maestría</option>
-                    <option value="Doctorado">Doctorado</option>
-                    <option value="Técnico">Técnico</option>
+                    <option value="">Seleccione</option>
+                    <option *ngFor="let item of academicLevels" [value]="item.codigo">{{ item.nombre }}</option>
                 </select>
             </div>
             <div class="form-group">
@@ -470,20 +469,16 @@
         <div class="form-row three-col">
             <div class="form-group">
                 <label>País de Estudios <span class="required">*</span></label>
-                <select formControlName="country" class="form-input">
-                    <option value="">Seleccionar país...</option>
-                    <option value="Perú">Perú</option>
-                    <option value="España">España</option>
-                    <option value="EE.UU.">EE.UU.</option>
+                <select formControlName="countryId" class="form-input">
+                    <option value="">Seleccione</option>
+                    <option *ngFor="let item of countries" [value]="item.id">{{ item.nombre }}</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Unidad de Medida <span class="required">*</span></label>
-                <select formControlName="measureUnit" class="form-input">
-                    <option value="">Seleccionar unidad...</option>
-                    <option value="Horas">Horas</option>
-                    <option value="Créditos">Créditos</option>
-                    <option value="Semanas">Semanas</option>
+                <select formControlName="measureUnitId" class="form-input">
+                    <option value="">Seleccione</option>
+                    <option *ngFor="let item of measureUnits" [value]="item.codigo">{{ item.nombre }}</option>
                 </select>
             </div>
             <div class="form-group">

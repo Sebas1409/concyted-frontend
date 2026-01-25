@@ -131,6 +131,7 @@ export class EducationComponent implements OnInit {
     // Catalogs
     countries: any[] = [];
     academicLevels: any[] = [];
+    measureUnits: any[] = [];
 
     suneduList: SuneduEntry[] = [
         { id: 1, selected: true, institution: 'Univ. César Vallejo', degree: 'Bachiller en Ingenieria de Sistemas', date: '15/05/2021' },
@@ -174,6 +175,7 @@ export class EducationComponent implements OnInit {
 
         this.inProgressForm = this.fb.group({
             institution: ['', Validators.required],
+            institutionId: [''],
             studyType: ['', Validators.required],
             courseName: ['', Validators.required],
             startDate: ['', Validators.required],
@@ -181,9 +183,10 @@ export class EducationComponent implements OnInit {
 
         this.complementaryForm = this.fb.group({
             institution: ['', Validators.required],
+            institutionId: [''],
             courseName: ['', Validators.required],
-            country: ['', Validators.required],
-            measureUnit: ['', Validators.required],
+            countryId: ['', Validators.required],
+            measureUnitId: ['', Validators.required],
             totalHours: ['', Validators.required],
             startDate: ['', Validators.required],
             endDate: ['', Validators.required],
@@ -203,6 +206,7 @@ export class EducationComponent implements OnInit {
     loadAllData() {
         this.loadCountries();
         this.loadAcademicLevels();
+        this.loadMeasureUnits();
         const user = this.authService.getCurrentUser();
         if (user && user.id) {
             this.loadEducation(user.id);
@@ -223,6 +227,13 @@ export class EducationComponent implements OnInit {
         this.catalogService.getMasterDetailsByCode('GRADOS').subscribe({
             next: (data) => this.academicLevels = data,
             error: (err) => console.error('Error loading academic levels', err)
+        });
+    }
+
+    loadMeasureUnits() {
+        this.catalogService.getMasterDetailsByCode('UNIMED').subscribe({
+            next: (data) => this.measureUnits = data,
+            error: (err) => console.error('Error loading measure units', err)
         });
     }
 
@@ -252,13 +263,13 @@ export class EducationComponent implements OnInit {
     }
 
     loadTechnical(userId: number) {
-        this.educationService.getTechnicalByInvestigator(userId).subscribe({
+        this.educationService.getTechnicalByInvestigator(userId, false).subscribe({
             next: (data: any[]) => {
                 this.technicalList = data.map(item => ({
                     id: item.id,
                     code: item.id.toString(),
-                    institution: item.institucion,
-                    career: item.carrera,
+                    institution: item.institucionNombre,
+                    career: item.carreraTecnica,
                     startDate: item.fechaInicio,
                     endDate: item.fechaFin,
                     originalItem: item
@@ -270,14 +281,14 @@ export class EducationComponent implements OnInit {
     }
 
     loadInProgress(userId: number) {
-        this.educationService.getInProgressByInvestigator(userId).subscribe({
+        this.educationService.getTechnicalByInvestigator(userId, true).subscribe({
             next: (data: any[]) => {
                 this.inProgressList = data.map(item => ({
                     id: item.id,
                     code: item.id.toString(),
-                    institution: item.institucion,
-                    courseName: item.nombreCurso,
-                    studyType: item.tipoEstudio,
+                    institution: item.institucionNombre,
+                    courseName: item.carreraTecnica,
+                    studyType: item.nivelAcademicoNombre || item.tipoEstudio,
                     startDate: item.fechaInicio,
                     originalItem: item
                 }));
@@ -293,11 +304,11 @@ export class EducationComponent implements OnInit {
                 this.complementaryList = data.map(item => ({
                     id: item.id,
                     code: item.id.toString(),
-                    institution: item.institucion,
+                    institution: item.institucionNombre,
                     courseName: item.nombreCurso,
-                    country: item.pais,
-                    measureUnit: item.unidadMedida,
-                    totalHours: item.horasTotales,
+                    country: item.paisNombre,
+                    measureUnit: item.unidadMedidaNombre,
+                    totalHours: item.cantidadTotal,
                     startDate: item.fechaInicio,
                     endDate: item.fechaFin,
                     originalItem: item
@@ -445,7 +456,7 @@ export class EducationComponent implements OnInit {
         this.technicalFiles = [];
         this.technicalForm.reset({
             academicLevelId: '',
-            countryId: 0,
+            countryId: '',
             institution: '',
             institutionId: '',
             careerName: '',
@@ -542,10 +553,13 @@ export class EducationComponent implements OnInit {
     // --- In Progress Logic ---
     openInProgressModal() {
         this.showInProgressModal = true;
-        this.isEditing = false;
-        this.currentEditId = null;
-        this.inProgressFiles = [];
-        this.inProgressForm.reset();
+        this.inProgressForm.reset({
+            institution: '',
+            institutionId: '',
+            studyType: '',
+            courseName: '',
+            startDate: ''
+        });
     }
 
     editInProgress(item: InProgressEntry) {
@@ -555,9 +569,10 @@ export class EducationComponent implements OnInit {
         const raw = item.originalItem || item;
 
         this.inProgressForm.patchValue({
-            institution: raw.institucion || item.institution,
-            studyType: raw.tipoEstudio || item.studyType,
-            courseName: raw.nombreCurso || item.courseName,
+            institution: raw.institucionNombre || item.institution,
+            institutionId: raw.institucionId || '',
+            studyType: raw.nivelAcademicoId || raw.tipoEstudio || item.studyType,
+            courseName: raw.carreraTecnica || item.courseName,
             startDate: item.startDate
         });
 
@@ -587,10 +602,13 @@ export class EducationComponent implements OnInit {
         const payload = {
             active: true,
             investigadorId: currentUser.id,
-            institucion: val.institution,
-            tipoEstudio: val.studyType,
-            nombreCurso: val.courseName,
-            fechaInicio: val.startDate
+            institucionId: val.institutionId || '',
+            carreraTecnica: val.courseName,
+            nivelAcademicoId: val.studyType,
+            fechaInicio: val.startDate,
+            enCurso: true,
+            paisId: 0,
+            tokens: [] as string[]
         };
 
         this.alertService.confirm('Confirmación', '¿Guardar estudio en curso?').then(confirmed => {
@@ -601,8 +619,8 @@ export class EducationComponent implements OnInit {
                         const finalPayload = { ...payload, tokens };
 
                         const action$ = this.isEditing && this.currentEditId
-                            ? this.educationService.updateInProgress(this.currentEditId, finalPayload)
-                            : this.educationService.createInProgress(finalPayload);
+                            ? this.educationService.updateTechnical(this.currentEditId, finalPayload)
+                            : this.educationService.createTechnical(finalPayload);
 
                         action$.subscribe({
                             next: () => {
@@ -623,7 +641,16 @@ export class EducationComponent implements OnInit {
         this.isEditing = false;
         this.currentEditId = null;
         this.complementaryFiles = [];
-        this.complementaryForm.reset();
+        this.complementaryForm.reset({
+            institution: '',
+            institutionId: '',
+            courseName: '',
+            countryId: '',
+            measureUnitId: '',
+            totalHours: '',
+            startDate: '',
+            endDate: ''
+        });
     }
 
     editComplementary(item: ComplementaryEntry) {
@@ -633,11 +660,12 @@ export class EducationComponent implements OnInit {
         const raw = item.originalItem || item;
 
         this.complementaryForm.patchValue({
-            institution: raw.institucion || item.institution,
+            institution: raw.institucionNombre || item.institution,
+            institutionId: raw.institucionId || '',
             courseName: raw.nombreCurso || item.courseName,
-            country: raw.pais || item.country,
-            measureUnit: raw.unidadMedida || item.measureUnit,
-            totalHours: raw.horasTotales || item.totalHours,
+            countryId: raw.paisId || '',
+            measureUnitId: raw.unidadMedidaId || '',
+            totalHours: raw.cantidadTotal || item.totalHours,
             startDate: item.startDate,
             endDate: item.endDate
         });
@@ -668,11 +696,11 @@ export class EducationComponent implements OnInit {
         const payload = {
             active: true,
             investigadorId: currentUser.id,
-            institucion: val.institution,
+            institucionId: val.institutionId,
             nombreCurso: val.courseName,
-            pais: val.country,
-            unidadMedida: val.measureUnit,
-            horasTotales: val.totalHours,
+            paisId: Number(val.countryId),
+            unidadMedidaId: val.measureUnitId,
+            cantidadTotal: Number(val.totalHours),
             fechaInicio: val.startDate,
             fechaFin: val.endDate
         };
@@ -775,7 +803,7 @@ export class EducationComponent implements OnInit {
         if (!id) return;
         this.alertService.confirm('Eliminar', '¿Está seguro de eliminar este estudio en curso?').then(confirmed => {
             if (confirmed) {
-                this.educationService.deleteInProgress(id).subscribe({
+                this.educationService.deleteTechnical(id).subscribe({
                     next: () => {
                         this.alertService.success('Éxito', 'Estudio eliminado');
                         const user = this.authService.getCurrentUser();
@@ -819,10 +847,16 @@ export class EducationComponent implements OnInit {
         });
     }
     selectInProgressInstitution(item: any) {
-        this.inProgressForm.patchValue({ institution: item.nombre });
+        this.inProgressForm.patchValue({
+            institution: item.nombre,
+            institutionId: item.ruc || item.codigo
+        });
     }
     selectComplementaryInstitution(item: any) {
-        this.complementaryForm.patchValue({ institution: item.nombre });
+        this.complementaryForm.patchValue({
+            institution: item.nombre,
+            institutionId: item.ruc || item.codigo
+        });
     }
 
     // --- Sunedu Import (Mock for now, or use service if available) ---

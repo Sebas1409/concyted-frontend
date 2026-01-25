@@ -27,9 +27,7 @@
                         <label>Lugar de residencia</label>
                         <select formControlName="residence" class="form-select">
                             <option value="">Seleccione...</option>
-                            <option value="Lima">Lima</option>
-                            <option value="Arequipa">Arequipa</option>
-                            <option value="Cusco">Cusco</option>
+                            <option *ngFor="let dep of departments" [value]="dep.id">{{ dep.nombre }}</option>
                         </select>
                         <div class="checkbox-wrapper">
                             <input type="checkbox" formControlName="isForeigner" id="chkForeigner">
@@ -42,9 +40,7 @@
                         <label>Área OCDE</label>
                         <select formControlName="ocdeArea" class="form-select">
                             <option value="">Seleccione...</option>
-                            <option value="Ingeniería">Ingeniería</option>
-                            <option value="Medicina">Medicina</option>
-                            <option value="Sociales">Ciencias Sociales</option>
+                            <option *ngFor="let area of areas" [value]="area.idArea">{{ area.descripcion }}</option>
                         </select>
                     </div>
 
@@ -84,17 +80,7 @@
                 </div>
 
                 <!-- Recaptcha Mock -->
-                <div class="recaptcha-mock">
-                    <div class="recaptcha-box">
-                        <input type="checkbox" class="recaptcha-check" disabled>
-                        <span class="recaptcha-text">No soy un robot</span>
-                        <div class="recaptcha-logo">
-                            <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA">
-                            <span>reCAPTCHA</span>
-                            <small>Privacidad - Términos</small>
-                        </div>
-                    </div>
-                </div>
+
             </form>
         </div>
 

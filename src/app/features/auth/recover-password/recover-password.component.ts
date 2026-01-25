@@ -95,19 +95,22 @@ export class RecoverPasswordComponent implements OnInit, OnDestroy {
     resendCode() {
         const email = this.step1Form.get('email')?.value;
 
-        this.facade.requestReset(email).subscribe({
-            next: (res) => {
-                console.log('✅ Resend response:', res);
-                if (res && (res.status === 'OK' || res.ok === true || res.success === true)) {
-                    this.timer.start(50);
-                } else {
-                    alert(res?.message || 'Error al procesar la solicitud.');
+        this.recaptchaService.execute('resend_code').subscribe(token => {
+            localStorage.setItem('recaptcha_token', token);
+            this.facade.requestReset(email).subscribe({
+                next: (res) => {
+                    console.log('✅ Resend response:', res);
+                    if (res && (res.status === 'OK' || res.ok === true || res.success === true)) {
+                        this.timer.start(50);
+                    } else {
+                        alert(res?.message || 'Error al procesar la solicitud.');
+                    }
+                },
+                error: (err) => {
+                    const errorMessage = err.error?.message || err.message || 'Error al reenviar el código.';
+                    alert(errorMessage);
                 }
-            },
-            error: (err) => {
-                const errorMessage = err.error?.message || err.message || 'Error al reenviar el código.';
-                alert(errorMessage);
-            }
+            });
         });
     }
 
@@ -117,35 +120,28 @@ export class RecoverPasswordComponent implements OnInit, OnDestroy {
             this.step1Error = null;
             const email = this.step1Form.get('email')?.value;
 
-            this.facade.requestReset(email).subscribe({
-                next: (res) => {
-                    this.isLoading = false;
-                    if (res && (res.status === 'OK')) {
-                        // Refresh Recaptcha Token before moving to Step 2
-                        this.recaptchaService.execute('recover_step2').subscribe({
-                            next: (token) => {
-                                console.log('Recaptcha refreshed for Step 2');
-                                localStorage.setItem('recaptcha_token', token);
+            this.recaptchaService.execute('recover_step1').subscribe({
+                next: (token) => {
+                    localStorage.setItem('recaptcha_token', token);
+                    this.facade.requestReset(email).subscribe({
+                        next: (res) => {
+                            this.isLoading = false;
+                            if (res && (res.status === 'OK')) {
                                 this.goToStep(2);
                                 this.timer.start(50);
-                            },
-                            error: (err) => {
-                                console.error('Failed to refresh recaptcha', err);
-                                // Fallback: try to proceed anyway or show error?
-                                // User requested refresh, so best to proceed but warn?
-                                // Or block? Blocking is safer if API requires it.
-                                // Proceeding for now to avoid stuck UI if recaptcha network fails but API OK.
-                                this.goToStep(2);
-                                this.timer.start(50);
+                            } else {
+                                this.step1Error = res?.message || 'Error al procesar la solicitud.';
                             }
-                        });
-                    } else {
-                        this.step1Error = res?.message || 'Error al procesar la solicitud.';
-                    }
+                        },
+                        error: (err) => {
+                            this.isLoading = false;
+                            this.step1Error = err.error?.message || err.message || 'Error de conexión o servidor.';
+                        }
+                    });
                 },
                 error: (err) => {
                     this.isLoading = false;
-                    this.step1Error = err.error?.message || err.message || 'Error de conexión o servidor.';
+                    this.step1Error = 'Error de validación de seguridad. Intente nuevamente.';
                 }
             });
         }
@@ -157,50 +153,43 @@ export class RecoverPasswordComponent implements OnInit, OnDestroy {
             const email = this.step1Form.get('email')?.value;
             const code = this.step2Form.get('code')?.value;
 
-            this.facade.validateCode(email, code).subscribe({
-                next: (res) => {
-                    console.log('✅ Validation response:', res);
-                    // Check if status is OK and if recaptchaStatus inside data is true
-                    const isRecaptchaValid = res.data?.recaptchaStatus === true;
+            this.recaptchaService.execute('recover_step2').subscribe({
+                next: (token) => {
+                    localStorage.setItem('recaptcha_token', token);
+                    this.facade.validateCode(email, code).subscribe({
+                        next: (res) => {
+                            console.log('✅ Validation response:', res);
+                            const isRecaptchaValid = res.data?.recaptchaStatus === true;
 
-                    if (res && (res.status === 'OK' || res.ok === true) && isRecaptchaValid) {
-                        console.log('Code valid and Recaptcha OK, refreshing token for Step 3...');
-
-                        // REFRESH TOKEN for Step 3
-                        this.recaptchaService.execute('recover_step3').subscribe({
-                            next: (token) => {
-                                console.log('Recaptcha refreshed for Step 3');
-                                localStorage.setItem('recaptcha_token', token);
+                            if (res && (res.status === 'OK' || res.ok === true) && isRecaptchaValid) {
                                 this.timer.stop();
                                 this.goToStep(3);
-                            },
-                            error: (err) => {
-                                console.error('Failed to refresh recaptcha for Step 3', err);
-                                // Fallback: Proceed anyway
-                                this.timer.stop();
-                                this.goToStep(3);
+                            } else {
+                                this.step2Error = res?.message || 'El código ingresado es incorrecto o la validación falló.';
+                                this.step2Form.get('code')?.setValue('');
                             }
-                        });
-                    } else {
-                        this.step2Error = res?.message || 'El código ingresado es incorrecto o la validación falló.';
-                        this.step2Form.get('code')?.setValue('');
-                    }
+                        },
+                        error: (err) => {
+                            console.error('❌ Validation error:', err);
+                            if (err.status === 200 && err.error && err.error.text) {
+                                this.timer.stop();
+                                this.goToStep(3);
+                                return;
+                            }
+                            this.step2Error = err.error?.message || err.message || 'El código ingresado es incorrecto o ha expirado.';
+                            this.step2Form.get('code')?.setValue('');
+                        }
+                    });
                 },
                 error: (err) => {
-                    console.error('❌ Validation error:', err);
-                    if (err.status === 200 && err.error && err.error.text) {
-                        this.timer.stop();
-                        this.goToStep(3);
-                        return;
-                    }
-                    this.step2Error = err.error?.message || err.message || 'El código ingresado es incorrecto o ha expirado.';
-                    this.step2Form.get('code')?.setValue('');
+                    this.step2Error = 'Error de validación de seguridad. Intente nuevamente.';
                 }
             });
         }
     }
 
     onSubmit() {
+        this.step3Error = null;
         const password = this.step3Form.get('password')?.value;
         const validRobustness = password && password.length >= 8 && CustomValidators.hasUpperCase(password) && CustomValidators.hasNumber(password);
 
@@ -208,13 +197,26 @@ export class RecoverPasswordComponent implements OnInit, OnDestroy {
             const email = this.step1Form.get('email')?.value;
             const payload = { email, password };
 
-            this.facade.confirmReset(payload).subscribe({
-                next: () => {
-                    this.router.navigate(['/auth/login'], { queryParams: { resetSuccess: true } });
+            this.recaptchaService.execute('recover_step3').subscribe({
+                next: (token) => {
+                    localStorage.setItem('recaptcha_token', token);
+                    this.facade.confirmReset(payload).subscribe({
+                        next: () => {
+                            this.router.navigate(['/auth/login'], { queryParams: { resetSuccess: true } });
+                        },
+                        error: (err) => {
+                            console.error('Password reset failed', err);
+                            let msg = err.error?.message;
+                            if (!msg && typeof err.error === 'string') msg = err.error;
+                            if (!msg) msg = err.message || 'Error al restablecer la contraseña. Intente nuevamente.';
+
+                            this.step3Error = msg;
+                            this.cdr.detectChanges();
+                        }
+                    });
                 },
                 error: (err) => {
-                    console.error('Password reset failed', err);
-                    this.step3Error = err.error?.message || err.message || 'Error al restablecer la contraseña. Intente nuevamente.';
+                    this.step3Error = 'Error de validación de seguridad. Intente nuevamente.';
                 }
             });
         } else {

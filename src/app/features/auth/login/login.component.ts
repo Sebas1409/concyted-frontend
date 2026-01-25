@@ -58,7 +58,7 @@ export class LoginComponent implements OnInit {
                     const { dni, password } = this.loginForm.value;
 
                     const credentials = {
-                        dni: Number(dni),
+                        //dni: Number(dni),
                         num_doc: Number(dni),
                         password: password,
                         recaptcha_token: token

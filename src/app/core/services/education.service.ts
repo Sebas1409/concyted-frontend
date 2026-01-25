@@ -33,8 +33,12 @@ export class EducationService {
     }
 
     // --- Estudios Técnicos ---
-    getTechnicalByInvestigator(investigatorId: number): Observable<any[]> {
-        return this.http.get<any[]>(`${this.technicalUrl}/investigador/${investigatorId}`);
+    getTechnicalByInvestigator(investigatorId: number, enCurso?: boolean): Observable<any[]> {
+        let params: any = {};
+        if (enCurso !== undefined) {
+            params.enCurso = enCurso;
+        }
+        return this.http.get<any[]>(`${this.technicalUrl}/investigador/${investigatorId}`, { params });
     }
 
     createTechnical(payload: any): Observable<any> {
