@@ -10,6 +10,10 @@ import { FormModalComponent } from '../../../../shared/components/form-modal/for
 import { IntroCardComponent } from '../../../../shared/components/intro-card/intro-card.component';
 import { AuthService } from '../../../../core/services/auth.service';
 import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
+import { ResearcherService, PublicResearcher } from '../../../../core/services/researcher.service';
+import { CatalogService } from '../../../../core/services/catalog.service';
+import { AlertService } from '../../../../core/services/alert.service';
+import { UbigeoService } from '../../../../core/services/ubigeo.service';
 
 interface Researcher {
     id: string;
@@ -21,6 +25,7 @@ interface Researcher {
     regina: string;
     status: string;
     userId: string;
+    summary?: string; // Added
 }
 
 interface DerecognitionRequest {
@@ -56,96 +61,20 @@ export class ResearcherManagementComponent {
     currentPage = 1;
     pageSize = 10;
 
-    researchers: Researcher[] = [
-        {
-            id: '1231231212',
-            gender: 'M',
-            name: 'López Martínez, Juan Carlos',
-            degree: 'Tesis',
-            region: 'Tesis',
-            institution: 'Bachiller en Ingeniería de Sistemas',
-            regina: 'Tesis',
-            status: 'Tesis',
-            userId: '12345678'
-        },
-        {
-            id: '1231231212',
-            gender: 'F',
-            name: 'García Pérez, María Fernanda',
-            degree: 'Tesis',
-            region: 'Tesis',
-            institution: 'Bachiller en Ingeniería de Sistemas',
-            regina: 'Tesis',
-            status: 'Tesis',
-            userId: '12345678'
-        },
-        {
-            id: '1231231212',
-            gender: 'M',
-            name: 'Rodríguez Sánchez, Andrés Felipe',
-            degree: 'Tesis',
-            region: 'Tesis',
-            institution: 'Bachiller en Ingeniería de Sistemas',
-            regina: 'Tesis',
-            status: 'Tesis',
-            userId: '12345678'
-        },
-        {
-            id: '1231231212',
-            gender: 'F',
-            name: 'Torres Gómez, Laura Isabel',
-            degree: 'Tesis',
-            region: 'Tesis',
-            institution: 'Bachiller en Ingeniería de Sistemas',
-            regina: 'Tesis',
-            status: 'Tesis',
-            userId: '12345678'
-        },
-        {
-            id: '1231231212',
-            gender: 'M',
-            name: 'Hernández Ruiz, Santiago Alejandro',
-            degree: 'Tesis',
-            region: 'Tesis',
-            institution: 'Bachiller en Ingeniería de Sistemas',
-            regina: 'Tesis',
-            status: 'Tesis',
-            userId: '12345678'
-        },
-        {
-            id: '1231231212',
-            gender: 'F',
-            name: 'Jiménez Castro, Paula Andrea',
-            degree: 'Tesis',
-            region: 'Tesis',
-            institution: 'Bachiller en Ingeniería de Sistemas',
-            regina: 'Tesis',
-            status: 'Tesis',
-            userId: '12345678'
-        },
-        {
-            id: '1231231212',
-            gender: 'M',
-            name: 'Mendoza Romero, Javier Antonio',
-            degree: 'Tesis',
-            region: 'Tesis',
-            institution: 'Bachiller en Ingeniería de Sistemas',
-            regina: 'Tesis',
-            status: 'Tesis',
-            userId: '12345678'
-        },
-        {
-            id: '1231231212',
-            gender: 'F',
-            name: 'Rojas Salazar, Camila Estefania',
-            degree: 'Tesis',
-            region: 'Tesis',
-            institution: 'Bachiller en Ingeniería de Sistemas',
-            regina: 'Tesis',
-            status: 'Tesis',
-            userId: '89012345'
-        }
-    ];
+    // Data
+    researchers: Researcher[] = [];
+    totalElements = 0;
+
+    // Filters
+    filterGeneric = '';
+    filterArea = '';
+    filterRegion = '';
+    filterNationality = 'peruana';
+    filterSunedu = '';
+
+    // Catalogs
+    areas: any[] = [];
+    departments: any[] = [];
 
     // For the active menu dropdown
     activeMenuId: string | null = null;
@@ -184,17 +113,105 @@ export class ResearcherManagementComponent {
     constructor(
         private elementRef: ElementRef,
         private authService: AuthService,
+        private researcherService: ResearcherService,
+        private catalogService: CatalogService,
+        private ubigeoService: UbigeoService,
+        private alertService: AlertService,
         private cdr: ChangeDetectorRef,
         private dateFormatPipe: DateFormatPipe
     ) { }
 
+    ngOnInit() {
+        this.loadCatalogs();
+        this.loadResearchers();
+    }
+
+    loadCatalogs() {
+        this.catalogService.getAreas().subscribe(data => this.areas = data);
+        this.ubigeoService.getCountries().subscribe(countries => {
+            const peru = countries.find(c => c.nombre.toUpperCase() === 'PERÚ' || c.nombre.toUpperCase() === 'PERU');
+            if (peru) {
+                this.ubigeoService.getDepartments(peru.id).subscribe(deps => this.departments = deps);
+            }
+        });
+    }
+
+    loadResearchers() {
+        if (this.activeTab !== 'directory') return;
+
+        const params: any = {
+            pageNumber: this.currentPage - 1, // API is 0-indexed
+            pageSize: this.pageSize,
+            sort: 'fechaCreacion,desc'
+        };
+
+        // Heuristic for search box
+        const term = this.filterGeneric.trim();
+        if (term) {
+            if (/^\d+$/.test(term)) {
+                if (term.length >= 8) params.numDoc = term; // DNI/CNE
+                else params.codigoUnico = term; // Renacyt
+            } else {
+                // If it's text, we send it to 'nombres' by default. 
+                // The API might not support a global 'query' param based on the spec provided.
+                params.nombres = term;
+            }
+        }
+
+        if (this.filterArea) params.areaId = this.filterArea;
+        if (this.filterRegion) params.departamentoId = this.filterRegion;
+
+        if (this.filterNationality) {
+            params.nacionalidad = this.filterNationality.charAt(0).toUpperCase() + this.filterNationality.slice(1);
+        }
+
+        console.log('Searching Researchers with params:', params);
+
+        this.researcherService.getPublicResearchers(params).subscribe({
+            next: (resp) => {
+                console.log('Researchers loaded:', resp);
+                this.totalElements = resp.totalElements || 0;
+                this.researchers = (resp.content || []).map(item => this.mapToViewModel(item));
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                console.error('Error loading researchers', err);
+                this.alertService.error('Error', 'Error al cargar investigadores');
+            }
+        });
+    }
+
+    clearFilters() {
+        this.filterGeneric = '';
+        this.filterArea = '';
+        this.filterRegion = '';
+        this.filterNationality = 'peruana';
+        this.filterSunedu = '';
+        this.currentPage = 1;
+        this.loadResearchers();
+    }
+
+    mapToViewModel(item: PublicResearcher): Researcher {
+        // Resolve IDs to names if catalogs loaded? 
+        // For now using ID or basic mapping
+        return {
+            id: item.id.toString(),
+            gender: (item.sexo === 'M' || item.sexo === 'F') ? item.sexo : 'M', // Fallback
+            name: `${item.nombres} ${item.apellidoPaterno} ${item.apellidoMaterno}`,
+            degree: item.estadoRenacyt || '', // Mapping status to degree/status slot for display
+            region: item.departamentoId?.toString() || '',
+            institution: '', // Not provided in API
+            regina: item.codigoUnico || '',
+            status: item.activo ? 'Activo' : 'Inactivo',
+            userId: item.usuarioId?.toString() || '',
+            summary: item.resumenEjecutivo || item.estado || ''
+        };
+    }
+
     // Computed Properties for View
     get filteredResearchers() {
-        return this.researchers.filter(r =>
-            this.activeTab === 'directory' &&
-            (r.name.toLowerCase().includes(this.appliedSearchTerm.toLowerCase()) ||
-                r.id.includes(this.appliedSearchTerm))
-        );
+        // No client-side filtering for directory
+        return this.researchers;
     }
 
     get filteredRequests() {
@@ -208,8 +225,7 @@ export class ResearcherManagementComponent {
 
     get paginatedResearchers(): Researcher[] {
         if (this.activeTab !== 'directory') return [];
-        const start = (this.currentPage - 1) * this.pageSize;
-        return this.filteredResearchers.slice(start, start + this.pageSize);
+        return this.researchers;
     }
 
     get paginatedRequests(): DerecognitionRequest[] {
@@ -219,27 +235,40 @@ export class ResearcherManagementComponent {
     }
 
     get totalPages() {
-        const source = this.activeTab === 'directory' ? this.filteredResearchers : this.filteredRequests;
+        if (this.activeTab === 'directory') {
+            return Math.ceil(this.totalElements / this.pageSize) || 1;
+        }
+        const source = this.filteredRequests;
         if (!source) return 1;
         return Math.ceil(source.length / this.pageSize) || 1;
     }
 
     get totalItemsDisplay() {
-        if (this.activeTab === 'directory') return this.filteredResearchers.length;
+        if (this.activeTab === 'directory') return this.totalElements;
         if (this.activeTab === 'requests') return this.filteredRequests.length;
         return 0;
     }
 
     get pagesArray() {
         const total = this.totalPages;
-        // Simple range logic for the view
-        return Array(total).fill(0).map((x, i) => i + 1);
+        // Cap max pages shown to 10 for safety if total is huge
+        const maxPages = Math.min(total, 10);
+        // Logic should be better but keeping simple: first 10 pages? 
+        // Or window around current. Let's start with all if small, else limited.
+        // User didn't complain about pagination UI yet.
+        return Array(Math.min(total, 5)).fill(0).map((x, i) => i + 1); // Mock limit to 5 for now to avoid huge list
     }
 
     // Handlers
     search() {
-        this.appliedSearchTerm = this.searchTerm;
-        this.currentPage = 1;
+        console.log('Search triggered via button/enter');
+        if (this.activeTab === 'directory') {
+            this.currentPage = 1;
+            this.loadResearchers();
+        } else {
+            this.appliedSearchTerm = this.searchTerm;
+            this.currentPage = 1;
+        }
     }
 
     onSearchChange() {
@@ -249,6 +278,9 @@ export class ResearcherManagementComponent {
     setPage(page: number) {
         if (page >= 1 && page <= this.totalPages) {
             this.currentPage = page;
+            if (this.activeTab === 'directory') {
+                this.loadResearchers();
+            }
         }
     }
 

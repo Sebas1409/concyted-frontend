@@ -85,8 +85,9 @@
         </div>
 
         <!-- Results Section -->
+        <!-- Results Section -->
         <div class="results-section">
-            <h3 class="results-count">{{ totalResults }} Resultados encontrados</h3>
+            <h3 class="results-count">{{ totalElements }} Resultados encontrados</h3>
 
             <div class="results-table-card">
                 <div class="table-responsive">
@@ -100,32 +101,63 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let item of results; let i = index">
-                                <td class="text-center">{{ (i + 1).toString().padStart(2, '0') }}</td>
+                            <tr *ngFor="let item of researchers; let i = index">
+                                <td class="text-center">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
                                 <td class="text-center">
-                                    <div class="sex-icon male">♂</div>
+                                    <div *ngIf="item.gender === 'M'" class="sex-icon male"
+                                        style="color: #0EA5E9; background: #E0F2FE; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; margin: 0 auto;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="5" r="3"></circle>
+                                            <path d="M12 8v13M9 13l3 3 3-3"></path>
+                                        </svg>
+                                    </div>
+                                    <div *ngIf="item.gender === 'F'" class="sex-icon female"
+                                        style="color: #EC4899; background: #FCE7F3; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; margin: 0 auto;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="5" r="3"></circle>
+                                            <path d="M12 8v9M9 17l3 3 3-3"></path>
+                                            <path d="M9 13h6"></path>
+                                        </svg>
+                                    </div>
                                 </td>
                                 <td>
                                     <div class="researcher-info">
-                                        <a [routerLink]="['/search/researcher', item.id]" class="name-link">👤 {{
-                                            item.name }}</a>
-                                        <div class="info-row">
+                                        <a [routerLink]="['/search/researcher', item.id]" class="name-link"
+                                            style="color: #005470; font-weight: 600; text-decoration: none;">
+                                            👤 {{ item.name }}
+                                        </a>
+                                        <div class="info-row" *ngIf="item.institution">
                                             <span class="icon">🏛️</span> {{ item.institution }}
                                         </div>
-                                        <div class="info-row">
-                                            <span class="icon">📍</span> {{ item.location }}
+                                        <div class="info-row" *ngIf="item.region">
+                                            <span class="icon">📍</span> {{ item.region }}
                                         </div>
                                     </div>
                                 </td>
                                 <td>
-                                    <p class="summary-text">{{ item.summary }}</p>
+                                    <p class="summary-text"
+                                        style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 0; font-size: 13px; color: #475569;">
+                                        {{ item.summary }}
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr *ngIf="researchers.length === 0 && !isLoading">
+                                <td colspan="4" style="text-align: center; padding: 32px; color: #64748B;">
+                                    No se encontraron registros que coincidan con su búsqueda.
+                                </td>
+                            </tr>
+                            <tr *ngIf="isLoading">
+                                <td colspan="4" style="text-align: center; padding: 32px; color: #005470;">
+                                    Cargando...
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <div class="pagination">
+                <div class="pagination" *ngIf="totalElements > 0">
                     <div class="pagination-controls">
                         <span class="label">Mostrar</span>
                         <select class="page-size" (change)="onPageSizeChange($event)">

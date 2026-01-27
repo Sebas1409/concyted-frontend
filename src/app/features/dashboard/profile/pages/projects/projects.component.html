@@ -14,13 +14,14 @@
     <!-- Tabs -->
     <div class="tabs-container">
         <button class="tab-item" [class.active]="activeTab === 'all'" (click)="setActiveTab('all')">
-            Todos los proyectos I+D+i <span class="badge">02</span>
+            Todos los proyectos I+D+i <span class="badge">{{ (manualProjects.length + orcidProjects.length) |
+                number:'2.0' }}</span>
         </button>
         <button class="tab-item" [class.active]="activeTab === 'manual'" (click)="setActiveTab('manual')">
-            Proyectos <span class="badge">00</span>
+            Proyectos <span class="badge">{{ manualProjects.length | number:'2.0' }}</span>
         </button>
         <button class="tab-item" [class.active]="activeTab === 'orcid'" (click)="setActiveTab('orcid')">
-            Proyectos importados de ORCID <span class="badge">02</span>
+            Proyectos importados de ORCID <span class="badge">{{ orcidProjects.length | number:'2.0' }}</span>
         </button>
     </div>
 
@@ -65,31 +66,31 @@
                             <th class="w-15">Título</th>
                             <th class="w-20">Descripción</th>
                             <th class="w-10">Institución</th>
-                            <th class="w-10">Fecha inicio</th>
-                            <th class="w-10">Fecha fin</th>
-                            <th class="w-10">Adjuntos</th>
+                            <th class="w-10">Fecha Inicio</th>
+                            <th class="w-10">Fecha Fin</th>
+                            <!-- <th class="w-10">Adjuntos</th> -->
                             <th class="w-5 text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr *ngFor="let project of manualProjects">
                             <td>{{ project.code }}</td>
-                            <td>{{ project.institution }}</td>
-                            <!-- Mapping institution here based on screenshot content column position -->
-                            <td class="font-bold">{{ project.title }}</td>
+                            <td>{{ project.projectType }}</td>
+                            <td>{{ project.title }}</td>
                             <td>{{ project.description }}</td>
-                            <td>{{ project.startDate }}</td> <!-- Likely typo in mockup, mapping date here -->
-                            <td>{{ project.startDate }}</td>
-                            <td>{{ project.endDate }}</td>
-                            <td>
+                            <td>{{ project.institution }}</td>
+                            <td>{{ project.startDate | date:'dd/MM/yyyy' }}</td>
+                            <td>{{ project.endDate | date:'dd/MM/yyyy' }}</td>
+                            <!-- <td>
                                 <span class="link-action">Ver archivos</span>
-                            </td>
+                            </td> -->
                             <td class="actions">
-                                <app-action-buttons></app-action-buttons>
+                                <app-action-buttons (edit)="editProject(project.id)"
+                                    (delete)="deleteProject(project.id)"></app-action-buttons>
                             </td>
                         </tr>
                         <tr *ngIf="manualProjects.length === 0">
-                            <td colspan="9" class="text-center p-4 text-gray-500">No hay proyectos manuales registrados.
+                            <td colspan="8" class="text-center p-4 text-gray-500">No hay proyectos manuales registrados.
                             </td>
                         </tr>
                     </tbody>
@@ -124,7 +125,7 @@
                         <tr *ngFor="let project of orcidProjects">
                             <td>{{ project.code }}</td>
                             <td>{{ project.fundingType }}</td>
-                            <td class="font-bold">{{ project.title }}</td>
+                            <td>{{ project.title }}</td>
                             <td>{{ project.description }}</td>
                             <td>{{ project.institution }}</td>
                             <td>{{ project.startDate }}</td>
@@ -139,7 +140,8 @@
                                 </div>
                             </td>
                             <td class="actions">
-                                <app-action-buttons></app-action-buttons>
+                                <app-action-buttons (edit)="editProject(project.id)"
+                                    (delete)="deleteProject(project.id)"></app-action-buttons>
                             </td>
                         </tr>
                         <tr *ngIf="orcidProjects.length === 0">
@@ -190,19 +192,14 @@
                         <label>Tipo de Proyecto <span>*</span></label>
                         <select formControlName="projectType" class="form-select">
                             <option value="" disabled selected>Seleccionar tipo...</option>
-                            <option value="Basica">Investigación Básica</option>
-                            <option value="Aplicada">Investigación Aplicada</option>
-                            <option value="Desarrollo">Desarrollo Tecnológico</option>
+                            <option *ngFor="let type of projectTypes" [value]="type.id">{{ type.nombre }}</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Región de Ejecución <span>*</span></label>
                         <select formControlName="executionRegion" class="form-select">
                             <option value="" disabled selected>Seleccionar región...</option>
-                            <option value="Lima">Lima</option>
-                            <option value="Piura">Piura</option>
-                            <option value="Arequipa">Arequipa</option>
-                            <!-- Add other regions -->
+                            <option *ngFor="let dept of departments" [value]="dept.id">{{ dept.nombre }}</option>
                         </select>
                     </div>
                 </div>
@@ -211,11 +208,11 @@
                 <div class="form-row two-col">
                     <div class="form-group">
                         <label>Fecha de Inicio <span>*</span></label>
-                        <input type="text" formControlName="startDate" class="form-input" placeholder="DD/MM/AAAA">
+                        <input type="date" formControlName="startDate" class="form-input">
                     </div>
                     <div class="form-group">
                         <label>Fecha de fin <span>*</span></label>
-                        <input type="text" formControlName="endDate" class="form-input" placeholder="DD/MM/AAAA">
+                        <input type="date" formControlName="endDate" class="form-input">
                     </div>
                 </div>
 
@@ -225,19 +222,15 @@
                         <label>Vinculación Académica / Empresarial <span>*</span></label>
                         <select formControlName="academicContext" class="form-select">
                             <option value="" disabled selected>Seleccionar contexto...</option>
-                            <option value="Uni">Universidad</option>
-                            <option value="Empresa">Empresa</option>
-                            <option value="Instituto">Instituto de Investigación</option>
+                            <option *ngFor="let context of academicContexts" [value]="context.id">{{ context.nombre }}
+                            </option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Rol Desempeñado <span>*</span></label>
                         <select formControlName="role" class="form-select">
                             <option value="" disabled selected>Seleccionar rol...</option>
-                            <option value="IP">Investigador Principal</option>
-                            <option value="CoI">Co-Investigador</option>
-                            <option value="Tecnico">Técnico</option>
-                            <option value="Tesista">Tesista</option>
+                            <option *ngFor="let role of projectRoles" [value]="role.id">{{ role.nombre }}</option>
                         </select>
                     </div>
                 </div>

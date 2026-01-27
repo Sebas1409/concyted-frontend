@@ -11,7 +11,7 @@ import { AlertService } from '../../../../core/services/alert.service';
     standalone: true,
     imports: [CommonModule, FormsModule, FormModalComponent],
     template: `
-    <app-form-modal [title]="userData ? 'Edición Usuario' : 'Registrar Nuevo Usuario'" (close)="close.emit()" (save)="save()">
+    <app-form-modal [title]="'Registrar Nuevo Usuario'" (close)="close.emit()" (save)="save()">
         <p class="description">Ingresa las credenciales de acceso y los datos personales para dar de alta a un nuevo administrador en el sistema.</p>
         
         <div class="form-grid">
@@ -24,7 +24,7 @@ import { AlertService } from '../../../../core/services/alert.service';
                  <label>Área *</label>
                  <select [(ngModel)]="data.area">
                     <option value="">Selecciona el área...</option>
-                    <option *ngFor="let area of areas" [value]="area.id">{{ area.nombre || area.descripcion || area.name || area.label || ' - ' }}</option>
+                    <option *ngFor="let area of areas" [value]="area.id || area.idArea">{{ area.nombre || area.descripcion || area.name || area.label || ' - ' }}</option>
                  </select>
             </div>
 
@@ -204,6 +204,17 @@ export class UserRegistryModalComponent implements OnInit {
         this.catalogService.getAreas().subscribe(res => {
             console.log('Areas Data:', res);
             this.areas = res;
+            // Ensure selection logic runs after areas are loaded matching the type
+            if (this.userData && this.userData.areaId) {
+                // Find the matching area to get the ID property correctly if needed, or just force string/number match
+                // Assuming area.id or area.idArea.
+                const matchingArea = this.areas.find(a => (a.id || a.idArea) == this.userData?.areaId);
+                if (matchingArea) {
+                    this.data.area = (matchingArea.id || matchingArea.idArea).toString();
+                } else {
+                    this.data.area = this.userData.areaId.toString();
+                }
+            }
         });
 
         if (this.userData) {
@@ -213,8 +224,10 @@ export class UserRegistryModalComponent implements OnInit {
             this.data.surname2 = this.userData.apellidoMaterno;
             this.data.email = this.userData.email || '';
             this.data.active = this.userData.enabled;
-            this.data.area = this.userData.areaId ? this.userData.areaId.toString() : '';
-            // Password fields remain empty unless changed
+            // this.data.area is now handled in subscription for safety, but set here as fallback
+            if (!this.data.area) {
+                this.data.area = this.userData.areaId ? this.userData.areaId.toString() : '';
+            }
         }
     }
 
@@ -245,7 +258,7 @@ export class UserRegistryModalComponent implements OnInit {
             tipoDoc: 'DNI',
             numDoc: this.data.username,
             telefono: '',
-            roles: ['ADMIN'],
+            roles: [],
             password: this.data.password,
             accountNonExpired: true,
             accountNonLocked: true,

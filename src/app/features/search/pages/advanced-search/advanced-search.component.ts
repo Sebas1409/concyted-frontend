@@ -7,6 +7,7 @@ import { FooterComponent } from '../../../landing/components/footer/footer.compo
 import { UbigeoService } from '../../../../core/services/ubigeo.service';
 import { CatalogService } from '../../../../core/services/catalog.service';
 import { RecaptchaService } from '../../../../core/services/recaptcha.service';
+import { ResearcherService, PublicResearcher } from '../../../../core/services/researcher.service';
 
 @Component({
     selector: 'app-advanced-search',
@@ -21,28 +22,24 @@ export class AdvancedSearchComponent implements OnInit {
     // Pagination
     currentPage = 1;
     pageSize = 10;
-    totalResults = 0;
-    Math = Math; // For use in template
+    totalElements = 0;
+    Math = Math;
 
     // Catalogs
     departments: any[] = [];
     areas: any[] = [];
 
-    // Mock Results (Expanded)
-    allResults = Array.from({ length: 45 }, (_, i) => ({
-        id: i + 1,
-        name: `INVESTIGADOR ${i + 1} (PERÚ)`,
-        institution: i % 2 === 0 ? 'Univ.Nac.De Educ. Enrique Guzman Y Valle' : 'Universidad Nacional Mayor de San Marcos',
-        location: i % 3 === 0 ? 'PERÚ - LIMA' : 'PERÚ - AREQUIPA',
-        summary: 'Docente universitario con amplia experiencia en investigación científica...',
-        sex: i % 2 === 0 ? 'male' : 'female'
-    }));
+    // Results
+    researchers: any[] = [];
+    hasSearched = false; // To track if a search has been performed
+    isLoading = false;
 
     constructor(
         private fb: FormBuilder,
         private ubigeoService: UbigeoService,
         private catalogService: CatalogService,
-        private recaptchaService: RecaptchaService
+        private recaptchaService: RecaptchaService,
+        private researcherService: ResearcherService
     ) {
         this.filterForm = this.fb.group({
             searchText: [''],
@@ -52,8 +49,6 @@ export class AdvancedSearchComponent implements OnInit {
             nationality: ['Peruana'],
             isForeigner: [false]
         });
-
-        this.totalResults = this.allResults.length;
     }
 
     ngOnInit(): void {
@@ -62,6 +57,9 @@ export class AdvancedSearchComponent implements OnInit {
         this.recaptchaService.execute('search_view').subscribe(token => {
             console.log('Search View Recaptcha Token initialized');
         });
+
+        // Initial load
+        this.loadResearchers();
     }
 
     loadCatalogData() {
@@ -86,32 +84,100 @@ export class AdvancedSearchComponent implements OnInit {
         });
     }
 
-    get results() {
-        const start = (this.currentPage - 1) * this.pageSize;
-        return this.allResults.slice(start, start + this.pageSize);
+    loadResearchers() {
+        this.isLoading = true;
+        const form = this.filterForm.value;
+
+        const params: any = {
+            pageNumber: this.currentPage - 1,
+            pageSize: this.pageSize,
+            sort: 'fechaCreacion,desc'
+        };
+
+        const term = (form.searchText || '').trim();
+        if (term) {
+            if (/^\d+$/.test(term)) {
+                if (term.length >= 8) params.numDoc = term;
+                else params.codigoUnico = term;
+            } else {
+                // Using 'nombres' for generic text search as per available fields.
+                // Ideal: split into nombres/apellidos if possible, but single field search is ambiguous.
+                params.nombres = term;
+            }
+        }
+
+        // Map filters
+        if (!form.isForeigner && form.residence) {
+            params.departamentoId = form.residence;
+        }
+
+        if (form.ocdeArea) {
+            params.areaId = form.ocdeArea;
+        }
+
+        if (form.nationality) {
+            // Mapping 'Peruana'/'Extranjera' to 'nacionalidad' param
+            // Capitalizing as a safe default based on typical enum values
+            params.nacionalidad = form.nationality.charAt(0).toUpperCase() + form.nationality.slice(1);
+        }
+
+        // Note: 'suneduGrade' (Doctor/Maestro) is NOT supported by the API based on provided spec.
+        // It is omitted from params.
+
+        console.log('Searching (Public) with params:', params);
+
+        this.researcherService.getPublicResearchers(params).subscribe({
+            next: (resp) => {
+                this.totalElements = resp.totalElements || 0;
+                this.researchers = (resp.content || []).map(item => this.mapToViewModel(item));
+                this.hasSearched = true;
+                this.isLoading = false;
+            },
+            error: (err) => {
+                console.error('Error loading researchers', err);
+                this.isLoading = false;
+                this.researchers = [];
+            }
+        });
+    }
+
+    mapToViewModel(item: PublicResearcher): any {
+        return {
+            id: item.id,
+            name: `${item.nombres} ${item.apellidoPaterno} ${item.apellidoMaterno}`,
+            institution: '', // Not in API, placeholder
+            region: item.departamentoId ? 'PERÚ' : '', // Placeholder location logic
+            // regionId: item.departamentoId, // Store id if needed
+            summary: item.resumenEjecutivo || 'Sin resumen profesional.',
+            gender: item.sexo,
+            // Additional fields for display
+            degree: item.estadoRenacyt
+        };
     }
 
     get totalPages() {
-        return Math.ceil(this.totalResults / this.pageSize);
+        return Math.ceil(this.totalElements / this.pageSize) || 1;
     }
 
     get pagesArray() {
-        return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+        const total = this.totalPages;
+        const maxPages = Math.min(total, 5);
+        // Simple pagination for now
+        return Array.from({ length: maxPages }, (_, i) => i + 1);
     }
 
     search() {
-        console.log('Searching with filters:', this.filterForm.value);
-        // Refresh token on search action
+        this.currentPage = 1;
         this.recaptchaService.execute('search_action').subscribe(token => {
             console.log('Search Action Token:', token);
-            // Ensure pagination reset
-            this.currentPage = 1;
+            this.loadResearchers();
         });
     }
 
     changePage(page: number) {
         if (page >= 1 && page <= this.totalPages) {
             this.currentPage = page;
+            this.loadResearchers();
             window.scrollTo(0, 0);
         }
     }
@@ -119,6 +185,7 @@ export class AdvancedSearchComponent implements OnInit {
     onPageSizeChange(event: any) {
         this.pageSize = +event.target.value;
         this.currentPage = 1;
+        this.loadResearchers();
     }
 
     clearFilters() {
@@ -130,5 +197,7 @@ export class AdvancedSearchComponent implements OnInit {
             searchText: '',
             isForeigner: false
         });
+        this.currentPage = 1;
+        this.loadResearchers();
     }
 }

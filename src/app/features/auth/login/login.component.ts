@@ -59,7 +59,7 @@ export class LoginComponent implements OnInit {
 
                     const credentials = {
                         //dni: Number(dni),
-                        num_doc: Number(dni),
+                        username: dni,
                         password: password,
                         recaptcha_token: token
                     };

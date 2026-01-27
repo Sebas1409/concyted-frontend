@@ -19,9 +19,9 @@ export interface Distinction {
     paisId: number;
     fechaReconocimiento: string; // YYYY-MM-DD
     enlaceReferencia: string;
-    archivos: DistinctionFile[];
-    tokens?: string[];
+    tokens: string[];
 }
+
 
 @Injectable({
     providedIn: 'root'

@@ -1,7 +1,10 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FormModalComponent } from '../../../../shared/components/form-modal/form-modal.component';
+import { UserService, UserProfileApi, UserRequestDTO } from '../../../../core/services/user.service';
+import { AlertService } from '../../../../core/services/alert.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
     selector: 'app-role-assignment-modal',
@@ -25,9 +28,7 @@ import { FormModalComponent } from '../../../../shared/components/form-modal/for
                  <label>Rol de Acceso *</label>
                  <select [(ngModel)]="data.role">
                     <option value="">Selecciona el nivel de permiso...</option>
-                    <option value="admin">Mesa de Ayuda</option>
-                    <option value="editor">Editor</option>
-                    <option value="viewer">Consulta</option>
+                    <option *ngFor="let r of availableRoles" [value]="r.nombre">{{ r.nombre }}</option>
                  </select>
             </div>
 
@@ -54,15 +55,15 @@ import { FormModalComponent } from '../../../../shared/components/form-modal/for
                             <th>Acción</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr *ngFor="let item of assignedUsers">
-                            <td>{{ item.name }}</td>
-                            <td>{{ item.doc }}</td>
-                            <td>{{ item.system }}</td>
-                            <td>{{ item.role }}</td>
+                     <tbody>
+                        <tr *ngFor="let item of paginatedAssignedUsers">
+                            <td>{{ item.user.nombres }} {{ item.user.apellidoPaterno }}</td>
+                            <td>{{ item.user.numDoc }}</td>
+                            <td>{{ item.systemLabel }}</td>
+                            <td>{{ item.roleLabel }}</td>
                             <td class="action-cell">
                                 <button class="btn-icon delete" (click)="removeUser(item)">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 0 0 1 2-2h4a2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
                                 </button>
                             </td>
                         </tr>
@@ -73,21 +74,20 @@ import { FormModalComponent } from '../../../../shared/components/form-modal/for
                 </table>
              </div>
              
-             <div class="pagination-lite full-width">
+             <div class="pagination-lite full-width" *ngIf="assignedUsers.length > 0">
                 <div class="limit-selector">
                     <span>Mostrar</span>
-                    <select>
-                        <option>10</option>
-                        <option>20</option>
-                        <option>50</option>
+                    <select [(ngModel)]="pageSize" (change)="setPage(1)">
+                        <option [ngValue]="10">10</option>
+                        <option [ngValue]="20">20</option>
+                        <option [ngValue]="50">50</option>
                     </select>
                     <span>elementos</span>
                 </div>
                 <div class="pages">
-                    <button class="active">1</button>
-                    <button>2</button>
-                    <span class="dots">...</span>
-                    <button>5</button>
+                    <button (click)="setPage(currentPage - 1)" [disabled]="currentPage === 1" style="width: auto; padding: 0 8px;">Anterior</button>
+                    <button *ngFor="let p of pagesArray" [class.active]="p === currentPage" (click)="setPage(p)">{{ p }}</button>
+                    <button (click)="setPage(currentPage + 1)" [disabled]="currentPage === totalPages" style="width: auto; padding: 0 8px;">Siguiente</button>
                 </div>
              </div>
         </div>
@@ -183,29 +183,173 @@ import { FormModalComponent } from '../../../../shared/components/form-modal/for
     }
   `]
 })
-export class RoleAssignmentModalComponent {
+export class RoleAssignmentModalComponent implements OnInit {
     @Output() close = new EventEmitter<void>();
+
+    private userService = inject(UserService);
+    private authService = inject(AuthService); // Inject AuthService
+    private alertService = inject(AlertService);
 
     data = { system: '', role: '' };
     searchUser = '';
 
-    assignedUsers = [
-        { id: 1, name: 'Juan Maximo', doc: '10293847', system: 'Admin DINA', role: 'Mesa de Ayuda' },
-        { id: 2, name: 'Maria Gomez', doc: '48291029', system: 'Admin DINA', role: 'Consulta' },
-        { id: 3, name: 'Pedro Ruiz', doc: '12345678', system: 'CTI Vitae', role: 'Editor' }
-    ];
+    availableRoles: any[] = []; // Roles Store
+
+    // Cache for search
+    allUsers: UserProfileApi[] = [];
+
+    // Pending assignments
+    assignedUsers: { user: UserProfileApi, system: string, role: string, roleLabel: string, systemLabel: string }[] = [];
+
+    // Pagination
+    currentPage = 1;
+    pageSize = 10;
+
+    get paginatedAssignedUsers() {
+        const start = (this.currentPage - 1) * this.pageSize;
+        return this.assignedUsers.slice(start, start + this.pageSize);
+    }
+
+    get totalPages() {
+        return Math.ceil(this.assignedUsers.length / this.pageSize) || 1;
+    }
+
+    get pagesArray() {
+        return Array(this.totalPages).fill(0).map((x, i) => i + 1);
+    }
+
+    setPage(page: number) {
+        if (page >= 1 && page <= this.totalPages) {
+            this.currentPage = page;
+        }
+    }
+
+    ngOnInit() {
+        this.loadUsers();
+        this.loadRoles();
+    }
+
+    loadRoles() {
+        this.authService.getRoles().subscribe({
+            next: (data) => this.availableRoles = data,
+            error: (err) => console.error('Error loading roles', err)
+        });
+    }
+
+    loadUsers() {
+        this.userService.getUsers().subscribe({
+            next: (users) => {
+                this.allUsers = users;
+            },
+            error: (err) => console.error('Error loading users for search', err)
+        });
+    }
 
     addUser() {
-        console.log('Adding user:', this.searchUser);
-        // Mock logic
+        if (!this.data.system || !this.data.role) {
+            this.alertService.warning('Campos incompletos', 'Seleccione el sistema y el rol antes de agregar.');
+            return;
+        }
+
+        if (!this.searchUser.trim()) {
+            this.alertService.warning('Campo vacío', 'Ingrese el nombre, DNI o correo del usuario.');
+            return;
+        }
+
+        const term = this.searchUser.toLowerCase().trim();
+        const foundUser = this.allUsers.find(u =>
+            (u.username && u.username.toLowerCase().includes(term)) ||
+            (u.numDoc && u.numDoc.includes(term)) ||
+            (u.email && u.email.toLowerCase().includes(term)) ||
+            (`${u.nombres} ${u.apellidoPaterno} ${u.apellidoMaterno}`.toLowerCase().includes(term))
+        );
+
+        if (!foundUser) {
+            this.alertService.error('No encontrado', 'No se encontró ningún usuario con esos datos.');
+            return;
+        }
+
+        // Check for duplicates in the pending list
+        if (this.assignedUsers.some(item => item.user.id === foundUser.id)) {
+            this.alertService.warning('Duplicado', 'El usuario ya ha sido agregado a la lista.');
+            return;
+        }
+
+        // Add to list
+        const sysLabel = this.data.system === 'admin' ? 'Admin DINA' : 'CTI Vitae';
+        const roleLabel = this.getRoleLabel(this.data.role);
+
+        this.assignedUsers.push({
+            user: foundUser,
+            system: this.data.system,
+            role: this.data.role,
+            systemLabel: sysLabel,
+            roleLabel: roleLabel
+        });
+
+        this.searchUser = ''; // Clear search
+    }
+
+    getRoleLabel(roleVal: string): string {
+        const found = this.availableRoles.find(r => r.nombre === roleVal || r.codigo === roleVal);
+        return found ? found.nombre : roleVal;
     }
 
     removeUser(item: any) {
-        this.assignedUsers = this.assignedUsers.filter(u => u.id !== item.id);
+        this.assignedUsers = this.assignedUsers.filter(u => u.user.id !== item.user.id);
     }
 
     save() {
-        console.log('Saving assignments');
-        this.close.emit();
+        if (this.assignedUsers.length === 0) {
+            this.alertService.warning('Lista vacía', 'Agregue al menos un usuario para asignar roles.');
+            return;
+        }
+
+        const requests = this.assignedUsers.map(item => {
+            const currentRoles = item.user.roles || [];
+            // Add new role if not present (simple casing check? assuming uppercase backend)
+            // Mapping UI role 'admin' -> 'ADMIN', etc.
+            const newRole = item.role.toUpperCase();
+            const updatedRoles = Array.from(new Set([...currentRoles, newRole]));
+
+            const dto: UserRequestDTO = {
+                nombres: item.user.nombres,
+                apellidoPaterno: item.user.apellidoPaterno,
+                apellidoMaterno: item.user.apellidoMaterno,
+                tipoDoc: item.user.tipodoc || 'DNI',
+                numDoc: item.user.numDoc,
+                email: item.user.email || '',
+                telefono: item.user.telefono || '',
+                username: item.user.username,
+                roles: updatedRoles,
+                enabled: item.user.enabled,
+                active: item.user.active ?? true,
+                accountNonExpired: true,
+                accountNonLocked: true,
+                credentialsNonExpired: true,
+                areaId: item.user.areaId
+            };
+
+            return this.userService.updateUser(item.user.id, dto);
+        });
+
+        this.alertService.loading('Asignando roles...');
+
+        // Use forkJoin to execute all updates
+        // We need to import forkJoin
+        import('rxjs').then(({ forkJoin }) => {
+            forkJoin(requests).subscribe({
+                next: () => {
+                    this.alertService.close();
+                    this.alertService.success('Éxito', 'Roles asignados correctamente.');
+                    this.close.emit();
+                },
+                error: (err) => {
+                    console.error(err);
+                    this.alertService.close();
+                    this.alertService.error('Error', 'Ocurrió un error al asignar roles.');
+                }
+            });
+        });
     }
 }

@@ -345,20 +345,20 @@ export class DistinctionsComponent implements OnInit {
                 // Combine all tokens
                 const allTokens = [...existingTokens, ...newTokens].filter(t => !!t);
 
-                const distinctionData: Distinction = {
+                const distinctionData: any = {
                     id: this.currentDistinctionId ? this.currentDistinctionId : 0,
                     nombre: formValues.name,
                     descripcion: formValues.description,
                     nombreInstitucion: formValues.institution,
-                    // pais: formValues.country, // Removed as it is not in Interface
                     fechaReconocimiento: formValues.date,
                     enlaceReferencia: formValues.url,
                     rucInstitucion: rucVal,
                     investigadorId: this.userId || 0,
                     paisId: paisId,
-                    archivos: [],
                     tokens: allTokens
                 };
+
+                console.log('Distinction Payload:', distinctionData);
 
                 if (this.currentDistinctionId) {
                     return this.distinctionService.updateDistinction(this.currentDistinctionId, distinctionData);

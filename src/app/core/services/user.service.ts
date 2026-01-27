@@ -20,7 +20,8 @@ export interface UserProfileApi {
     createdAt?: string;
     credentialsNonExpired?: boolean;
     updatedAt?: string;
-    areaId?: number; // Added
+    areaId?: number;
+    roles?: string[];
 }
 
 export interface UserRequestDTO {
@@ -39,7 +40,7 @@ export interface UserRequestDTO {
     accountNonExpired: boolean;
     accountNonLocked: boolean;
     credentialsNonExpired: boolean;
-    areaId?: number; // Added
+    areaId?: number;
 }
 
 @Injectable({

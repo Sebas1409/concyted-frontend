@@ -231,4 +231,8 @@ export class AuthService {
             })
         );
     }
+
+    getRoles(): Observable<any[]> {
+        return this.http.get<any[]>(`${environment.apiUrl}/roles`);
+    }
 }
