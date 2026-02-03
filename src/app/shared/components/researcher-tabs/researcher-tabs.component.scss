@@ -149,6 +149,17 @@
             font-weight: 600;
         }
     }
+
+    .no-data-msg {
+        padding: 2.5rem;
+        text-align: center;
+        color: #888;
+        background: white;
+        font-size: 0.95rem;
+        border: 1px solid #ddd;
+        border-top: none;
+        border-radius: 0 0 6px 6px;
+    }
 }
 
 .fade-in {

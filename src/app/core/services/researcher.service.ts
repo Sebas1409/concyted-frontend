@@ -43,6 +43,7 @@ export interface PublicResearcher {
     validado: boolean;
     validadoPor: number;
     webPersonal: string;
+    docToken?: string | null;
 }
 
 export interface ResearcherResponse {
@@ -85,12 +86,12 @@ export class ResearcherService {
             }
         });
 
-        // Hardcode URL based on user request if environment is tricky, but let's try to be dynamic.
-        // User request: GET /cti-user-service/public/api/investigadores
-        // If the app uses a proxy or gateway, we should target that.
-        // I will use a relative path if proxied, or construct full path.
-        // Let's assume the environment variable `apiUrl` points to the API Gateway.
-
         return this.http.get<ResearcherResponse>(`${this.apiUrl}/investigadores`, { params: httpParams });
+    }
+
+    updateResearcher(id: number | string, data: any): Observable<any> {
+        // As per user request: /cti-user-service/api/v2/investigadores/{id}
+        // Environment userServiceUrl is '/cti-user-service/api'
+        return this.http.put(`${environment.userServiceUrl}/v2/investigadores/${id}`, data);
     }
 }

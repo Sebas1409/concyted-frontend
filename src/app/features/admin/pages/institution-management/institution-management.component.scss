@@ -10,81 +10,109 @@
         border: 1px solid #E2E8F0;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 
-        /* Search Bar (Reused) */
-        .search-bar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
+        /* Main Controls (New Design) */
+        .main-controls {
+            margin-bottom: 24px;
 
-            .input-wrapper {
-                flex: 1;
-                position: relative;
+            .search-row {
+                display: flex;
+                gap: 12px;
 
-                svg {
-                    position: absolute;
-                    left: 12px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    color: #94A3B8;
+                .search-wrapper {
+                    flex: 1;
+                    position: relative;
+
+                    svg {
+                        position: absolute;
+                        left: 14px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                    }
+
+                    input {
+                        width: 100%;
+                        padding: 10px 12px 10px 40px;
+                        border: 1px solid #E2E8F0;
+                        border-radius: 8px;
+                        font-size: 15px;
+                        color: #334155;
+
+                        &::placeholder {
+                            color: #94A3B8;
+                        }
+
+                        &:focus {
+                            outline: none;
+                            border-color: #004F56;
+                            box-shadow: 0 0 0 3px rgba(0, 79, 86, 0.1);
+                        }
+                    }
                 }
 
-                input {
-                    width: 100%;
-                    padding: 10px 12px 10px 40px;
-                    border: 1px solid #E2E8F0;
-                    border-radius: 6px;
-                    font-size: 14px;
+                .btn-search-main {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    background: #004F56;
+                    color: white;
+                    border: none;
+                    padding: 0 24px;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: background 0.2s;
 
-                    &:focus {
-                        outline: none;
-                        border-color: #005470;
+                    &:hover {
+                        background: #003a3f;
                     }
                 }
             }
 
-            .btn-search {
+            .actions-row-grid {
                 display: flex;
+                justify-content: space-between;
                 align-items: center;
-                background: #005470;
-                color: white;
-                border: none;
-                padding: 0 24px;
-                border-radius: 6px;
-                font-weight: 500;
-                cursor: pointer;
 
-                &:hover {
-                    background: #003f54;
+                .left-actions {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+
+                    .export-buttons {
+                        display: flex;
+                        gap: 8px;
+
+                        .btn-export {
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            background: white;
+                            border: 1px solid #E2E8F0;
+                            color: #475569;
+                            padding: 6px 16px;
+                            border-radius: 6px;
+                            font-size: 14px;
+                            font-weight: 500;
+                            cursor: pointer;
+                            transition: all 0.2s;
+
+                            &:hover {
+                                background: #F8FAFC;
+                                border-color: #CBD5E1;
+                            }
+                        }
+                    }
                 }
-            }
-        }
 
-        /* Actions Row (Reused) */
-        .actions-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 24px;
+                .results-info {
+                    font-size: 14px;
+                    color: #64748B;
+                    font-weight: 500;
 
-            .export-actions {
-                display: flex;
-                gap: 8px;
-            }
-
-            .btn-outline {
-                background: white;
-                border: 1px solid #005470;
-                color: #005470;
-                padding: 6px 16px;
-                border-radius: 6px;
-                font-weight: 500;
-                cursor: pointer;
-                font-size: 14px;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-
-                &:hover {
-                    background: #F0F9FF;
+                    .count {
+                        color: #0F172A;
+                        font-weight: 700;
+                    }
                 }
             }
         }

@@ -38,8 +38,9 @@
                 <div class="form-group">
                     <label class="form-label">Contraseña <span class="required">*</span></label>
                     <div class="input-wrapper">
-                        <input [type]="showPassword ? 'text' : 'password'" class="form-control" placeholder="XXXXXX"
-                            formControlName="password" [class.is-invalid]="isFieldInvalid('password')">
+                        <input [type]="showPassword ? 'text' : 'password'" class="form-control"
+                            placeholder="Ingrese su contraseña" formControlName="password"
+                            [class.is-invalid]="isFieldInvalid('password')">
                         <button type="button" class="btn-eye" (click)="togglePasswordVisibility()">
                             <svg *ngIf="!showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none"
                                 stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

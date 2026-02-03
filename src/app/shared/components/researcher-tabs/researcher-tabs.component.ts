@@ -1,10 +1,11 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DateDisplayPipe } from '../../pipes/date-display.pipe';
 
 @Component({
     selector: 'app-researcher-tabs',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, DateDisplayPipe],
     templateUrl: './researcher-tabs.component.html',
     styleUrls: ['./researcher-tabs.component.scss']
 })

@@ -5,6 +5,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { AuthBrandingComponent } from '../../../shared/components/auth-branding/auth-branding.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { RecaptchaService } from '../../../core/services/recaptcha.service';
+import { ROLES } from '../../../core/constants/roles.constants';
 
 @Component({
     selector: 'app-login',
@@ -99,10 +100,10 @@ export class LoginComponent implements OnInit {
                                 const roles = this.authService.getUserRoles();
                                 console.log('User roles redirecting:', roles);
 
-                                if (roles.includes('ROLE_SUPERADMIN') || roles.includes('ROLE_ADMIN')) {
-                                    this.router.navigate(['/admin']);
-                                } else {
+                                if (roles.includes(ROLES.INVESTIGADOR)) {
                                     this.router.navigate(['/app']);
+                                } else {
+                                    this.router.navigate(['/admin']);
                                 }
                             } else {
                                 this.loginError = 'Error al obtener información del usuario.';

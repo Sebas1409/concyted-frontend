@@ -2,20 +2,23 @@
     <!-- Header Summary -->
     <div class="cv-header">
         <div class="info-col">
-            <h1 class="researcher-name">{{ researcher.name }}</h1>
+            <h1 class="researcher-name">{{ researcher?.name | capitalize }}</h1>
             <p class="last-update" *ngIf="researcher.lastUpdate">Fecha de última actualización: {{ researcher.lastUpdate
                 }}</p>
             <p class="bio-text">{{ researcher.bio }}</p>
 
             <div class="action-buttons">
                 <!-- Buttons could be emitted events if specific logic is needed -->
-                <button class="btn-primary-blue">Contactar Investigador</button>
-                <button class="btn-outline">Descargar Ficha CTI</button>
+                <button class="btn-primary-blue" [disabled]="!isLoggedIn">Contactar Investigador</button>
+                <button class="btn-outline" [disabled]="!isLoggedIn" (click)="downloadCV()">Descargar Ficha CTI</button>
             </div>
         </div>
         <div class="photo-col">
             <div class="photo-wrapper">
-                <img [src]="researcher.photo || 'assets/images/placeholder-user.png'" alt="Foto">
+                <img *ngIf="researcher?.photo" [src]="researcher.photo" alt="Foto">
+                <div *ngIf="!researcher?.photo" class="initials-placeholder">
+                    {{ getInitials(researcher?.name) }}
+                </div>
             </div>
         </div>
     </div>
@@ -68,7 +71,7 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>{{ researcher.name }}</td>
+                        <td>{{ researcher?.name | capitalize }}</td>
                         <td>{{ generalData?.gender }}</td>
                         <td>{{ generalData?.nationality }}</td>
                         <td>{{ generalData?.email }}</td>

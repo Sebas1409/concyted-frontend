@@ -5,6 +5,7 @@ import { FormModalComponent } from '../../../../shared/components/form-modal/for
 import { UserService, UserProfileApi, UserRequestDTO } from '../../../../core/services/user.service';
 import { AlertService } from '../../../../core/services/alert.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ROLES } from '../../../../core/constants/roles.constants';
 
 @Component({
     selector: 'app-role-assignment-modal',
@@ -15,16 +16,7 @@ import { AuthService } from '../../../../core/services/auth.service';
         <p class="description">Busca un usuario registrado en la base de datos y define su nivel de acceso.</p>
         
         <div class="form-grid">
-            <div class="form-group">
-                 <label>Sistema de Destino *</label>
-                 <select [(ngModel)]="data.system">
-                    <option value="">Selecciona la plataforma...</option>
-                    <option value="admin">Admin DINA</option>
-                    <option value="cti">CTI Vitae</option>
-                 </select>
-            </div>
-            
-             <div class="form-group">
+             <div class="form-group full-width">
                  <label>Rol de Acceso *</label>
                  <select [(ngModel)]="data.role">
                     <option value="">Selecciona el nivel de permiso...</option>
@@ -50,7 +42,6 @@ import { AuthService } from '../../../../core/services/auth.service';
                         <tr>
                             <th>Usuario ⇅</th>
                             <th>Doc. ⇅</th>
-                            <th>Sistema Destino ⇅</th>
                             <th>Rol a Asignar ⇅</th>
                             <th>Acción</th>
                         </tr>
@@ -59,7 +50,6 @@ import { AuthService } from '../../../../core/services/auth.service';
                         <tr *ngFor="let item of paginatedAssignedUsers">
                             <td>{{ item.user.nombres }} {{ item.user.apellidoPaterno }}</td>
                             <td>{{ item.user.numDoc }}</td>
-                            <td>{{ item.systemLabel }}</td>
                             <td>{{ item.roleLabel }}</td>
                             <td class="action-cell">
                                 <button class="btn-icon delete" (click)="removeUser(item)">
@@ -68,7 +58,7 @@ import { AuthService } from '../../../../core/services/auth.service';
                             </td>
                         </tr>
                         <tr *ngIf="assignedUsers.length === 0">
-                            <td colspan="5" class="empty-state">No hay usuarios seleccionados</td>
+                            <td colspan="4" class="empty-state">No hay usuarios seleccionados</td>
                         </tr>
                     </tbody>
                 </table>
@@ -190,7 +180,7 @@ export class RoleAssignmentModalComponent implements OnInit {
     private authService = inject(AuthService); // Inject AuthService
     private alertService = inject(AlertService);
 
-    data = { system: '', role: '' };
+    data = { role: '' };
     searchUser = '';
 
     availableRoles: any[] = []; // Roles Store
@@ -199,7 +189,7 @@ export class RoleAssignmentModalComponent implements OnInit {
     allUsers: UserProfileApi[] = [];
 
     // Pending assignments
-    assignedUsers: { user: UserProfileApi, system: string, role: string, roleLabel: string, systemLabel: string }[] = [];
+    assignedUsers: { user: UserProfileApi, role: string, roleLabel: string }[] = [];
 
     // Pagination
     currentPage = 1;
@@ -231,8 +221,22 @@ export class RoleAssignmentModalComponent implements OnInit {
 
     loadRoles() {
         this.authService.getRoles().subscribe({
-            next: (data) => this.availableRoles = data,
-            error: (err) => console.error('Error loading roles', err)
+            next: (data) => {
+                // Filter out non-assignable administrative roles
+                this.availableRoles = data.filter((r: any) =>
+                    r.codigo !== ROLES.INVESTIGADOR &&
+                    r.codigo !== ROLES.SUPERADMIN
+                );
+            },
+            error: (err) => {
+                console.error('Error loading roles from API:', err);
+                // Fallback roles based on your data
+                this.availableRoles = [
+                    { id: 1, nombre: 'Usuario', codigo: ROLES.USER, descripcion: 'Usuario estándar' },
+                    { id: 3, nombre: 'Administrador', codigo: ROLES.ADMIN, descripcion: 'Role Administrador' },
+                    { id: 4, nombre: 'Consulta', codigo: ROLES.CONSULTA, descripcion: 'Rol Consulta' }
+                ];
+            }
         });
     }
 
@@ -246,8 +250,8 @@ export class RoleAssignmentModalComponent implements OnInit {
     }
 
     addUser() {
-        if (!this.data.system || !this.data.role) {
-            this.alertService.warning('Campos incompletos', 'Seleccione el sistema y el rol antes de agregar.');
+        if (!this.data.role) {
+            this.alertService.warning('Campo incompleto', 'Seleccione el rol antes de agregar.');
             return;
         }
 
@@ -276,14 +280,11 @@ export class RoleAssignmentModalComponent implements OnInit {
         }
 
         // Add to list
-        const sysLabel = this.data.system === 'admin' ? 'Admin DINA' : 'CTI Vitae';
         const roleLabel = this.getRoleLabel(this.data.role);
 
         this.assignedUsers.push({
             user: foundUser,
-            system: this.data.system,
             role: this.data.role,
-            systemLabel: sysLabel,
             roleLabel: roleLabel
         });
 
@@ -323,7 +324,7 @@ export class RoleAssignmentModalComponent implements OnInit {
                 username: item.user.username,
                 roles: updatedRoles,
                 enabled: item.user.enabled,
-                active: item.user.active ?? true,
+                active: (item.user as any).active ?? item.user.activo ?? true,
                 accountNonExpired: true,
                 accountNonLocked: true,
                 credentialsNonExpired: true,

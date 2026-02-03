@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
+import { VersionCheckService } from './core/services/version-check.service';
 
 @Component({
     selector: 'app-root',
@@ -9,9 +10,12 @@ import { RouterOutlet } from '@angular/router';
     template: `<router-outlet></router-outlet>`
 })
 export class AppComponent implements OnInit {
+    private versionCheckService = inject(VersionCheckService);
+
     constructor() { }
 
     ngOnInit() {
-        // App initialization logic (if any)
+        // Iniciar verificación de versión (1 min en dev, 5 min en prod)
+        this.versionCheckService.initVersionCheck();
     }
 }

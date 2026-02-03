@@ -9,6 +9,9 @@ import { UbigeoService } from '../../../core/services/ubigeo.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { AlertService } from '../../../core/services/alert.service';
 import { ReniecService } from '../../../core/services/reniec.service';
+import { FileService } from '../../../core/services/file.service';
+import { FileModule, FileType } from '../../../core/constants/file-upload.constants';
+import { finalize } from 'rxjs/operators';
 
 @Component({
     selector: 'app-register',
@@ -46,6 +49,8 @@ export class RegisterComponent implements OnInit {
     reniecDni: string = '';
 
     sexOptions: any[] = [];
+    isUploadingFile: boolean = false;
+    docToken: string | null = null;
 
     constructor(
         private fb: FormBuilder,
@@ -56,7 +61,8 @@ export class RegisterComponent implements OnInit {
         private catalogService: CatalogService,
         private cdr: ChangeDetectorRef,
         private alertService: AlertService,
-        private reniecService: ReniecService
+        private reniecService: ReniecService,
+        private fileService: FileService
     ) {
         // Step 0: Validation
         this.step0Form = this.fb.group({
@@ -677,11 +683,37 @@ export class RegisterComponent implements OnInit {
                 this.step1Form.patchValue({ dniFile: null });
                 this.step1Form.get('dniFile')?.setErrors({ maxSize: true });
                 this.step1Form.get('dniFile')?.markAsTouched();
-            } else {
-                this.step1Form.patchValue({ dniFile: file });
-                this.step1Form.get('dniFile')?.setErrors(null);
-                this.step1Form.get('dniFile')?.markAsTouched();
+                return;
             }
+
+            this.step1Form.patchValue({ dniFile: file });
+            this.step1Form.get('dniFile')?.setErrors(null);
+            this.step1Form.get('dniFile')?.markAsTouched();
+
+            // Auto-upload as per "system" pattern
+            this.isUploadingFile = true;
+            this.docToken = null; // Clear previous token if any
+
+            this.fileService.uploadFile(file, FileModule.INVESTIGATOR, FileType.DOCUMENT).subscribe({
+                next: (res) => {
+                    this.isUploadingFile = false;
+                    const token = res.token || res.data?.token;
+                    if (token) {
+                        this.docToken = token;
+                        console.log('File uploaded successfully, token captured:', token);
+                    } else {
+                        console.warn('File upload successful but no token received', res);
+                    }
+                    this.cdr.detectChanges();
+                },
+                error: (err) => {
+                    this.isUploadingFile = false;
+                    console.error('File upload failed', err);
+                    this.alertService.error('Error', 'No se pudo subir el archivo del documento. Intente nuevamente.');
+                    this.step1Form.patchValue({ dniFile: null }); // Reset form if failed
+                    this.cdr.detectChanges();
+                }
+            });
         }
     }
 
@@ -701,8 +733,10 @@ export class RegisterComponent implements OnInit {
             const step2 = this.step2Form.value;
 
             // Resolve Names from IDs
-            const countryName = this.getName(this.countries, step1.country);
-            // ... (rest of resolution logic happens inside service or usually here but simplifying for brevity as getName handles nulls)
+            const selectedCountry = this.countries.find(c => c.id === step1.country);
+            const countryName = selectedCountry && (selectedCountry.nombre.toUpperCase() === 'PERU' || selectedCountry.nombre.toUpperCase() === 'PERÚ')
+                ? 'PERUANA'
+                : 'EXTRANJERA';
 
             // Determine active status: True ONLY if validated with RENIEC
             const isUserActive = this.reniecValidated;
@@ -755,7 +789,8 @@ export class RegisterComponent implements OnInit {
                 ubigeo: ubigeoCode || "",
                 usuarioId: 0,
                 validado: this.reniecValidated,
-                validadoPor: 0
+                validadoPor: 0,
+                docToken: this.docToken // Use pre-uploaded token (null if no file)
             };
 
             this.authService.registerResearcher(researcherPayload).subscribe({

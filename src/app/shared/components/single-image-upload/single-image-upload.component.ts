@@ -44,10 +44,12 @@ export class SingleImageUploadComponent implements OnChanges {
     isDragging: boolean = false;
     uploadError: string | null = null;
     previewUrl: SafeUrl | string | null = null;
+    imageLoadFailed: boolean = false;
     private lastUploadedToken: string | null = null;
 
     ngOnChanges(changes: SimpleChanges) {
         if (changes['currentToken']) {
+            this.imageLoadFailed = false; // Reset error state on new input
             console.log('SingleImageUpload ngOnChanges: currentToken=', this.currentToken, 'isPublic=', this.isPublic);
 
             // Check if this token matches the one we just uploaded locally
@@ -65,6 +67,12 @@ export class SingleImageUploadComponent implements OnChanges {
             }
             this.cdr.markForCheck();
         }
+    }
+
+    onImageError() {
+        console.error('Image load failed for URL:', this.previewUrl);
+        this.imageLoadFailed = true;
+        this.cdr.markForCheck();
     }
 
     onDragOver(event: DragEvent) {
@@ -99,6 +107,7 @@ export class SingleImageUploadComponent implements OnChanges {
 
     handleFile(file: File) {
         this.uploadError = null;
+        this.imageLoadFailed = false; // Reset error
         console.log('Validating file:', file.name, 'Size:', file.size);
 
         this.validateImage(file).then(isValid => {

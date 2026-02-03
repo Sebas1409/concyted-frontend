@@ -11,9 +11,15 @@ import { IntroCardComponent } from '../../../../shared/components/intro-card/int
 import { AuthService } from '../../../../core/services/auth.service';
 import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { ResearcherService, PublicResearcher } from '../../../../core/services/researcher.service';
+import { FileViewerModalComponent, ViewerFile } from '../../../../shared/components/file-viewer-modal/file-viewer-modal.component';
+import { FileModule, FileType } from '../../../../core/constants/file-upload.constants';
+import { FileService } from '../../../../core/services/file.service';
 import { CatalogService } from '../../../../core/services/catalog.service';
 import { AlertService } from '../../../../core/services/alert.service';
 import { UbigeoService } from '../../../../core/services/ubigeo.service';
+import { UserService, UserProfileApi } from '../../../../core/services/user.service';
+import { CapitalizePipe } from '../../../../shared/pipes/capitalize.pipe';
+import { environment } from '../../../../../environments/environment';
 
 interface Researcher {
     id: string;
@@ -25,7 +31,12 @@ interface Researcher {
     regina: string;
     status: string;
     userId: string;
-    summary?: string; // Added
+    email?: string;
+    sexName?: string;
+    selected?: boolean;
+    idInvestigador?: number | string;
+    docToken?: string | null;
+    raw?: any;
 }
 
 interface DerecognitionRequest {
@@ -47,7 +58,7 @@ interface DerecognitionRequest {
 @Component({
     selector: 'app-researcher-management',
     standalone: true,
-    imports: [CommonModule, FormsModule, FormModalComponent, IntroCardComponent, RouterModule, DateFormatPipe],
+    imports: [CommonModule, FormsModule, FormModalComponent, IntroCardComponent, RouterModule, DateFormatPipe, FileViewerModalComponent, CapitalizePipe],
     providers: [DateFormatPipe],
     templateUrl: './researcher-management.component.html',
     styleUrls: ['./researcher-management.component.scss']
@@ -56,6 +67,10 @@ export class ResearcherManagementComponent {
     activeTab = 'directory'; // 'directory' | 'requests'
     searchTerm = '';
     appliedSearchTerm = '';
+
+    // Sorting
+    sortField: string = 'name';
+    sortOrder: 'asc' | 'desc' = 'asc';
 
     // Pagination
     currentPage = 1;
@@ -75,9 +90,10 @@ export class ResearcherManagementComponent {
     // Catalogs
     areas: any[] = [];
     departments: any[] = [];
+    genders: any[] = [];
 
     // For the active menu dropdown
-    activeMenuId: string | null = null;
+    selectedItemForMenu: Researcher | null = null;
 
     // Modal State
     showAccessModal = false;
@@ -97,8 +113,9 @@ export class ResearcherManagementComponent {
         fullName: '',
         email: '',
         birthDate: '',
-        gender: 'M'
+        gender: 'M' as 'M' | 'F'
     };
+    currentResearcherProfile: any = null;
 
     reviewForm = {
         adminObservation: ''
@@ -110,6 +127,10 @@ export class ResearcherManagementComponent {
     // Requests Data
     requests: DerecognitionRequest[] = [];
 
+    // File Viewer
+    showFileViewer = false;
+    viewerFiles: ViewerFile[] = [];
+
     constructor(
         private elementRef: ElementRef,
         private authService: AuthService,
@@ -117,9 +138,23 @@ export class ResearcherManagementComponent {
         private catalogService: CatalogService,
         private ubigeoService: UbigeoService,
         private alertService: AlertService,
+        private userService: UserService,
+        private fileService: FileService,
         private cdr: ChangeDetectorRef,
         private dateFormatPipe: DateFormatPipe
     ) { }
+
+    get isAdmin(): boolean {
+        return this.authService.isAdmin();
+    }
+
+    get isSuperAdmin(): boolean {
+        return this.authService.isSuperAdmin();
+    }
+
+    get canEdit(): boolean {
+        return this.isAdmin || this.isSuperAdmin;
+    }
 
     ngOnInit() {
         this.loadCatalogs();
@@ -134,51 +169,58 @@ export class ResearcherManagementComponent {
                 this.ubigeoService.getDepartments(peru.id).subscribe(deps => this.departments = deps);
             }
         });
+        this.catalogService.getMasterDetails(2).subscribe(data => {
+            this.genders = data;
+        });
     }
 
     loadResearchers() {
         if (this.activeTab !== 'directory') return;
 
-        const params: any = {
-            pageNumber: this.currentPage - 1, // API is 0-indexed
-            pageSize: this.pageSize,
-            sort: 'fechaCreacion,desc'
-        };
+        console.log('Fetching all users for front-end pagination and local filtering');
 
-        // Heuristic for search box
-        const term = this.filterGeneric.trim();
-        if (term) {
-            if (/^\d+$/.test(term)) {
-                if (term.length >= 8) params.numDoc = term; // DNI/CNE
-                else params.codigoUnico = term; // Renacyt
-            } else {
-                // If it's text, we send it to 'nombres' by default. 
-                // The API might not support a global 'query' param based on the spec provided.
-                params.nombres = term;
-            }
-        }
+        this.userService.getOnlyUsers(false, 0, 9999, '').subscribe({
+            next: (data) => {
+                console.log('API Response received (Researchers):', data);
 
-        if (this.filterArea) params.areaId = this.filterArea;
-        if (this.filterRegion) params.departamentoId = this.filterRegion;
+                const usersList = Array.isArray(data) ? data : (data.content || []);
+                this.totalElements = Array.isArray(data) ? data.length : (data.totalElements || 0);
 
-        if (this.filterNationality) {
-            params.nacionalidad = this.filterNationality.charAt(0).toUpperCase() + this.filterNationality.slice(1);
-        }
-
-        console.log('Searching Researchers with params:', params);
-
-        this.researcherService.getPublicResearchers(params).subscribe({
-            next: (resp) => {
-                console.log('Researchers loaded:', resp);
-                this.totalElements = resp.totalElements || 0;
-                this.researchers = (resp.content || []).map(item => this.mapToViewModel(item));
+                const mapped = usersList.map((item: UserProfileApi) => this.mapUserToViewModel(item));
+                this.researchers = [...mapped];
                 this.cdr.detectChanges();
+                console.log('Mapped researchers from users:', this.researchers.length);
             },
             error: (err) => {
-                console.error('Error loading researchers', err);
-                this.alertService.error('Error', 'Error al cargar investigadores');
+                console.error('Error loading researchers from users API', err);
+                this.alertService.error('Error', 'No se pudieron cargar los datos de los investigadores');
             }
         });
+    }
+
+    mapUserToViewModel(u: UserProfileApi): Researcher {
+        const fullName = `${u.nombres || ''} ${u.apellidoPaterno || ''} ${u.apellidoMaterno || ''}`.trim();
+        // Since Gender is not in UserApi, we mock it for UI demonstration or use 'M' as default
+        // In a real scenario, this would come from the API.
+        const mockGender: 'M' | 'F' = (u.id % 2 === 0) ? 'M' : 'F';
+
+        return {
+            id: u.id?.toString(),
+            gender: mockGender,
+            name: fullName || u.username || 'Sin registro',
+            degree: '---',
+            region: '---',
+            institution: 'Sin asignar',
+            regina: '---',
+            status: (u.active ?? u.activo) ? 'Activo' : 'Inactivo',
+            userId: u.username || '',
+            email: u.email || '',
+            sexName: mockGender === 'M' ? 'Masculino' : 'Femenino',
+            selected: false,
+            idInvestigador: u.idInvestigador || u.id,
+            docToken: u.docToken || null,
+            raw: u
+        };
     }
 
     clearFilters() {
@@ -192,26 +234,30 @@ export class ResearcherManagementComponent {
     }
 
     mapToViewModel(item: PublicResearcher): Researcher {
-        // Resolve IDs to names if catalogs loaded? 
-        // For now using ID or basic mapping
+        // Find gender for icon logic
+        let genderMapped: 'M' | 'F' = 'M';
+        if (item.sexo) {
+            if (item.sexo === 'M' || item.sexo === 'SEX001') genderMapped = 'M';
+            else if (item.sexo === 'F' || item.sexo === 'SEX002') genderMapped = 'F';
+        }
+
+        const sexName = this.genders.find(g => g.codigo === item.sexo)?.nombre || item.sexo || '';
+
         return {
-            id: item.id.toString(),
-            gender: (item.sexo === 'M' || item.sexo === 'F') ? item.sexo : 'M', // Fallback
-            name: `${item.nombres} ${item.apellidoPaterno} ${item.apellidoMaterno}`,
-            degree: item.estadoRenacyt || '', // Mapping status to degree/status slot for display
+            id: item.id?.toString() || '',
+            gender: genderMapped,
+            name: `${item.nombres || ''} ${item.apellidoPaterno || ''} ${item.apellidoMaterno || ''}`.trim(),
+            degree: item.estadoRenacyt || '',
             region: item.departamentoId?.toString() || '',
-            institution: '', // Not provided in API
+            institution: '',
             regina: item.codigoUnico || '',
             status: item.activo ? 'Activo' : 'Inactivo',
             userId: item.usuarioId?.toString() || '',
-            summary: item.resumenEjecutivo || item.estado || ''
+            email: (item.resumenEjecutivo || item.estado || '').substring(0, 300),
+            sexName: sexName,
+            idInvestigador: item.id,
+            docToken: item.docToken
         };
-    }
-
-    // Computed Properties for View
-    get filteredResearchers() {
-        // No client-side filtering for directory
-        return this.researchers;
     }
 
     get filteredRequests() {
@@ -223,9 +269,38 @@ export class ResearcherManagementComponent {
         );
     }
 
+    get filteredResearchers(): Researcher[] {
+        let result = this.researchers;
+
+        if (this.appliedSearchTerm) {
+            const term = this.appliedSearchTerm.toLowerCase();
+            result = result.filter(r =>
+                r.name.toLowerCase().includes(term) ||
+                (r.email && r.email.toLowerCase().includes(term)) ||
+                r.id.toLowerCase().includes(term) ||
+                (r.userId && r.userId.toLowerCase().includes(term))
+            );
+        }
+
+        if (this.sortField) {
+            result = [...result].sort((a: any, b: any) => {
+                const valA = a[this.sortField]?.toString().toLowerCase() || '';
+                const valB = b[this.sortField]?.toString().toLowerCase() || '';
+
+                if (valA < valB) return this.sortOrder === 'asc' ? -1 : 1;
+                if (valA > valB) return this.sortOrder === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        return result;
+    }
+
     get paginatedResearchers(): Researcher[] {
         if (this.activeTab !== 'directory') return [];
-        return this.researchers;
+        const filtered = this.filteredResearchers;
+        const start = (this.currentPage - 1) * this.pageSize;
+        return filtered.slice(start, start + this.pageSize);
     }
 
     get paginatedRequests(): DerecognitionRequest[] {
@@ -244,30 +319,46 @@ export class ResearcherManagementComponent {
     }
 
     get totalItemsDisplay() {
-        if (this.activeTab === 'directory') return this.totalElements;
+        if (this.activeTab === 'directory') return this.filteredResearchers.length;
         if (this.activeTab === 'requests') return this.filteredRequests.length;
         return 0;
     }
 
     get pagesArray() {
         const total = this.totalPages;
-        // Cap max pages shown to 10 for safety if total is huge
-        const maxPages = Math.min(total, 10);
-        // Logic should be better but keeping simple: first 10 pages? 
-        // Or window around current. Let's start with all if small, else limited.
-        // User didn't complain about pagination UI yet.
-        return Array(Math.min(total, 5)).fill(0).map((x, i) => i + 1); // Mock limit to 5 for now to avoid huge list
+        const current = this.currentPage;
+        const maxVisible = 5;
+
+        let start = Math.max(1, current - Math.floor(maxVisible / 2));
+        let end = Math.min(total, start + maxVisible - 1);
+
+        if (end - start + 1 < maxVisible) {
+            start = Math.max(1, end - maxVisible + 1);
+        }
+
+        const pages = [];
+        for (let i = start; i <= end; i++) {
+            pages.push(i);
+        }
+        return pages;
     }
 
     // Handlers
     search() {
         console.log('Search triggered via button/enter');
-        if (this.activeTab === 'directory') {
-            this.currentPage = 1;
+        this.appliedSearchTerm = this.filterGeneric;
+        this.currentPage = 1;
+        if (this.activeTab === 'directory' && this.researchers.length === 0) {
             this.loadResearchers();
+        }
+    }
+
+    toggleSort(field: string) {
+        if (this.sortField === field) {
+            this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
         } else {
-            this.appliedSearchTerm = this.searchTerm;
-            this.currentPage = 1;
+            this.sortField = field;
+            this.sortOrder = 'asc';
         }
     }
 
@@ -278,16 +369,17 @@ export class ResearcherManagementComponent {
     setPage(page: number) {
         if (page >= 1 && page <= this.totalPages) {
             this.currentPage = page;
-            if (this.activeTab === 'directory') {
-                this.loadResearchers();
-            }
         }
     }
 
     toggleTab(tab: string) {
+        if (tab === 'requests' && !this.canEdit) {
+            return;
+        }
         this.activeTab = tab;
         this.currentPage = 1;
         this.searchTerm = '';
+        this.filterGeneric = '';
         this.appliedSearchTerm = '';
         if (tab === 'requests') {
             this.loadRequests();
@@ -318,43 +410,67 @@ export class ResearcherManagementComponent {
         });
     }
 
-    toggleMenu(researcher: Researcher, index: number, event: Event) {
-        event.stopPropagation();
-        const uniqueId = researcher.id + '-' + index;
-        if (this.activeMenuId === uniqueId) {
-            this.activeMenuId = null;
-        } else {
-            this.activeMenuId = uniqueId;
-        }
-    }
+    // (Old method removed)
 
     openAccessModal(researcher: Researcher) {
         this.selectedResearcher = researcher;
-        this.activeMenuId = null;
+        this.selectedItemForMenu = null;
+        this.currentResearcherProfile = null;
 
         this.accessForm = {
             username: researcher.id,
-            email: 'student@university.edu.pe',
+            email: researcher.email || '',
             fullName: researcher.name,
             forceChange: false,
-            active: researcher.status !== 'Inactivo'
+            active: (researcher.raw as UserProfileApi)?.active ?? (researcher.raw as UserProfileApi)?.activo ?? (researcher.status !== 'Inactivo')
         };
 
+        this.currentResearcherProfile = researcher.raw;
         this.showAccessModal = true;
     }
 
     openEditModal(researcher: Researcher) {
         this.selectedResearcher = researcher;
-        this.activeMenuId = null;
+        this.selectedItemForMenu = null;
+        this.currentResearcherProfile = null;
 
+        // Initialize with basic data from researcher directory row
         this.editForm = {
             fullName: researcher.name,
-            email: 'researcher@institution.gob.pe',
-            birthDate: '1980-05-15',
+            email: researcher.email || '',
+            birthDate: '', // To be filled from researcher profile
             gender: researcher.gender as 'M' | 'F'
         };
 
         this.showEditModal = true;
+
+        if (researcher.idInvestigador) {
+            // Fetch the detailed researcher profile to get birthDate, etc.
+            this.authService.getInvestigatorById(Number(researcher.idInvestigador)).subscribe({
+                next: (res) => {
+                    const data = res.data || res;
+                    if (data) {
+                        this.currentResearcherProfile = data;
+                        this.editForm.email = data.email || this.editForm.email;
+
+                        // Format birthDate for type="date" (YYYY-MM-DD)
+                        // Updated to fecNacimiento as per actual API field
+                        const birthDateVal = data.fecNacimiento || data.fechaNacimiento;
+                        if (birthDateVal) {
+                            this.editForm.birthDate = birthDateVal.split('T')[0];
+                        }
+
+                        // Map gender correctly if it comes from profile
+                        if (data.sexo) {
+                            this.editForm.gender = data.sexo;
+                        }
+
+                        this.cdr.detectChanges();
+                    }
+                },
+                error: (err) => console.error('Error fetching researcher profile', err)
+            });
+        }
     }
 
     openReviewModal(request: DerecognitionRequest) {
@@ -366,13 +482,180 @@ export class ResearcherManagementComponent {
     }
 
     saveAccess() {
-        console.log('Saving Access:', this.accessForm);
-        this.showAccessModal = false;
+        if (!this.currentResearcherProfile?.id) {
+            this.alertService.error('Error', 'No se ha cargado el perfil del investigador para actualizar el acceso');
+            return;
+        }
+
+        const updateId = this.currentResearcherProfile.usuarioId || this.currentResearcherProfile.id;
+        const action = this.accessForm.active ?
+            this.userService.activateUser(updateId) :
+            this.userService.deactivateUser(updateId);
+
+        this.alertService.loading('Actualizando estado de cuenta...');
+
+        action.subscribe({
+            next: () => {
+                this.alertService.close();
+                this.alertService.success('Éxito', `Cuenta ${this.accessForm.active ? 'activada' : 'desactivada'} correctamente`);
+                this.showAccessModal = false;
+
+                // Optimistic update
+                if (this.selectedResearcher) {
+                    this.selectedResearcher.status = this.accessForm.active ? 'Activo' : 'Inactivo';
+                    if (this.selectedResearcher.raw) {
+                        this.selectedResearcher.raw.active = this.accessForm.active;
+                        this.selectedResearcher.raw.activo = this.accessForm.active;
+                    }
+                }
+
+                // Refresh from server with a small delay
+                setTimeout(() => this.loadResearchers(), 300);
+            },
+            error: (err) => {
+                console.error('Error updating account state via researcher API', err);
+                this.alertService.close();
+                this.alertService.error('Error', 'No se pudo actualizar el estado de la cuenta');
+            }
+        });
     }
 
     saveEdit() {
-        console.log('Saving Edit:', this.editForm);
+        const investigatorId = this.currentResearcherProfile?.id || this.selectedResearcher?.idInvestigador;
+
+        if (!investigatorId || !this.currentResearcherProfile) {
+            this.alertService.error('Error', 'No se pudieron cargar los datos necesarios para actualizar el perfil');
+            return;
+        }
+
+        const p = this.currentResearcherProfile;
+        const raw = this.selectedResearcher?.raw || {};
+
+        // Explicitly construct payload according to the required structure in the provided example
+        const payload = {
+            activo: raw.active,
+            apellidoMaterno: p.apellidoMaterno,
+            apellidoPaterno: p.apellidoPaterno,
+            celular: p.celular,
+            codigoUnico: p.codigoUnico,
+            departamentoId: p.departamentoId,
+            direccion: p.direccion,
+            distritoId: p.distritoId,
+            docToken: p.docToken,
+            email: this.editForm.email,
+            emailPublico: p.emailPublico, // Syncing with email as they usually match in the directory
+            estado: p.estado,
+            estadoRenacyt: p.estadoRenacyt,
+            fechaNacimiento: this.editForm.birthDate,
+            fechaValidacion: p.fechaValidacion,
+            fotoToken: p.fotoToken,
+            googleScholarId: p.googleScholarId,
+            nacionalidad: p.nacionalidad,
+            nombres: p.nombres,
+            numDoc: p.numDoc,
+            orcid: p.orcid,
+            paisNacimientoId: p.paisNacimientoId,
+            paisResidenciaId: p.paisResidenciaId,
+            // password: p.password,
+            provinciaId: p.provinciaId,
+            researcherId: p.researcherId,
+            resumenEjecutivo: p.resumenEjecutivo,
+            scopusAuthorId: p.scopusAuthorId,
+            sexo: this.editForm.gender,
+            telefono: p.telefono,
+            telefonoAlternativo: p.telefonoAlternativo,
+            tipoDoc: p.tipoDoc,
+            ubigeo: p.ubigeo,
+            usuarioId: p.usuarioId,
+            validado: p.validado,
+            validadoPor: p.validadoPor,
+            webPersonal: p.webPersonal
+        };
+
+        const idForUrl = Number(investigatorId);
+
+        this.alertService.loading('Guardando cambios...');
+
+        this.researcherService.updateResearcher(idForUrl, payload).subscribe({
+            next: () => {
+                this.finishEdit('Cambios guardados correctamente');
+                this.loadResearchers(); // Refresh the list to show new data
+            },
+            error: (err) => {
+                console.error('Error updating researcher profile', err);
+                this.alertService.close();
+                this.alertService.error('Error', 'No se pudieron guardar los cambios en el perfil. Verifica los datos ingresados.');
+            }
+        });
+    }
+
+    private finishEdit(message: string) {
+        this.alertService.close();
+        this.alertService.success('Éxito', message);
         this.showEditModal = false;
+        this.loadResearchers();
+    }
+
+    viewDocument(item: Researcher) {
+        if (!item.docToken) return;
+
+        this.viewerFiles = [{
+            name: 'Documento de Identidad',
+            url: '',
+            type: 'PDF', // Default to PDF, getFileType could refine this
+            token: item.docToken
+        }];
+        this.showFileViewer = true;
+    }
+
+    toggleDropdown(event: Event, item: Researcher) {
+        event.stopPropagation();
+        this.selectedItemForMenu = this.selectedItemForMenu === item ? null : item;
+    }
+
+    viewPublicProfile(item: Researcher) {
+        this.selectedItemForMenu = null;
+        // Usar baseHref del environment para construir la URL correcta
+        const baseHref = environment.baseHref || '/';
+        const url = `${window.location.origin}${baseHref}search/researcher/${item.raw.id}`;
+        window.open(url, '_blank');
+    }
+
+    downloadResearcherPDF(item: Researcher) {
+        this.selectedItemForMenu = null;
+        console.log('Downloading PDF for researcher:', item.name);
+        const data = [this.mapToSpanish(item)];
+        const doc = new jsPDF();
+        autoTable(doc, {
+            head: [Object.keys(data[0])],
+            body: data.map(obj => Object.values(obj).map(String)),
+            theme: 'grid'
+        });
+        doc.save(`Ficha_${item.name.replace(/\s+/g, '_')}.pdf`);
+    }
+
+    downloadResearcherExcel(item: Researcher) {
+        this.selectedItemForMenu = null;
+        const data = [this.mapToSpanish(item)];
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Datos');
+        XLSX.writeFile(wb, `Datos_${item.name.replace(/\s+/g, '_')}.xlsx`);
+    }
+
+    manageAccess(item: Researcher) {
+        this.selectedItemForMenu = null;
+        this.openAccessModal(item);
+    }
+
+    editResearcher(item: Researcher) {
+        this.selectedItemForMenu = null;
+        this.openEditModal(item);
+    }
+
+    cancelAccount(item: Researcher) {
+        this.selectedItemForMenu = null;
+        this.alertService.warning('Anular Cuenta', `¿Está seguro que desea anular la cuenta de ${item.name}?`);
     }
 
     approveDerecognition(isValid: boolean = true) {
@@ -384,22 +667,18 @@ export class ResearcherManagementComponent {
             id: this.selectedRequest.originalId,
             estado: 'APROBADA',
             observacionAdmin: this.reviewForm.adminObservation,
-            // Pass researcherId as adminId per user requirement
             adminId: this.selectedRequest.researcherId
         };
-
-        console.log('Processing Derecognition:', payload);
 
         this.authService.processAccountDeletion(payload).subscribe({
             next: () => {
                 this.showReviewModal = false;
-                this.loadRequests(); // Reload list
+                this.loadRequests();
             },
             error: (err) => console.error('Error processing request', err)
         });
     }
 
-    // Export Logic
     copyToClipboard() {
         const data = this.activeTab === 'directory' ? this.filteredResearchers : this.filteredRequests;
         if (data.length === 0) return;
@@ -436,7 +715,7 @@ export class ResearcherManagementComponent {
         const hours = now.getHours().toString().padStart(2, '0');
         const minutes = now.getMinutes().toString().padStart(2, '0');
 
-        return `Solicitudes_de_baja_${day}${month}${year}_${hours}${minutes}`;
+        return `Export_${day}${month}${year}_${hours}${minutes}`;
     }
 
     downloadExcel() {
@@ -479,7 +758,7 @@ export class ResearcherManagementComponent {
             body: rows,
             theme: 'grid',
             styles: { fontSize: 8 },
-            headStyles: { fillColor: [0, 84, 112] } // #005470
+            headStyles: { fillColor: [0, 84, 112] }
         });
 
         doc.save(this.getFileName() + '.pdf');
@@ -522,8 +801,12 @@ export class ResearcherManagementComponent {
 
     @HostListener('document:click', ['$event'])
     onDocumentClick(event: MouseEvent) {
-        if (!this.elementRef.nativeElement.contains(event.target)) {
-            this.activeMenuId = null;
+        const target = event.target as HTMLElement;
+        const isMenuTrigger = target.closest('.btn-more');
+        const isInsideMenu = target.closest('.dropdown-menu-modern');
+
+        if (!isMenuTrigger && !isInsideMenu) {
+            this.selectedItemForMenu = null;
         }
     }
 }

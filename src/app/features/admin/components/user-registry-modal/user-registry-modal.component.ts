@@ -1,17 +1,20 @@
-import { Component, EventEmitter, Output, Input, OnInit, inject } from '@angular/core';
+import { Component, EventEmitter, Output, Input, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FormModalComponent } from '../../../../shared/components/form-modal/form-modal.component';
 import { UserService, UserProfileApi, UserRequestDTO } from '../../../../core/services/user.service';
 import { CatalogService } from '../../../../core/services/catalog.service';
 import { AlertService } from '../../../../core/services/alert.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { ROLES } from '../../../../core/constants/roles.constants';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
     selector: 'app-user-registry-modal',
     standalone: true,
     imports: [CommonModule, FormsModule, FormModalComponent],
     template: `
-    <app-form-modal [title]="'Registrar Nuevo Usuario'" (close)="close.emit()" (save)="save()">
+    <app-form-modal [title]="userData ? 'Editar Usuario' : 'Registrar Nuevo Usuario'" (close)="close.emit()" (save)="save()">
         <p class="description">Ingresa las credenciales de acceso y los datos personales para dar de alta a un nuevo administrador en el sistema.</p>
         
         <div class="form-grid">
@@ -21,6 +24,14 @@ import { AlertService } from '../../../../core/services/alert.service';
             </div>
             
             <div class="form-group full-width">
+                 <label>Rol de Acceso *</label>
+                 <select [(ngModel)]="data.selectedRole">
+                    <option value="">Selecciona el nivel de permiso...</option>
+                    <option *ngFor="let role of availableRoles" [value]="role.codigo">{{ role.nombre }}</option>
+                 </select>
+            </div>
+
+            <div class="form-group full-width">
                  <label>Área *</label>
                  <select [(ngModel)]="data.area">
                     <option value="">Selecciona el área...</option>
@@ -28,7 +39,8 @@ import { AlertService } from '../../../../core/services/alert.service';
                  </select>
             </div>
 
-            <div class="form-group">
+            <!-- Password fields only for new users using *ngIf="!userData" -->
+            <div class="form-group" *ngIf="!userData">
                  <label>Contraseña *</label>
                  <div class="password-wrapper">
                     <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="data.password" placeholder="Mínimo 8 caracteres">
@@ -39,7 +51,7 @@ import { AlertService } from '../../../../core/services/alert.service';
                  </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" *ngIf="!userData">
                  <label>Confirmar Contraseña *</label>
                  <div class="password-wrapper">
                     <input [type]="showConfirmPassword ? 'text' : 'password'" [(ngModel)]="data.confirmPassword" placeholder="Repite la contraseña">
@@ -50,12 +62,6 @@ import { AlertService } from '../../../../core/services/alert.service';
                  </div>
             </div>
 
-            <div class="form-group checkbox-align">
-                 <label class="checkbox-label" style="display: flex; gap: 8px; align-items: center; height: 100%;">
-                    <input type="checkbox" [(ngModel)]="data.forceChange"> 
-                    <span>Forzar cambio de clave</span>
-                 </label>
-            </div>
 
             <div class="form-group">
                  <label>Cuenta Activa</label>
@@ -91,7 +97,7 @@ import { AlertService } from '../../../../core/services/alert.service';
 
         <div class="modal-footer" footer>
             <button class="btn-cancel" (click)="close.emit()">Cancelar</button>
-            <button class="btn-save" (click)="save()">Crear Usuario</button>
+            <button class="btn-save" (click)="save()">{{ userData ? 'Grabar' : 'Crear Usuario' }}</button>
         </div>
     </app-form-modal>
   `,
@@ -188,33 +194,44 @@ export class UserRegistryModalComponent implements OnInit {
     private userService = inject(UserService);
     private alertService = inject(AlertService);
     private catalogService = inject(CatalogService);
+    private authService = inject(AuthService);
+    private cdr = inject(ChangeDetectorRef);
 
     areas: any[] = [];
+    availableRoles: any[] = [];
 
     data = {
         username: '', area: '', password: '', confirmPassword: '',
-        forceChange: true, active: true,
-        names: '', surname1: '', surname2: '', email: ''
+        active: true,
+        names: '', surname1: '', surname2: '', email: '',
+        selectedRole: ''
     };
 
     showPassword = false;
     showConfirmPassword = false;
 
     ngOnInit() {
+        this.loadRoles();
         this.catalogService.getAreas().subscribe(res => {
-            console.log('Areas Data:', res);
+            console.log('Areas Data for Edit:', res);
             this.areas = res;
-            // Ensure selection logic runs after areas are loaded matching the type
-            if (this.userData && this.userData.areaId) {
-                // Find the matching area to get the ID property correctly if needed, or just force string/number match
-                // Assuming area.id or area.idArea.
-                const matchingArea = this.areas.find(a => (a.id || a.idArea) == this.userData?.areaId);
+
+            // Set area based on userData once areas are loaded
+            if (this.userData && (this.userData.areaId !== undefined && this.userData.areaId !== null)) {
+                const areaIdToMatch = this.userData.areaId.toString();
+                const matchingArea = this.areas.find(a =>
+                    (a.id?.toString() === areaIdToMatch) ||
+                    (a.idArea?.toString() === areaIdToMatch) ||
+                    (a.codigo?.toString() === areaIdToMatch)
+                );
+
                 if (matchingArea) {
-                    this.data.area = (matchingArea.id || matchingArea.idArea).toString();
+                    this.data.area = (matchingArea.id || matchingArea.idArea || matchingArea.codigo).toString();
                 } else {
-                    this.data.area = this.userData.areaId.toString();
+                    this.data.area = areaIdToMatch;
                 }
             }
+            this.cdr.detectChanges();
         });
 
         if (this.userData) {
@@ -223,7 +240,16 @@ export class UserRegistryModalComponent implements OnInit {
             this.data.surname1 = this.userData.apellidoPaterno;
             this.data.surname2 = this.userData.apellidoMaterno;
             this.data.email = this.userData.email || '';
-            this.data.active = this.userData.enabled;
+            this.data.active = (this.userData as any).active ?? this.userData.activo ?? this.userData.enabled;
+
+            // Map roles
+            if (this.userData.roles) {
+                const rolesArray = typeof this.userData.roles === 'string' ? [this.userData.roles] : (this.userData.roles || []);
+                // Take the first role that is NOT ROLE_INVESTIGADOR if possible, or just the first one
+                const mainRole = rolesArray.find((r: string) => r !== ROLES.INVESTIGADOR) || rolesArray[0];
+                this.data.selectedRole = mainRole || '';
+            }
+
             // this.data.area is now handled in subscription for safety, but set here as fallback
             if (!this.data.area) {
                 this.data.area = this.userData.areaId ? this.userData.areaId.toString() : '';
@@ -231,9 +257,46 @@ export class UserRegistryModalComponent implements OnInit {
         }
     }
 
+    loadRoles() {
+        this.authService.getRoles().subscribe({
+            next: (data) => {
+                this.availableRoles = data.filter((r: any) =>
+                    r.codigo !== ROLES.INVESTIGADOR &&
+                    r.codigo !== ROLES.SUPERADMIN
+                );
+
+                // Set selectedRole based on userData once roles are loaded
+                if (this.userData && this.userData.roles) {
+                    const r = this.userData.roles;
+                    const rolesArray: any[] = Array.isArray(r) ? r : [r];
+
+                    // Normalize roles to strings (codigo)
+                    const roleCodes = rolesArray.map(role => {
+                        if (typeof role === 'string') return role;
+                        return role.codigo || role.name || role.authority || '';
+                    }).filter(c => !!c);
+
+                    const mainRole = roleCodes.find(c => c !== ROLES.INVESTIGADOR) || roleCodes[0];
+                    if (mainRole) {
+                        this.data.selectedRole = mainRole;
+                    }
+                }
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                console.error('Error loading roles:', err);
+                this.availableRoles = [
+                    { id: 1, nombre: 'Usuario', codigo: ROLES.USER },
+                    { id: 3, nombre: 'Administrador', codigo: ROLES.ADMIN },
+                    { id: 4, nombre: 'Consulta', codigo: ROLES.CONSULTA }
+                ];
+            }
+        });
+    }
+
     save() {
-        if (!this.data.username || !this.data.names || !this.data.surname1 || !this.data.email) {
-            this.alertService.warning('Advertencia', 'Por favor complete los campos obligatorios.');
+        if (!this.data.username || !this.data.names || !this.data.surname1 || !this.data.email || !this.data.selectedRole) {
+            this.alertService.warning('Advertencia', 'Por favor complete los campos obligatorios, incluyendo el Rol de Acceso.');
             return;
         }
 
@@ -255,10 +318,10 @@ export class UserRegistryModalComponent implements OnInit {
             email: this.data.email,
             enabled: this.data.active,
             active: this.data.active,
-            tipoDoc: 'DNI',
+            tipoDoc: '',
             numDoc: this.data.username,
             telefono: '',
-            roles: [],
+            roles: [this.data.selectedRole],
             password: this.data.password,
             accountNonExpired: true,
             accountNonLocked: true,

@@ -55,6 +55,27 @@ export class InstitutionManagementComponent {
         }
     }
 
+    search() {
+        console.log('Searching for:', this.searchTerm);
+        // Implement filtering logic here
+    }
+
+    copyToClipboard() {
+        console.log('Copying to clipboard');
+    }
+
+    downloadExcel() {
+        console.log('Downloading Excel');
+    }
+
+    downloadCSV() {
+        console.log('Downloading CSV');
+    }
+
+    printPDF() {
+        console.log('Printing PDF');
+    }
+
     confirmLink() {
         console.log('Linking institution:', this.linkForm);
         this.showLinkModal = false;

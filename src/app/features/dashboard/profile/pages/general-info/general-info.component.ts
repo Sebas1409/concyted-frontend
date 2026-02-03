@@ -16,7 +16,8 @@ import { FileModule, FileType } from '../../../../../core/constants/file-upload.
     styleUrl: './general-info.component.scss'
 })
 export class GeneralInfoComponent implements OnInit {
-    infoForm: FormGroup;
+    personalForm: FormGroup;
+    locationForm: FormGroup;
     isUploadingPhoto = false;
 
     countries: any[] = [];
@@ -40,48 +41,23 @@ export class GeneralInfoComponent implements OnInit {
         private fileService: FileService,
         private cdr: ChangeDetectorRef
     ) {
-        this.infoForm = this.fb.group({
-            active: [true],
-            nombres: [''],
-            apellidoPaterno: [''],
-            apellidoMaterno: [''],
-            sexo: [''],
-            fechaNacimiento: [''],
-            nacionalidad: [''],
-            paisNacimiento: [''],
-            tipoDocumento: ['', Validators.required],
-            numeroDocumento: [''],
-            codigoUnico: [''],
-            estado: [''],
-            estadoRenacyt: [''],
+        this.personalForm = this.fb.group({
             fotoUrl: [''],
-            cvUrl: [''],
-
-            // Contact
-            email: [''], // Readonly/Locked
-            emailAlternativo: [''], // Public
-            telefono: [''],
+            summary: ['', Validators.required],
+            fechaNacimiento: ['', Validators.required],
+            sexo: ['', Validators.required],
+            telefono: ['', Validators.required],
             celular: [''],
-            telefonoAlternativo: [''],
-            webPersonal: [''],
+            email: [''], // Readonly
+            emailAlternativo: ['', Validators.required],
+            webPersonal: ['']
+        });
 
-            // Location
-            paisResidencia: [''],
-            departamento: [''],
-            provincia: [''],
-            distrito: [''],
-            direccion: [''],
-            ubigeo: [''],
-
-            // Identifiers / Academic
-            orcid: [''],
-            scopusAuthorId: [''],
-            researcherId: [''],
-            googleScholarId: [''],
-
-            // Extra
-            summary: [''],
-            validado: [true]
+        this.locationForm = this.fb.group({
+            paisResidencia: ['', Validators.required],
+            departamento: ['', Validators.required],
+            provincia: ['', Validators.required],
+            distrito: ['', Validators.required]
         });
     }
 
@@ -103,28 +79,24 @@ export class GeneralInfoComponent implements OnInit {
                     console.log('User Data Loaded:', userData);
                     this.currentUserData = userData; // Store for updates
 
-                    this.infoForm.patchValue({
-                        nombres: userData.nombres,
-                        apellidoPaterno: userData.apellidoPaterno,
-                        apellidoMaterno: userData.apellidoMaterno,
-                        // sexo handled below
-                        // Use helper to format date
+                    // Patch Personal Form
+                    this.personalForm.patchValue({
                         fechaNacimiento: this.formatDateForInput(userData.fechaNacimiento),
-                        numeroDocumento: userData.numDoc,
                         email: userData.email,
                         emailAlternativo: userData.emailPublico,
                         telefono: userData.telefono,
                         celular: userData.celular,
                         webPersonal: userData.webPersonal,
-                        fotoUrl: userData.fotoToken, // Assuming token or URL is stored here
+                        fotoUrl: userData.fotoToken,
+                        summary: userData.resumenEjecutivo
+                    });
 
-                        // Map location IDs if available
+                    // Patch Location Form
+                    this.locationForm.patchValue({
                         paisResidencia: userData.paisId || userData.paisResidenciaId,
                         departamento: userData.departamentoId,
                         provincia: userData.provinciaId,
-                        distrito: userData.distritoId,
-
-                        summary: userData.resumenEjecutivo
+                        distrito: userData.distritoId
                     });
 
                     // Set preview if token exists
@@ -162,11 +134,6 @@ export class GeneralInfoComponent implements OnInit {
                     } else {
                         // Options not loaded yet, wait for loadSexOptions
                     }
-
-                    // Handle Document Type
-                    if (this.documentTypes.length > 0) {
-                        this.setDocumentTypeValue(userData.tipoDoc || userData.tipoDocumento);
-                    }
                 },
                 error: (err: any) => console.error('Failed to load user data', err)
             });
@@ -187,23 +154,10 @@ export class GeneralInfoComponent implements OnInit {
         console.log('Setting Sex Value:', incomingValue, 'Found:', found);
 
         if (found) {
-            this.infoForm.patchValue({ sexo: found.id });
+            this.personalForm.patchValue({ sexo: found.id });
         } else {
             // Fallback
-            this.infoForm.patchValue({ sexo: incomingValue });
-        }
-    }
-
-    setDocumentTypeValue(incomingValue: any) {
-        if (!incomingValue) return;
-        const found = this.documentTypes.find(opt => opt.id == incomingValue || opt.codigo === incomingValue || opt.nombre === incomingValue);
-
-        console.log('Setting Doc Type:', incomingValue, 'Found:', found);
-
-        if (found) {
-            this.infoForm.patchValue({ tipoDocumento: found.id });
-        } else {
-            this.infoForm.patchValue({ tipoDocumento: incomingValue });
+            this.personalForm.patchValue({ sexo: incomingValue });
         }
     }
 
@@ -230,9 +184,8 @@ export class GeneralInfoComponent implements OnInit {
                 this.documentTypes = data;
                 console.log('Document Types Loaded:', data);
                 // Also load here if data arrived first
-                if (this.currentUserData) {
-                    this.setDocumentTypeValue(this.currentUserData.tipoDoc || this.currentUserData.tipoDocumento);
-                }
+                // Document type logic removed as it's not in the edit forms
+                this.cdr.detectChanges();
                 this.cdr.detectChanges();
             },
             error: (err) => console.error('Failed to load document types', err)
@@ -248,12 +201,12 @@ export class GeneralInfoComponent implements OnInit {
 
     onCountryChange(event: any) {
         // With ngValue, event value might be the object or we need to access form control
-        const countryId = this.infoForm.get('paisResidencia')?.value;
+        const countryId = this.locationForm.get('paisResidencia')?.value;
 
         this.departments = [];
         this.provinces = [];
         this.districts = [];
-        this.infoForm.patchValue({ departamento: '', provincia: '', distrito: '' });
+        this.locationForm.patchValue({ departamento: '', provincia: '', distrito: '' });
 
         if (countryId) {
             this.ubigeoService.getDepartments(countryId).subscribe(data => {
@@ -264,10 +217,10 @@ export class GeneralInfoComponent implements OnInit {
     }
 
     onDepartmentChange(event: any) {
-        const deptId = this.infoForm.get('departamento')?.value;
+        const deptId = this.locationForm.get('departamento')?.value;
         this.provinces = [];
         this.districts = [];
-        this.infoForm.patchValue({ provincia: '', distrito: '' });
+        this.locationForm.patchValue({ provincia: '', distrito: '' });
 
         if (deptId) {
             this.ubigeoService.getProvinces(deptId).subscribe(data => {
@@ -278,9 +231,9 @@ export class GeneralInfoComponent implements OnInit {
     }
 
     onProvinceChange(event: any) {
-        const provId = this.infoForm.get('provincia')?.value;
+        const provId = this.locationForm.get('provincia')?.value;
         this.districts = [];
-        this.infoForm.patchValue({ distrito: '' });
+        this.locationForm.patchValue({ distrito: '' });
 
         if (provId) {
             this.ubigeoService.getDistricts(provId).subscribe(data => {
@@ -312,7 +265,7 @@ export class GeneralInfoComponent implements OnInit {
                     const token = res.token || res.data?.token; // Fallback just in case
 
                     if (token) {
-                        this.infoForm.patchValue({ fotoUrl: token });
+                        this.personalForm.patchValue({ fotoUrl: token });
                         console.log('Photo Token Captured:', token);
 
                         // Update local tracking so saveProfile picks it up as fallback
@@ -339,44 +292,47 @@ export class GeneralInfoComponent implements OnInit {
 
     savingSource: string | null = null;
 
-    saveProfile(source: string) {
-        if (this.savingSource) return; // Prevent concurrent saves
-        if (this.infoForm.valid && this.currentUserData) {
-            this.savingSource = source; // Start loading for specific button
-            const formValue = this.infoForm.value;
+    saveProfile(source: 'general' | 'location') {
+        if (this.savingSource) return;
 
-            // Construct payload matching the requested structure
-            // Merge existing data to preserve fields not in form (like password, username, photoToken)
-            const payload = {
-                ...this.currentUserData,
+        let formToValidate: FormGroup | null = null;
+        let formValue: any = {};
 
-                // Update editable fields
-                nombres: formValue.nombres,
-                apellidoPaterno: formValue.apellidoPaterno,
-                apellidoMaterno: formValue.apellidoMaterno,
-                paisResidenciaId: Number(formValue.paisResidencia) || null,
-                departamentoId: Number(formValue.departamento) || null,
-                provinciaId: Number(formValue.provincia) || null,
-                distritoId: Number(formValue.distrito) || null,
+        if (source === 'general') {
+            formToValidate = this.personalForm;
+        } else if (source === 'location') {
+            formToValidate = this.locationForm;
+        }
 
-                // Explicitly send the fresh token from form if available, else keep existing
-                fotoToken: formValue.fotoUrl || this.currentUserData.fotoToken,
+        if (formToValidate && formToValidate.valid && this.currentUserData) {
+            this.savingSource = source;
+            formValue = formToValidate.value;
 
-                // Align Master parameters to Codes if possible, similar to Register
-                tipoDoc: this.documentTypes.find(d => d.id === Number(formValue.tipoDocumento))?.codigo || formValue.tipoDocumento,
-                sexo: this.sexOptions.find(s => s.id === Number(formValue.sexo))?.codigo || formValue.sexo,
+            const baseData = { ...this.currentUserData };
 
-                // Ensure required boolean flags are present
-                accountNonExpired: this.currentUserData.accountNonExpired ?? true,
-                accountNonLocked: this.currentUserData.accountNonLocked ?? true,
-                credentialsNonExpired: this.currentUserData.credentialsNonExpired ?? true,
-                enabled: this.currentUserData.enabled ?? true,
-                active: this.currentUserData.active ?? true,
-
+            let payload: any = {
+                ...baseData,
                 updatedAt: new Date().toISOString()
             };
 
-            console.log('Updating Researcher Payload:', payload);
+            if (source === 'general') {
+                payload.resumenEjecutivo = formValue.summary;
+                payload.emailPublico = formValue.emailAlternativo;
+                payload.telefono = formValue.telefono;
+                payload.celular = formValue.celular;
+                payload.webPersonal = formValue.webPersonal;
+                payload.fechaNacimiento = formValue.fechaNacimiento;
+                payload.fotoToken = formValue.fotoUrl || baseData.fotoToken;
+                payload.sexo = this.sexOptions.find(s => s.id === Number(formValue.sexo))?.codigo || formValue.sexo;
+
+            } else if (source === 'location') {
+                payload.paisResidenciaId = Number(formValue.paisResidencia) || 0;
+                payload.departamentoId = Number(formValue.departamento) || 0;
+                payload.provinciaId = Number(formValue.provincia) || 0;
+                payload.distritoId = Number(formValue.distrito) || 0;
+            }
+
+            console.log('Updating Researcher Payload (' + source + '):', payload);
 
             this.authService.updateResearcher(this.currentUserData.id, payload).subscribe({
                 next: (res) => {
@@ -388,21 +344,42 @@ export class GeneralInfoComponent implements OnInit {
 
                     this.alertService.success(
                         '¡Actualizado!',
-                        'Tu perfil ha sido actualizado correctamente.'
+                        source === 'general' ? 'Datos personales actualizados.' : 'Ubicación actualizada.'
                     );
                     this.loadUserData();
                 },
                 error: (err) => {
                     this.savingSource = null; // Stop loading
                     console.error('Update failed', err);
-                    this.alertService.error(
-                        'Error',
-                        'No se pudo actualizar el perfil: ' + (err.error?.message || err.message)
-                    );
+
+                    let errorMessage = 'No se pudo actualizar el perfil.';
+
+                    // Handle specific validation errors from API
+                    if (err.error && err.error.validationErrors) {
+                        const validationMessages = Object.entries(err.error.validationErrors)
+                            .map(([field, msg]) => `${field}: ${msg}`)
+                            .join('<br>'); // Use line breaks for multiple errors if logic allows HTML, otherwise ', '
+                        // Assuming alertService might treat strings as plain text, using comma for safety
+                        const safeValidationMessages = Object.entries(err.error.validationErrors)
+                            .map(([field, msg]) => `${field}: ${msg}`)
+                            .join(', ');
+
+                        errorMessage = `Error de validación: ${safeValidationMessages}`;
+                    } else if (err.error && err.error.message) {
+                        errorMessage = err.error.message;
+                    } else if (err.message) {
+                        errorMessage = err.message;
+                    }
+
+                    this.alertService.error('Error', errorMessage);
+                    this.cdr.detectChanges(); // Force UI update to ensure button spinner stops
                 }
             });
         } else {
-            this.infoForm.markAllAsTouched();
+            if (formToValidate) {
+                formToValidate.markAllAsTouched();
+            }
+
             if (!this.currentUserData) {
                 this.alertService.warning(
                     'Espera...',
@@ -411,7 +388,7 @@ export class GeneralInfoComponent implements OnInit {
             } else {
                 this.alertService.warning(
                     'Formulario Inválido',
-                    'Por favor, completa todos los campos requeridos correctamente.'
+                    'Por favor, completa todos los campos requeridos de esta sección.'
                 );
             }
         }

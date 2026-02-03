@@ -156,7 +156,7 @@ export class WorkExperienceComponent implements OnInit {
             position: ['', Validators.required],
             roleIdi: [''],
             institution: ['', Validators.required],
-            startDate: [''],
+            startDate: ['', Validators.required],
             endDate: [''],
             isCurrent: [false],
             isPrincipal: [false],
@@ -167,7 +167,7 @@ export class WorkExperienceComponent implements OnInit {
             institution: ['', Validators.required],
             institutionType: ['', Validators.required],
             docentType: ['', Validators.required],
-            startDate: [''],
+            startDate: ['', Validators.required],
             endDate: [''],
             currentlyTeaching: [false],
             courses: ['']
@@ -196,6 +196,13 @@ export class WorkExperienceComponent implements OnInit {
     }
 
     ngOnInit() {
+        // Ensure all modals are closed on init to prevent overlay issues
+        this.showModal = false;
+        this.showThesisAdvisorModal = false;
+        this.showDocentModal = false;
+        this.showProjectModal = false;
+        this.showFileViewer = false;
+
         this.loadCatalogs();
         this.setupInstitutionSearch();
         this.setupDocentInstitutionSearch();
@@ -206,7 +213,6 @@ export class WorkExperienceComponent implements OnInit {
         this.loadProjects();
         this.setupWorkValidators();
 
-        this.setupDocentValidators();
         this.setupDocentValidators();
         this.setupProjectEntitySearch();
         this.generateExecutionYears();
@@ -388,36 +394,11 @@ export class WorkExperienceComponent implements OnInit {
     }
 
     private setupWorkValidators() {
-        const startControl = this.workForm.get('startDate');
-        const isCurrentControl = this.workForm.get('isCurrent');
-
-        // Toggle Start Date Requirement
-        if (isCurrentControl && startControl) {
-            isCurrentControl.valueChanges.subscribe(isCurrent => {
-                if (isCurrent) {
-                    startControl.setValidators([Validators.required]);
-                } else {
-                    startControl.clearValidators();
-                }
-                startControl.updateValueAndValidity();
-            });
-        }
+        // startDate is now required by default in the group definition
     }
 
     private setupDocentValidators() {
-        const startControl = this.docentForm.get('startDate');
-        const isCurrentControl = this.docentForm.get('currentlyTeaching');
-
-        if (isCurrentControl && startControl) {
-            isCurrentControl.valueChanges.subscribe(isCurrent => {
-                if (isCurrent) {
-                    startControl.setValidators([Validators.required]);
-                } else {
-                    startControl.clearValidators();
-                }
-                startControl.updateValueAndValidity();
-            });
-        }
+        // startDate is now required by default in the group definition
     }
 
     selectInstitution(institution: any) {
@@ -611,7 +592,10 @@ export class WorkExperienceComponent implements OnInit {
         }
 
         const val = this.workForm.value;
-        const isEditing = !!this.currentWorkId;
+        // Capture the ID strictly as a number or null
+        const workId: number | null = (this.currentWorkId !== null && this.currentWorkId !== undefined) ? Number(this.currentWorkId) : null;
+        // isEditing is true IF and ONLY IF we have a valid numeric ID (including 0)
+        const isEditing = workId !== null && !isNaN(workId);
 
         // Date Range Validation
         if (val.startDate && val.endDate && new Date(val.startDate) > new Date(val.endDate)) {
@@ -627,14 +611,10 @@ export class WorkExperienceComponent implements OnInit {
             fechaInicio: val.startDate || null,
             fechaFin: val.endDate || null,
             nombreInstitucion: val.institution,
-            rolIDi: val.roleIdi, // Note casing from screenshot
+            rolIDi: val.roleIdi,
             rucInstitucion: this.selectedWorkInstitutionRuc || '',
             esPrincipal: val.isPrincipal
         };
-
-        if (isEditing) {
-            (payload as any).id = this.currentWorkId;
-        }
 
         const confirmMessage = isEditing
             ? '¿Está seguro de actualizar el registro de experiencia laboral?'
@@ -642,7 +622,6 @@ export class WorkExperienceComponent implements OnInit {
 
         this.alertService.confirm('Confirmación', confirmMessage).then(confirmed => {
             if (confirmed) {
-                // Upload files first
                 this.uploadFiles(this.workFiles, FileModule.INVESTIGATOR, FileType.PDF, 'EXPLAB', 'EXPL02')
                     .subscribe({
                         next: (uploadedFiles) => {
@@ -652,33 +631,35 @@ export class WorkExperienceComponent implements OnInit {
 
                             const finalPayload = { ...payload, tokens };
 
-                            let request$: Observable<any>;
-                            if (isEditing && this.currentWorkId) {
-                                request$ = this.workExperienceService.updateWorkExperience(this.currentWorkId, finalPayload);
+                            if (isEditing && workId !== null) {
+                                // UPDATE (PUT)
+                                (finalPayload as any).id = workId;
+                                this.workExperienceService.updateWorkExperience(workId, finalPayload).subscribe({
+                                    next: () => this.handleSaveSuccess(true),
+                                    error: (err) => this.handleSaveError(err)
+                                });
                             } else {
-                                request$ = this.workExperienceService.createWorkExperience(finalPayload);
+                                // CREATE (POST)
+                                this.workExperienceService.createWorkExperience(finalPayload).subscribe({
+                                    next: () => this.handleSaveSuccess(false),
+                                    error: (err) => this.handleSaveError(err)
+                                });
                             }
-
-                            request$.subscribe({
-                                next: () => {
-                                    this.alertService.success('Éxito', isEditing ? 'Experiencia actualizada.' : 'Experiencia registrada.');
-                                    setTimeout(() => {
-                                        this.loadWorkExperiences();
-                                    }, 1500);
-                                    this.closeModal();
-                                },
-                                error: (err) => {
-                                    console.error('Error saving work experience', err);
-                                    this.alertService.error('Error', 'Error al guardar el registro.');
-                                }
-                            });
                         },
-                        error: (err) => {
-                            this.alertService.error('Error', 'Error al subir archivos.');
-                        }
+                        error: () => this.alertService.error('Error', 'Error al subir archivos.')
                     });
             }
         });
+    }
+
+    private handleSaveSuccess(isUpdate: boolean) {
+        this.alertService.success('Éxito', isUpdate ? 'Experiencia actualizada.' : 'Experiencia registrada.');
+        setTimeout(() => this.loadWorkExperiences(), 1500);
+        this.closeModal();
+    }
+
+    private handleSaveError(err: any) {
+        console.error('Error saving experience', err);
     }
 
     deleteWork(index: number) {
@@ -751,7 +732,8 @@ export class WorkExperienceComponent implements OnInit {
         }
 
         const val = this.thesisAdvisorForm.value;
-        const isEditing = !!this.currentThesisId;
+        const thesisId = (this.currentThesisId !== null && this.currentThesisId !== undefined) ? Number(this.currentThesisId) : null;
+        const isEditing = thesisId !== null && !isNaN(thesisId);
 
         const payload = {
             activo: true,
@@ -776,32 +758,29 @@ export class WorkExperienceComponent implements OnInit {
 
                             const finalPayload = { ...payload, tokens };
 
-                            let req$: Observable<any>;
-                            if (isEditing && this.currentThesisId) {
-                                (finalPayload as any).id = this.currentThesisId;
-                                req$ = this.workExperienceService.updateThesisAdvisor(this.currentThesisId, finalPayload);
+                            if (isEditing && thesisId !== null && !isNaN(thesisId)) {
+                                (finalPayload as any).id = thesisId;
+                                this.workExperienceService.updateThesisAdvisor(thesisId, finalPayload).subscribe({
+                                    next: () => this.handleThesisSaveSuccess(true),
+                                    error: (err) => this.handleSaveError(err)
+                                });
                             } else {
-                                req$ = this.workExperienceService.createThesisAdvisor(finalPayload);
+                                this.workExperienceService.createThesisAdvisor(finalPayload).subscribe({
+                                    next: () => this.handleThesisSaveSuccess(false),
+                                    error: (err) => this.handleSaveError(err)
+                                });
                             }
-
-                            req$.subscribe({
-                                next: () => {
-                                    this.alertService.success('Éxito', isEditing ? 'Asesoría actualizada.' : 'Asesoría registrada.');
-                                    setTimeout(() => {
-                                        this.loadThesisAdvisors();
-                                    }, 1500);
-                                    this.closeThesisAdvisorModal();
-                                },
-                                error: (err) => {
-                                    console.error('Error saving thesis', err);
-                                    this.alertService.error('Error', 'Error al guardar el registro.');
-                                }
-                            });
                         },
                         error: () => this.alertService.error('Error', 'Error al subir archivos.')
                     });
             }
         });
+    }
+
+    private handleThesisSaveSuccess(isUpdate: boolean) {
+        this.alertService.success('Éxito', isUpdate ? 'Asesoría actualizada.' : 'Asesoría registrada.');
+        setTimeout(() => this.loadThesisAdvisors(), 1500);
+        this.closeThesisAdvisorModal();
     }
 
     deleteThesisAdvisor(index: number) {
@@ -963,7 +942,8 @@ export class WorkExperienceComponent implements OnInit {
         }
 
         const val = this.docentForm.value;
-        const isEditing = !!this.currentDocentId;
+        const docentId = (this.currentDocentId !== null && this.currentDocentId !== undefined) ? Number(this.currentDocentId) : null;
+        const isEditing = docentId !== null && !isNaN(docentId);
 
         // Date Range Validation
         if (val.startDate && val.endDate && new Date(val.startDate) > new Date(val.endDate)) {
@@ -983,10 +963,6 @@ export class WorkExperienceComponent implements OnInit {
             tipoInstitucion: val.institutionType
         };
 
-        if (isEditing) {
-            (payload as any).id = this.currentDocentId;
-        }
-
         const confirmMessage = isEditing
             ? '¿Está seguro de actualizar el registro de experiencia docente?'
             : '¿Está seguro de registrar la experiencia docente?';
@@ -1002,31 +978,29 @@ export class WorkExperienceComponent implements OnInit {
 
                             const finalPayload = { ...payload, tokens };
 
-                            let request$: Observable<any>;
-                            if (isEditing && this.currentDocentId) {
-                                request$ = this.workExperienceService.updateDocentExperience(this.currentDocentId, finalPayload);
+                            if (isEditing && docentId !== null) {
+                                (finalPayload as any).id = docentId;
+                                this.workExperienceService.updateDocentExperience(docentId, finalPayload).subscribe({
+                                    next: () => this.handleDocentSaveSuccess(true),
+                                    error: (err) => this.handleSaveError(err)
+                                });
                             } else {
-                                request$ = this.workExperienceService.createDocentExperience(finalPayload);
+                                this.workExperienceService.createDocentExperience(finalPayload).subscribe({
+                                    next: () => this.handleDocentSaveSuccess(false),
+                                    error: (err) => this.handleSaveError(err)
+                                });
                             }
-
-                            request$.subscribe({
-                                next: () => {
-                                    this.alertService.success('Éxito', isEditing ? 'Experiencia docente actualizada.' : 'Experiencia docente registrada.');
-                                    setTimeout(() => {
-                                        this.loadDocentExperiences();
-                                    }, 1500);
-                                    this.closeDocentModal();
-                                },
-                                error: (err) => {
-                                    console.error('Error saving docent experience', err);
-                                    this.alertService.error('Error', 'Error al guardar el registro.');
-                                }
-                            });
                         },
                         error: () => this.alertService.error('Error', 'Error al subir archivos.')
                     });
             }
         });
+    }
+
+    private handleDocentSaveSuccess(isUpdate: boolean) {
+        this.alertService.success('Éxito', isUpdate ? 'Experiencia docente actualizada.' : 'Experiencia docente registrada.');
+        setTimeout(() => this.loadDocentExperiences(), 1500);
+        this.closeDocentModal();
     }
 
     deleteDocent(index: number) {
@@ -1094,7 +1068,8 @@ export class WorkExperienceComponent implements OnInit {
         }
 
         const val = this.projectForm.value;
-        const isEditing = !!this.currentProjectId;
+        const projectId = (this.currentProjectId !== null && this.currentProjectId !== undefined) ? Number(this.currentProjectId) : null;
+        const isEditing = projectId !== null && !isNaN(projectId);
 
         const countryObj = (this.countries || []).find(c => c.codigo === val.country);
 
@@ -1123,32 +1098,29 @@ export class WorkExperienceComponent implements OnInit {
 
                             const finalPayload = { ...payload, tokens };
 
-                            let req$: Observable<any>;
-                            if (isEditing && this.currentProjectId) {
-                                (finalPayload as any).id = this.currentProjectId;
-                                req$ = this.workExperienceService.updateProject(this.currentProjectId, finalPayload);
+                            if (isEditing && projectId !== null) {
+                                (finalPayload as any).id = projectId;
+                                this.workExperienceService.updateProject(projectId, finalPayload).subscribe({
+                                    next: () => this.handleProjectSaveSuccess(true),
+                                    error: (err) => this.handleSaveError(err)
+                                });
                             } else {
-                                req$ = this.workExperienceService.createProject(finalPayload);
+                                this.workExperienceService.createProject(finalPayload).subscribe({
+                                    next: () => this.handleProjectSaveSuccess(false),
+                                    error: (err) => this.handleSaveError(err)
+                                });
                             }
-
-                            req$.subscribe({
-                                next: () => {
-                                    this.alertService.success('Éxito', isEditing ? 'Proyecto actualizado.' : 'Proyecto registrado.');
-                                    setTimeout(() => {
-                                        this.loadProjects();
-                                    }, 1500);
-                                    this.closeProjectModal();
-                                },
-                                error: (err) => {
-                                    console.error('Error saving project', err);
-                                    this.alertService.error('Error', 'Error al guardar el registro.');
-                                }
-                            });
                         },
                         error: () => this.alertService.error('Error', 'Error al subir archivos.')
                     });
             }
         });
+    }
+
+    private handleProjectSaveSuccess(isUpdate: boolean) {
+        this.alertService.success('Éxito', isUpdate ? 'Proyecto actualizado.' : 'Proyecto registrado.');
+        setTimeout(() => this.loadProjects(), 1500);
+        this.closeProjectModal();
     }
 
     deleteProject(index: number) {
@@ -1244,5 +1216,9 @@ export class WorkExperienceComponent implements OnInit {
 
     setActiveTab(tab: 'all' | 'work' | 'thesis' | 'docent' | 'project') {
         this.activeTab = tab;
+    }
+
+    get totalProjectAmount(): number {
+        return this.projectList.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
     }
 }

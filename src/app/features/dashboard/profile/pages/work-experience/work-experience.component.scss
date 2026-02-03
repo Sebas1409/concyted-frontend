@@ -199,6 +199,20 @@
             }
         }
     }
+
+    tfoot {
+        tr {
+            background-color: #F9FAFB;
+            border-top: 2px solid #E5E7EB;
+
+            td {
+                padding: 1rem 1rem;
+                font-size: 0.95rem;
+                font-weight: 700;
+                color: var(--primary-600);
+            }
+        }
+    }
 }
 
 .link-view {

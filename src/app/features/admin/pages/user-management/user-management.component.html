@@ -4,18 +4,12 @@
         <button class="btn-action btn-outline" (click)="openRegistryModal()">
             <span class="plus">+</span> Registrar Usuario
         </button>
-        <button class="btn-action btn-outline" (click)="openRoleModal()">
-            <span class="plus">+</span> Asignar Rol
-        </button>
     </app-intro-card>
 
     <!-- Tabs -->
     <div class="tabs-container">
         <button class="tab-btn" [class.active]="activeTab === 'users'" (click)="toggleTab('users')">
             Usuarios <span class="badge">{{ totalFilteredItems }}</span>
-        </button>
-        <button class="tab-btn" [class.active]="activeTab === 'roles'" (click)="toggleTab('roles')">
-            Usuarios con roles <span class="badge">02</span>
         </button>
     </div>
 
@@ -41,26 +35,52 @@
             <table>
                 <thead>
                     <tr>
-                        <th class="w-checkbox">Seleccionar</th>
-                        <th>Cuenta de usuario <span class="sort-icon">⇅</span></th>
-                        <th>Nombre del usuario <span class="sort-icon">⇅</span></th>
+                        <th (click)="toggleSort('account')" style="cursor: pointer;">
+                            Cuenta de usuario
+                            <span class="sort-icon" [class.active]="sortColumn === 'account'">
+                                {{ sortColumn === 'account' ? (sortDirection === 'asc' ? '↑' : '↓') : '⇅' }}
+                            </span>
+                        </th>
+                        <th (click)="toggleSort('name')" style="cursor: pointer;">
+                            Nombre del usuario
+                            <span class="sort-icon" [class.active]="sortColumn === 'name'">
+                                {{ sortColumn === 'name' ? (sortDirection === 'asc' ? '↑' : '↓') : '⇅' }}
+                            </span>
+                        </th>
                         <ng-container *ngIf="activeTab === 'users'">
-                            <th>Correos <span class="sort-icon">⇅</span></th>
-                            <th>Área <span class="sort-icon">⇅</span></th>
+                            <th (click)="toggleSort('email')" style="cursor: pointer;">
+                                Correos
+                                <span class="sort-icon" [class.active]="sortColumn === 'email'">
+                                    {{ sortColumn === 'email' ? (sortDirection === 'asc' ? '↑' : '↓') : '⇅' }}
+                                </span>
+                            </th>
+                            <th (click)="toggleSort('area')" style="cursor: pointer;">
+                                Área
+                                <span class="sort-icon" [class.active]="sortColumn === 'area'">
+                                    {{ sortColumn === 'area' ? (sortDirection === 'asc' ? '↑' : '↓') : '⇅' }}
+                                </span>
+                            </th>
                         </ng-container>
                         <ng-container *ngIf="activeTab === 'roles'">
-                            <th>Usuario <span class="sort-icon">⇅</span></th>
-                            <th>Área <span class="sort-icon">⇅</span></th>
+                            <th>Roles</th>
+                            <th (click)="toggleSort('area')" style="cursor: pointer;">
+                                Área
+                                <span class="sort-icon" [class.active]="sortColumn === 'area'">
+                                    {{ sortColumn === 'area' ? (sortDirection === 'asc' ? '↑' : '↓') : '⇅' }}
+                                </span>
+                            </th>
                         </ng-container>
-                        <th>Estado <span class="sort-icon">⇅</span></th>
+                        <th (click)="toggleSort('status')" style="cursor: pointer;">
+                            Estado
+                            <span class="sort-icon" [class.active]="sortColumn === 'status'">
+                                {{ sortColumn === 'status' ? (sortDirection === 'asc' ? '↑' : '↓') : '⇅' }}
+                            </span>
+                        </th>
                         <th class="w-actions">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr *ngFor="let user of paginatedUsers">
-                        <td class="w-checkbox">
-                            <input type="checkbox" [(ngModel)]="user.selected">
-                        </td>
                         <td>{{ user.account }}</td>
                         <td>{{ user.name }}</td>
 
@@ -70,14 +90,24 @@
                         </ng-container>
 
                         <ng-container *ngIf="activeTab === 'roles'">
-                            <td>Bachiller en Ingeniería de Sistemas</td>
-                            <td>Bachiller en Ingeniería de Sistemas</td>
+                            <td>
+                                <div class="roles-list">
+                                    <span *ngFor="let role of user.raw?.roles" [hidden]="!shouldShowRole(role)"
+                                        class="role-badge">{{ getRoleDisplayName(role) }}</span>
+                                </div>
+                            </td>
+                            <td>{{ user.area }}</td>
                         </ng-container>
 
-                        <td>{{ user.status }}</td>
+                        <td>
+                            <span class="status-chip" [class.active]="user.status === 'Activo'"
+                                [class.inactive]="user.status === 'Inactivo'">
+                                {{ user.status }}
+                            </span>
+                        </td>
                         <td class="w-actions">
                             <div class="actions-wrapper">
-                                <button class="btn-icon-action edit" (click)="editUser(user)" title="Editar">
+                                <button class="btn-icon-action edit" (click)="editUser(user)" title="Editar Usuario">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                         stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -125,4 +155,52 @@
     <app-user-registry-modal *ngIf="showRegistryModal" (close)="closeRegistryModal()"
         [userData]="selectedUser"></app-user-registry-modal>
     <app-role-assignment-modal *ngIf="showRoleModal" (close)="closeRoleModal()"></app-role-assignment-modal>
+
+    <!-- Access Management Modal -->
+    <app-form-modal *ngIf="showAccessModal" title="Gestión de Accesos y Credenciales" (close)="showAccessModal = false">
+        <p class="modal-description" style="font-size: 13px; color: #64748B; margin-bottom: 20px;">Administra las
+            credenciales de ingreso y define el estado de actividad de la cuenta.</p>
+
+        <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                <label style="font-size: 13px; font-weight: 500; color: #334155;">Nombre de Usuario</label>
+                <input type="text" [(ngModel)]="accessForm.username" disabled
+                    style="padding: 10px; border: 1px solid #E2E8F0; border-radius: 6px; background: #F8FAFC; color: #64748B;">
+            </div>
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                <label style="font-size: 13px; font-weight: 500; color: #334155;">Correo</label>
+                <input type="text" [(ngModel)]="accessForm.email" disabled
+                    style="padding: 10px; border: 1px solid #E2E8F0; border-radius: 6px; background: #F8FAFC; color: #64748B;">
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px;">
+                <label style="font-size: 13px; font-weight: 500; color: #334155;">Nombre Completo</label>
+                <input type="text" [(ngModel)]="accessForm.fullName" disabled
+                    style="padding: 10px; border: 1px solid #E2E8F0; border-radius: 6px; background: #F8FAFC; color: #64748B;">
+            </div>
+
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label
+                    style="font-size: 13px; font-weight: 500; color: #334155; margin-bottom: 8px; display: block;">Cuenta
+                    Activa</label>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <label class="switch" style="position: relative; display: inline-block; width: 36px; height: 20px;">
+                        <input type="checkbox" [(ngModel)]="accessForm.active" style="opacity: 0; width: 0; height: 0;">
+                        <span class="slider round"
+                            style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #CBD5E1; transition: .4s; border-radius: 34px;"></span>
+                    </label>
+                    <span style="font-size: 13px; color: #64748B;">{{ accessForm.active ? 'Activa' : 'Inactiva'
+                        }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer" footer style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+            <button
+                style="padding: 10px 20px; border-radius: 6px; font-weight: 500; cursor: pointer; border: 1px solid #E2E8F0; background: white; color: #64748B;"
+                (click)="showAccessModal = false">Cancelar</button>
+            <button
+                style="padding: 10px 20px; border-radius: 6px; font-weight: 500; cursor: pointer; border: none; background: #005470; color: white;"
+                (click)="saveAccess()">Guardar Cambios</button>
+        </div>
+    </app-form-modal>
 </div>

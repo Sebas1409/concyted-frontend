@@ -16,7 +16,7 @@
     <nav class="sidebar-nav">
         <ul>
             <!-- Item: Dashboard Analytics (New) -->
-            <li>
+            <li *ngIf="canSee('analytics')">
                 <a routerLink="/admin/analytics" routerLinkActive="active" class="nav-item">
                     <span class="icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -32,7 +32,7 @@
             </li>
 
             <!-- Item: Configuración Landing -->
-            <li>
+            <li *ngIf="canSee('landing')">
                 <a routerLink="/admin/landing-config" routerLinkActive="active" class="nav-item">
                     <span class="icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -46,7 +46,7 @@
             </li>
 
             <!-- Item: Usuarios -->
-            <li>
+            <li *ngIf="canSee('users')">
                 <a routerLink="/admin/users" routerLinkActive="active" class="nav-item">
                     <span class="icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -62,7 +62,7 @@
             </li>
 
             <!-- Item: Gestión de Investigadores -->
-            <li>
+            <li *ngIf="canSee('researchers')">
                 <a routerLink="/admin/researchers" routerLinkActive="active" class="nav-item">
                     <span class="icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -76,7 +76,7 @@
             </li>
 
             <!-- Item: Gestión de Instituciones -->
-            <li>
+            <li *ngIf="canSee('institutions')">
                 <a routerLink="/admin/institutions" routerLinkActive="active" class="nav-item">
                     <span class="icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -104,6 +104,20 @@
                     <span class="label">Configuración CTI Vitae</span>
                 </a>
             </li> -->
+            <!-- Item: Mi Perfil (For Admin-Researchers) -->
+            <li *ngIf="isInvestigador">
+                <a routerLink="/app" class="nav-item profile-back-link"
+                    style="color: #64748B; margin-top: 20px; border-top: 1px solid #E2E8F0; padding-top: 20px;">
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                        </svg>
+                    </span>
+                    <span class="label">Mi Perfil (Volver)</span>
+                </a>
+            </li>
         </ul>
     </nav>
 </aside>

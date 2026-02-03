@@ -15,6 +15,38 @@
 
 <body>
   <app-root></app-root>
+
+  <!-- EMERGENCY FIX: Remove ALL modal overlays immediately -->
+  <script>
+    // Nuclear option: Remove ALL overlays immediately and continuously
+    function removeAllOverlays() {
+      const overlays = document.querySelectorAll('.modal-overlay');
+      if (overlays.length > 0) {
+        console.warn('EMERGENCY: Removing ' + overlays.length + ' modal overlay(s)');
+        overlays.forEach(function (overlay) {
+          overlay.remove();
+        });
+      }
+    }
+
+    // Run immediately
+    removeAllOverlays();
+
+    // Run every 200ms
+    setInterval(removeAllOverlays, 200);
+
+    // Run on DOM changes
+    if (window.MutationObserver) {
+      const observer = new MutationObserver(function (mutations) {
+        removeAllOverlays();
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    // Run on page load
+    window.addEventListener('DOMContentLoaded', removeAllOverlays);
+    window.addEventListener('load', removeAllOverlays);
+  </script>
 </body>
 
 </html>

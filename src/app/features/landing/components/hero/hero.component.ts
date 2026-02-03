@@ -1,6 +1,7 @@
 import { Component, Input, OnChanges, SimpleChanges, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { LandingSection } from '../../../../core/services/landing.service';
 import { FileService } from '../../../../core/services/file.service';
 
@@ -15,13 +16,14 @@ interface HeroSlide {
 @Component({
     selector: 'app-hero',
     standalone: true,
-    imports: [CommonModule, RouterLink],
+    imports: [CommonModule, RouterLink, FormsModule],
     templateUrl: './hero.component.html',
     styleUrl: './hero.component.scss'
 })
 export class HeroComponent implements OnChanges, OnDestroy {
     @Input() sectionData: LandingSection | undefined;
     @Input() loading: boolean = true;
+    searchText: string = '';
 
     titleHtml = 'El directorio oficial del <br /><span class="text-primary">talento científico</span> del Perú';
     description = 'Explora la producción académica y tecnológica del país. Conecta con investigadores calificados y verifica su nivel RENACYT.';
@@ -34,8 +36,15 @@ export class HeroComponent implements OnChanges, OnDestroy {
 
     constructor(
         private fileService: FileService,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private router: Router
     ) { }
+
+    onSearch() {
+        if (this.searchText.trim()) {
+            this.router.navigate(['/search'], { queryParams: { q: this.searchText.trim() } });
+        }
+    }
 
     ngOnChanges(changes: SimpleChanges) {
         if (changes['sectionData'] && this.sectionData) {

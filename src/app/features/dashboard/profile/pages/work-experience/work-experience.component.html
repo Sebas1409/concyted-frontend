@@ -213,7 +213,7 @@
                             <td>{{ item.projectType }}</td>
                             <td>{{ item.financingEntity }}</td>
                             <td>Ver archivos</td> <!-- Placeholder col from screenshot? -->
-                            <td>{{ item.amount }}</td>
+                            <td>{{ item.amount | number:'1.0-0' }}</td>
                             <td><a href="#" class="link-view"
                                     (click)="viewFiles(item, 'EXPLAB', 'EXPL04'); $event.preventDefault()">Ver
                                     archivos</a></td>
@@ -226,6 +226,13 @@
                             <td colspan="9" class="text-center text-gray-500 py-4">No hay registros de proyectos.</td>
                         </tr>
                     </tbody>
+                    <tfoot *ngIf="projectList.length > 0">
+                        <tr>
+                            <td colspan="6" class="text-right">TOTAL PROYECTOS (USD):</td>
+                            <td>{{ totalProjectAmount | number:'1.2-2' }}</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -233,8 +240,9 @@
 
 </div>
 
-<!-- MODAL: Agregar Experiencia Laboral -->
-<app-form-modal *ngIf="showModal" title="Agregar Experiencia Laboral"
+<!-- MODAL: Agregar/Editar Experiencia Laboral -->
+<app-form-modal *ngIf="showModal"
+    [title]="currentWorkId !== null ? 'Editar Experiencia Laboral' : 'Agregar Experiencia Laboral'"
     subtitle="Registra tu historial profesional en empresas o instituciones, indicando el cargo y el periodo de actividad."
     (close)="closeModal()">
 
@@ -266,12 +274,13 @@
         <!-- Dates -->
         <div class="form-row two-col">
             <div class="form-group">
-                <label>Fecha de inicio <span *ngIf="workForm.get('isCurrent')?.value">*</span></label>
+                <label>Fecha de inicio <span>*</span></label>
                 <input type="date" formControlName="startDate" class="form-input">
             </div>
             <div class="form-group">
                 <label>Fecha de Fin</label>
-                <input type="date" formControlName="endDate" class="form-input">
+                <input type="date" formControlName="endDate" class="form-input"
+                    [disabled]="workForm.get('isCurrent')?.value">
             </div>
         </div>
 
@@ -314,8 +323,9 @@
 
 
 
-<!-- MODAL: Docente -->
-<app-form-modal *ngIf="showDocentModal" title="Agregar Experiencia Docente"
+<!-- MODAL: Agregar/Editar Docente -->
+<app-form-modal *ngIf="showDocentModal"
+    [title]="currentDocentId !== null ? 'Editar Experiencia Docente' : 'Agregar Experiencia Docente'"
     subtitle="Registra tu trayectoria en cátedra universitaria o institutos de investigación, especificando tu categoría docente."
     (close)="closeDocentModal()">
 
@@ -353,8 +363,7 @@
         <!-- Fechas Row -->
         <div class="form-row two-col">
             <div class="form-group">
-                <label class="form-label">Fecha de inicio <span
-                        *ngIf="docentForm.get('currentlyTeaching')?.value">*</span></label>
+                <label class="form-label">Fecha de inicio <span>*</span></label>
                 <input type="date" formControlName="startDate" class="form-input" placeholder="DD/MM/AAAA">
             </div>
             <div class="form-group">
@@ -400,7 +409,8 @@
 </app-form-modal>
 
 <!-- Thesis Advisor Modal -->
-<app-form-modal *ngIf="showThesisAdvisorModal" title="Agregar Asesoría de Tesis"
+<app-form-modal *ngIf="showThesisAdvisorModal"
+    [title]="currentThesisId !== null ? 'Editar Asesoría de Tesis' : 'Agregar Asesoría de Tesis'"
     subtitle="Registra las tesis que has asesorado y que han sido aceptadas o sustentadas."
     (close)="closeThesisAdvisorModal()">
 
@@ -467,7 +477,8 @@
 </app-form-modal>
 
 <!-- MODAL: Evaluador/Formulador de Proyectos -->
-<app-form-modal *ngIf="showProjectModal" title="Experiencia en Proyectos I+D+i"
+<app-form-modal *ngIf="showProjectModal"
+    [title]="currentProjectId !== null ? 'Editar Proyecto I+D+i' : 'Agregar Proyecto I+D+i'"
     subtitle="Registra tu participación en proyectos de investigación, desarrollo o innovación."
     (close)="closeProjectModal()">
 

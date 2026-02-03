@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, of } from 'rxjs';
+import { Observable, BehaviorSubject, of, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AuthResponse, LoginRequest } from '../models/auth.models';
+import { ROLES } from '../constants/roles.constants';
 // Export legacy interfaces just in case, but prefer models
 export type { LoginRequest, AuthResponse } from '../models/auth.models';
 
@@ -58,6 +59,10 @@ export class AuthService {
 
     getInvestigatorByUserId(investigatorId: number): Observable<any> {
         return this.http.get(`${environment.userServiceUrl}/v2/investigadores/usuario/${investigatorId}`);
+    }
+
+    getInvestigatorById(investigatorId: number): Observable<any> {
+        return this.http.get(`${environment.userServiceUrl}/v2/investigadores/${investigatorId}`);
     }
 
     updateResearcher(investigatorId: number, researcherData: any): Observable<any> {
@@ -158,8 +163,17 @@ export class AuthService {
                 // Save token immediately for interceptor
                 localStorage.setItem('accessToken', response.accessToken);
 
-                // Updated API endpoint as per user request (User Service v2)
-                return this.http.get<AuthResponse>(`${environment.userServiceUrl}/v2/investigadores/usuario/${userId}`).pipe(
+                // Roles check to choose API
+                const roles = decoded.roles || decoded.authorities || [];
+                const isResearcher = Array.isArray(roles) ? roles.includes(ROLES.INVESTIGADOR) : roles === ROLES.INVESTIGADOR;
+
+                const profileUrl = isResearcher
+                    ? `${environment.userServiceUrl}/v2/investigadores/usuario/${userId}`
+                    : `${environment.apiUrl}/v2/usuarios/${userId}`;
+
+                console.log(`Fetching profile from: ${profileUrl}`);
+
+                return this.http.get<AuthResponse>(profileUrl).pipe(
                     map(userInfo => {
                         console.log('User Info retrieved:', userInfo);
                         this.setCurrentUser(userInfo);
@@ -198,6 +212,27 @@ export class AuthService {
         return [];
     }
 
+    hasRole(role: string): boolean {
+        return this.getUserRoles().includes(role);
+    }
+
+    isAdmin(): boolean {
+        const user = this.getCurrentUser();
+        return this.hasRole(ROLES.ADMIN) || this.hasRole(ROLES.SUPERADMIN);
+    }
+
+    isSuperAdmin(): boolean {
+        return this.hasRole(ROLES.SUPERADMIN);
+    }
+
+    isInvestigador(): boolean {
+        return this.hasRole(ROLES.INVESTIGADOR);
+    }
+
+    isConsulta(): boolean {
+        return this.hasRole(ROLES.CONSULTA);
+    }
+
     private decodeToken(token: string): any {
         try {
             const base64Url = token.split('.')[1];
@@ -219,15 +254,19 @@ export class AuthService {
             return of(null as any);
         }
 
-        return this.http.get<AuthResponse>(`${environment.userServiceUrl}/v2/investigadores/usuario/${currentUser.usuarioId}`).pipe(
+        const profileUrl = this.isInvestigador()
+            ? `${environment.userServiceUrl}/v2/investigadores/usuario/${currentUser.usuarioId}`
+            : `${environment.apiUrl}/v2/usuarios/${currentUser.usuarioId || currentUser.id}`;
+
+        return this.http.get<AuthResponse>(profileUrl).pipe(
             map(userInfo => {
                 console.log('Refreshing User Info:', userInfo);
                 this.setCurrentUser(userInfo);
                 return userInfo;
             }),
             catchError(err => {
-                console.error('Failed to refresh user info', err);
-                return of(null as any);
+                console.error('Error refreshing user info', err);
+                return throwError(() => err);
             })
         );
     }

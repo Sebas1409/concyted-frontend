@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
@@ -17,11 +17,14 @@ export interface UserProfileApi {
     accountNonExpired?: boolean;
     accountNonLocked?: boolean;
     active?: boolean;
+    activo?: boolean;
     createdAt?: string;
     credentialsNonExpired?: boolean;
     updatedAt?: string;
     areaId?: number;
-    roles?: string[];
+    roles?: any;
+    docToken?: string | null;
+    idInvestigador?: number | null;
 }
 
 export interface UserRequestDTO {
@@ -37,6 +40,7 @@ export interface UserRequestDTO {
     roles: string[];
     enabled: boolean;
     active: boolean;
+    activo?: boolean;
     accountNonExpired: boolean;
     accountNonLocked: boolean;
     credentialsNonExpired: boolean;
@@ -55,6 +59,23 @@ export class UserService {
         return this.http.get<UserProfileApi[]>(`${this.apiUrl}/v2/usuarios`);
     }
 
+    getOnlyUsers(isAdmin: boolean = true, page: number = 0, size: number = 10, filter: string = ''): Observable<any> {
+        let params = new HttpParams()
+            .set('isAdmin', isAdmin.toString())
+            .set('pageNumber', page.toString())
+            .set('pageSize', size.toString())
+            .set('paged', 'true')
+            .set('unpaged', 'false')
+            .set('sort.sorted', 'true')
+            .set('sort.unsorted', 'false');
+
+        if (filter) {
+            params = params.set('filter', filter);
+        }
+
+        return this.http.get<any>(`${this.apiUrl}/v2/usuarios/page`, { params });
+    }
+
     createUser(user: UserRequestDTO): Observable<UserProfileApi> {
         return this.http.post<UserProfileApi>(`${this.apiUrl}/v2/usuarios`, user);
     }
@@ -65,5 +86,13 @@ export class UserService {
 
     deleteUser(id: number | string): Observable<void> {
         return this.http.delete<void>(`${this.apiUrl}/v2/usuarios/${id}`);
+    }
+
+    activateUser(id: number | string): Observable<any> {
+        return this.http.put(`${this.apiUrl}/v2/usuarios/${id}/activate`, {});
+    }
+
+    deactivateUser(id: number | string): Observable<any> {
+        return this.http.put(`${this.apiUrl}/v2/usuarios/${id}/deactivate`, {});
     }
 }

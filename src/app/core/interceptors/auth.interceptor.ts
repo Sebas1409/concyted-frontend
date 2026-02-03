@@ -7,7 +7,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         '/auth/login',
         '/auth/register',
         '/auth/password-reset',
-        '/investigadores' // registration endpoint
+        '/investigadores', // registration endpoint
+        '/roles' // roles list endpoint
     ];
 
     // Check if the current request URL matches any excluded URL
