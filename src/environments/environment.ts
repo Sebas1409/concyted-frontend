@@ -7,5 +7,6 @@ export const environment = {
     fileServiceUrl: '/cti-file-service/api',
     reniecApiUrl: '/cti-interop-service/api/reniec/validar',
     landingPublicUrl: '/cti-management-service/public/api',
-    baseHref: '/' // En desarrollo, sin contexto
+    baseHref: '/', // En desarrollo, sin contexto
+    recaptchaKey: '6LcVBDAsAAAAAAaabN8MlP_LLG_boWn91r3IoFeS'
 };
