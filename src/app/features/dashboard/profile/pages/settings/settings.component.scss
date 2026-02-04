@@ -97,11 +97,9 @@
     }
 
     .description-box {
-        background-color: #F9FAFB;
-        border: 1px solid #F3F4F6;
-        /* Subtle border */
-        border-radius: 6px;
-        padding: 1rem;
+        background-color: transparent;
+        border: none;
+        padding: 0;
 
         h4 {
             margin: 0 0 0.5rem 0;

@@ -23,7 +23,7 @@ import { environment } from '../../../../../environments/environment';
 
 interface Researcher {
     id: string;
-    gender: 'M' | 'F';
+    gender: string | null;
     name: string;
     degree: string;
     region: string;
@@ -113,7 +113,7 @@ export class ResearcherManagementComponent {
         fullName: '',
         email: '',
         birthDate: '',
-        gender: 'M' as 'M' | 'F'
+        gender: '' as string
     };
     currentResearcherProfile: any = null;
 
@@ -200,13 +200,36 @@ export class ResearcherManagementComponent {
 
     mapUserToViewModel(u: UserProfileApi): Researcher {
         const fullName = `${u.nombres || ''} ${u.apellidoPaterno || ''} ${u.apellidoMaterno || ''}`.trim();
-        // Since Gender is not in UserApi, we mock it for UI demonstration or use 'M' as default
-        // In a real scenario, this would come from the API.
-        const mockGender: 'M' | 'F' = (u.id % 2 === 0) ? 'M' : 'F';
+
+        // 1. Buscar coincidencia en el catálogo del sistema
+        const catalogItem = this.genders.find(g => g.codigo === u.sexo);
+
+        // 2. Determinar el nombre a mostrar (Nombre del catálogo > código original > guiones)
+        // Eliminamos suposiciones, usamos estrictamente lo que diga el sistema
+        let sexName = catalogItem ? catalogItem.nombre : (u.sexo || '---');
+
+        // 3. Determinar icono dinámicamente basado en la DESCRIPCIÓN del catálogo
+        // Esto desacopla la UI de códigos específicos como SEX001 si el catálogo cambia
+        let genderIcon: 'M' | 'F' | null = null;
+
+        if (catalogItem) {
+            const nameUpper = catalogItem.nombre.toUpperCase();
+            if (nameUpper.includes('MASCULINO')) {
+                genderIcon = 'M';
+            } else if (nameUpper.includes('FEMENINO')) {
+                genderIcon = 'F';
+            }
+        }
+        // Fallback solo si el valor crudo ya es explícitamente M o F (legacy data)
+        else if (u.sexo === 'M') {
+            genderIcon = 'M';
+        } else if (u.sexo === 'F') {
+            genderIcon = 'F';
+        }
 
         return {
             id: u.id?.toString(),
-            gender: mockGender,
+            gender: genderIcon,
             name: fullName || u.username || 'Sin registro',
             degree: '---',
             region: '---',
@@ -215,7 +238,7 @@ export class ResearcherManagementComponent {
             status: (u.active ?? u.activo) ? 'Activo' : 'Inactivo',
             userId: u.username || '',
             email: u.email || '',
-            sexName: mockGender === 'M' ? 'Masculino' : 'Femenino',
+            sexName: sexName,
             selected: false,
             idInvestigador: u.idInvestigador || u.id,
             docToken: u.docToken || null,
@@ -439,7 +462,7 @@ export class ResearcherManagementComponent {
             fullName: researcher.name,
             email: researcher.email || '',
             birthDate: '', // To be filled from researcher profile
-            gender: researcher.gender as 'M' | 'F'
+            gender: (researcher.raw?.sexo || '') as string
         };
 
         this.showEditModal = true;

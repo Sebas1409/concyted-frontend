@@ -308,23 +308,68 @@ export class GeneralInfoComponent implements OnInit {
             this.savingSource = source;
             formValue = formToValidate.value;
 
-            const baseData = { ...this.currentUserData };
+            const baseData = this.currentUserData;
 
+            // Construir payload limpio explícitamente para evitar campos extra o nulos inválidos
             let payload: any = {
-                ...baseData,
+                activo: baseData.activo,
+                apellidoMaterno: baseData.apellidoMaterno || '',
+                apellidoPaterno: baseData.apellidoPaterno || '',
+                celular: baseData.celular || '',
+                codigoUnico: baseData.codigoUnico || '',
+                departamentoId: baseData.departamentoId || 0,
+                direccion: baseData.direccion || '',
+                distritoId: baseData.distritoId || 0,
+                docToken: baseData.docToken || '',
+                email: baseData.email || '',
+                emailPublico: baseData.emailPublico || '',
+                estado: String(baseData.estado || ''), // Asegurar string
+                estadoRenacyt: baseData.estadoRenacyt || '',
+                fechaNacimiento: this.formatDateForPayload(baseData.fechaNacimiento),
+                fechaValidacion: baseData.fechaValidacion || new Date().toISOString(),
+                fotoToken: baseData.fotoToken || '',
+                googleScholarId: baseData.googleScholarId || '',
+                nacionalidad: baseData.nacionalidad || '',
+                nombres: baseData.nombres || '',
+                numDoc: baseData.numDoc || '',
+                orcid: baseData.orcid || '',
+                paisNacimientoId: baseData.paisNacimientoId || 0,
+                paisResidenciaId: baseData.paisResidenciaId || 0,
+                //password: baseData.password || '', // Usualmente no se envía en update de perfil, pero mantener si el backend lo pide
+                provinciaId: baseData.provinciaId || 0,
+                researcherId: baseData.researcherId || '',
+                resumenEjecutivo: baseData.resumenEjecutivo || '',
+                scopusAuthorId: baseData.scopusAuthorId || '',
+                sexo: baseData.sexo || '',
+                telefono: baseData.telefono || '',
+                telefonoAlternativo: baseData.telefonoAlternativo || '',
+                tipoDoc: baseData.tipoDoc || '',
+                ubigeo: baseData.ubigeo || '',
+                usuarioId: baseData.usuarioId || 0,
+                validado: baseData.validado,
+                validadoPor: baseData.validadoPor || 0,
+                webPersonal: baseData.webPersonal || '',
                 updatedAt: new Date().toISOString()
             };
 
+            // Sobrescribir con datos del formulario según la sección
             if (source === 'general') {
-                payload.resumenEjecutivo = formValue.summary;
-                payload.emailPublico = formValue.emailAlternativo;
-                payload.telefono = formValue.telefono;
-                payload.celular = formValue.celular;
-                payload.webPersonal = formValue.webPersonal;
-                payload.fechaNacimiento = formValue.fechaNacimiento;
-                payload.fotoToken = formValue.fotoUrl || baseData.fotoToken;
-                payload.sexo = this.sexOptions.find(s => s.id === Number(formValue.sexo))?.codigo || formValue.sexo;
+                payload.resumenEjecutivo = formValue.summary || '';
+                payload.emailPublico = formValue.emailAlternativo || '';
+                payload.telefono = formValue.telefono || '';
+                payload.celular = formValue.celular || '';
+                payload.webPersonal = formValue.webPersonal || '';
+                payload.fechaNacimiento = formValue.fechaNacimiento; // Ya viene en YYYY-MM-DD del input date
+                payload.fotoToken = formValue.fotoUrl || baseData.fotoToken || '';
 
+                // Manejo de Sexo: Buscar el código si es un ID numérico
+                const selectedSexId = Number(formValue.sexo);
+                if (!isNaN(selectedSexId) && selectedSexId > 0) {
+                    const sexObj = this.sexOptions.find(s => s.id === selectedSexId);
+                    payload.sexo = sexObj ? sexObj.codigo : formValue.sexo;
+                } else {
+                    payload.sexo = formValue.sexo;
+                }
             } else if (source === 'location') {
                 payload.paisResidenciaId = Number(formValue.paisResidencia) || 0;
                 payload.departamentoId = Number(formValue.departamento) || 0;
@@ -339,14 +384,15 @@ export class GeneralInfoComponent implements OnInit {
                     this.savingSource = null; // Stop loading
                     console.log('Update successful', res);
 
-                    // Refresh global user state immediately
-                    this.authService.refreshCurrentUser().subscribe();
-
                     this.alertService.success(
                         '¡Actualizado!',
                         source === 'general' ? 'Datos personales actualizados.' : 'Ubicación actualizada.'
                     );
-                    this.loadUserData();
+
+                    // Recargar datos
+                    this.authService.refreshCurrentUser().subscribe(() => {
+                        this.loadUserData();
+                    });
                 },
                 error: (err) => {
                     this.savingSource = null; // Stop loading
@@ -414,6 +460,13 @@ export class GeneralInfoComponent implements OnInit {
 
         // If simple YYYY-MM-DD already
         return dateStr;
+    }
+
+    private formatDateForPayload(dateStr: string | null): string {
+        if (!dateStr) return '';
+        // Reutilizamos la lógica de input porque el backend espera YYYY-MM-DD
+        // Si necesitamos lógica específica adicional, la agregamos aquí.
+        return this.formatDateForInput(dateStr);
     }
 
 }

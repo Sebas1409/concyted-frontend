@@ -24,8 +24,10 @@
                 <div class="meta-item">
                     <label>Ficha Pública CTI</label>
                     <!-- fichaCti no longer in response, using codigoUnico if available or placeholder -->
-                    <a href="#" class="link-external" *ngIf="user.codigoUnico; else noFicha">
-                        <span class="icon">📄</span> Ver ficha <span class="copy-icon" title="Copiar enlace">❐</span>
+                    <a [href]="getPublicProfileUrl(user)" target="_blank" class="link-external"
+                        *ngIf="user.codigoUnico; else noFicha">
+                        <span class="icon">🔗</span> Ver ficha pública <span class="copy-icon"
+                            title="Copiar enlace">❐</span>
                     </a>
                     <ng-template #noFicha>
                         <span class="value" style="font-weight: 400; color: var(--g-400);">Sin ficha pública</span>
@@ -33,7 +35,7 @@
                 </div>
                 <div class="meta-item">
                     <label>Ubicación</label>
-                    <div class="value">{{ getLocation(user) }}</div>
+                    <div class="value">{{ fullLocation$ | async }}</div>
                 </div>
                 <div class="meta-item">
                     <label>ORCID ID</label>
@@ -47,7 +49,9 @@
             <!-- Action Buttons for General View -->
             <div class="profile-actions">
                 <div class="right-actions">
-                    <button class="btn btn-outline small">Exportar CV</button>
+                    <button class="btn btn-outline small" (click)="exportCV()" [disabled]="isExporting">
+                        {{ isExporting ? 'Generando...' : 'Exportar CV' }}
+                    </button>
                     <button class="btn btn-primary-teal small">Solicitar Clasificación</button>
                 </div>
             </div>

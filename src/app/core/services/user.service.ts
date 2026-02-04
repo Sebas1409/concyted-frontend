@@ -25,6 +25,7 @@ export interface UserProfileApi {
     roles?: any;
     docToken?: string | null;
     idInvestigador?: number | null;
+    sexo?: string; // Código de género (ej: SEX001, SEX002, M, F)
 }
 
 export interface UserRequestDTO {
