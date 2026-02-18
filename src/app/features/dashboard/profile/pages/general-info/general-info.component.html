@@ -20,7 +20,7 @@
                         <div class="avatar-box-large" style="overflow: hidden;">
                             <img *ngIf="photoPreview" [src]="photoPreview" alt="Profile Photo"
                                 style="width: 100%; height: 100%; object-fit: cover;">
-                            <span *ngIf="!photoPreview">JA</span>
+                            <span *ngIf="!photoPreview">{{ initials }}</span>
                         </div>
 
                         <!-- Hidden File Input -->
@@ -32,7 +32,7 @@
                                 [disabled]="isUploadingPhoto">
                                 {{ isUploadingPhoto ? 'Subiendo...' : 'Cambiar Fotografía' }}
                             </button>
-                            <button type="button" class="btn-icon-trash">
+                            <button type="button" class="btn-icon-trash" (click)="deletePhoto()">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                     fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round"
                                     stroke-linejoin="round">
@@ -65,10 +65,17 @@
                                     </svg>
                                 </span>
                             </label>
-                            <textarea class="form-input" rows="8" formControlName="summary"
+                            <textarea class="form-input" rows="8" formControlName="summary" maxlength="5000"
                                 placeholder="Escribe aquí un breve resumen de tu trayectoria profesional y logros más destacados. Este texto será visible en tu ficha pública."></textarea>
-                            <div class="field-hint">Visible en su Ficha Pública. Esta será tu carta de presentación ante
-                                la comunidad científica.</div>
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 5px;">
+                                <div class="field-hint" style="margin-top: 0;">Visible en su Ficha Pública. Esta será tu
+                                    carta de presentación ante
+                                    la comunidad científica.</div>
+                                <div style="font-size: 0.85em; color: #6b7280; white-space: nowrap; margin-left: 10px;">
+                                    {{ personalForm.get('summary')?.value?.length || 0 }} / 5000 caracteres
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -11,7 +11,8 @@ import { AlertService } from '../../../core/services/alert.service';
 import { ReniecService } from '../../../core/services/reniec.service';
 import { FileService } from '../../../core/services/file.service';
 import { FileModule, FileType } from '../../../core/constants/file-upload.constants';
-import { finalize } from 'rxjs/operators';
+import { finalize, tap } from 'rxjs/operators';
+import { forkJoin, Observable, of } from 'rxjs';
 
 @Component({
     selector: 'app-register',
@@ -48,9 +49,15 @@ export class RegisterComponent implements OnInit {
     reniecMaternalSurname: string = '';
     reniecDni: string = '';
 
+    isAutoFilling: boolean = false;
+
     sexOptions: any[] = [];
     isUploadingFile: boolean = false;
     docToken: string | null = null;
+
+    // Date constraints
+    birthDateMin: string | null = null;
+    birthDateMax: string | null = null;
 
     constructor(
         private fb: FormBuilder,
@@ -62,7 +69,8 @@ export class RegisterComponent implements OnInit {
         private cdr: ChangeDetectorRef,
         private alertService: AlertService,
         private reniecService: ReniecService,
-        private fileService: FileService
+        private fileService: FileService,
+        private ngZone: NgZone
     ) {
         // Step 0: Validation
         this.step0Form = this.fb.group({
@@ -137,7 +145,7 @@ export class RegisterComponent implements OnInit {
         // Base validator
         const validators = [Validators.required];
 
-        if (type === 'DNI') {
+        if (type && type.startsWith('DNI')) {
             // DNI: Exactly 8 digits, numeric
             validators.push(Validators.pattern(/^[0-9]{8}$/));
             validators.push(Validators.minLength(8));
@@ -163,7 +171,7 @@ export class RegisterComponent implements OnInit {
         // Master ID 1 as requested
         this.catalogService.getMasterDetails(1).subscribe({
             next: (data) => {
-                const desiredCodes = ['DOC001', 'DOC002', 'DOC003'];
+                const desiredCodes = ['DOC001', 'DOC002', 'DOC003', 'DOC004'];
                 this.documentTypes = data
                     .filter(d => desiredCodes.includes(d.codigo))
                     .sort((a, b) => desiredCodes.indexOf(a.codigo) - desiredCodes.indexOf(b.codigo));
@@ -184,6 +192,7 @@ export class RegisterComponent implements OnInit {
     setupCascadingDropdowns() {
         // Document Type Changes -> Reset SENSITIVE and PERSONAL fields comprehensively
         this.step0Form.get('documentType')?.valueChanges.subscribe(() => {
+            if (this.isAutoFilling) return; // Protect against auto-fill changes
             console.log('Cambio de tipo de documento detectado: Limpiando formulario...');
 
             // 1. Limpiar campos del Paso 0 (Identidad)
@@ -237,6 +246,9 @@ export class RegisterComponent implements OnInit {
 
         // Country -> Dept
         this.step1Form.get('country')?.valueChanges.subscribe(countryId => {
+            if (this.isAutoFilling) return;
+            console.log('Country changed (user action), clearing downstream...');
+
             this.departments = [];
             this.provinces = [];
             this.districts = [];
@@ -259,6 +271,9 @@ export class RegisterComponent implements OnInit {
 
         // Department -> Province
         this.step1Form.get('department')?.valueChanges.subscribe(deptId => {
+            if (this.isAutoFilling) return; // Skip if auto-filling
+
+            console.log('Department changed (user action), clearing downstream...');
             this.provinces = [];
             this.districts = [];
             this.step1Form.patchValue({ province: '', district: '' }, { emitEvent: false });
@@ -270,6 +285,9 @@ export class RegisterComponent implements OnInit {
 
         // Province -> District
         this.step1Form.get('province')?.valueChanges.subscribe(provId => {
+            if (this.isAutoFilling) return; // Skip if auto-filling
+
+            console.log('Province changed (user action), clearing downstream...');
             this.districts = [];
             this.step1Form.patchValue({ district: '' }, { emitEvent: false });
 
@@ -277,6 +295,11 @@ export class RegisterComponent implements OnInit {
                 this.ubigeoService.getDistricts(provId).subscribe(data => this.districts = data);
             }
         });
+    }
+
+    get isDniSelected(): boolean {
+        const type = this.step0Form.get('documentType')?.value;
+        return type && type.startsWith('DNI');
     }
 
     get isForeignDocument(): boolean {
@@ -295,7 +318,7 @@ export class RegisterComponent implements OnInit {
 
     get documentNumberPlaceholder(): string {
         const type = this.step0Form.get('documentType')?.value;
-        if (type === 'DNI') return 'ej. 12345678';
+        if (type && type.startsWith('DNI')) return 'ej. 12345678';
         if (type === 'Carnet de Extranjería' || type === 'CARNET EXT') return 'ej. 000012345';
         if (type === 'Pasaporte' || type === 'PASAPORTE' || type === 'PAS') return 'ej. A1234567';
         return 'ej. 123456789';
@@ -303,7 +326,7 @@ export class RegisterComponent implements OnInit {
 
     get documentMaxLength(): number {
         const type = this.step0Form.get('documentType')?.value;
-        if (type === 'DNI') return 8;
+        if (type && type.startsWith('DNI')) return 8;
         return 12; // Max for CE (12) and Passport (12)
     }
 
@@ -312,7 +335,7 @@ export class RegisterComponent implements OnInit {
         const input = event.target;
         let value = input.value;
 
-        if (type === 'DNI') {
+        if (type && type.startsWith('DNI')) {
             // Remove non-numeric characters for DNI
             value = value.replace(/[^0-9]/g, '');
         }
@@ -336,7 +359,8 @@ export class RegisterComponent implements OnInit {
         const dniFileCtrl = this.step1Form.get('dniFile');
 
         const countryId = countryCtrl?.value;
-        const selectedCountry = this.countries.find(c => c.id === countryId);
+        // Use loose equality to handle string/number mismatch
+        const selectedCountry = this.countries.find(c => c.id == countryId);
         const isPeru = selectedCountry && (selectedCountry.nombre.toUpperCase() === 'PERU' || selectedCountry.nombre.toUpperCase() === 'PERÚ');
 
         if (isPeru) {
@@ -347,9 +371,13 @@ export class RegisterComponent implements OnInit {
             deptCtrl?.clearValidators();
             provCtrl?.clearValidators();
             distCtrl?.clearValidators();
-            deptCtrl?.setValue('');
-            provCtrl?.setValue('');
-            distCtrl?.setValue('');
+
+            // Only clear values if NOT auto-filling
+            if (!this.isAutoFilling) {
+                deptCtrl?.setValue('');
+                provCtrl?.setValue('');
+                distCtrl?.setValue('');
+            }
         }
 
         deptCtrl?.updateValueAndValidity();
@@ -413,8 +441,8 @@ export class RegisterComponent implements OnInit {
         if (this.step0Form.valid) {
             const documentType = this.step0Form.get('documentType')?.value;
 
-            // If DNI, validate with RENIEC only if service is available
-            if (documentType === 'DNI' && this.reniecServiceAvailable) {
+            // If DNI (starts with DNI), validate with RENIEC only if service is available
+            if (this.isDniSelected && this.reniecServiceAvailable) {
                 console.log('Intentando validar con RENIEC...');
                 this.validateWithReniec();
             } else {
@@ -449,69 +477,174 @@ export class RegisterComponent implements OnInit {
     }
 
     private handleReniecResponse(response: any) {
-        setTimeout(() => {
-            if (response && typeof response.validado === 'boolean') {
-                if (response.validado) {
-                    this.handleReniecSuccess(response);
-                } else {
-                    this.reniecValidating = false;
-                    this.handleReniecFailure();
-                }
+        console.log('RENIEC Response received:', response);
+        if (response && typeof response.validado === 'boolean') {
+            if (response.validado) {
+                this.handleReniecSuccess(response);
             } else {
+                console.log('Validado is false, calling failure handler');
                 this.reniecValidating = false;
-                this.handleUnexpectedResponse(response?.validado);
+                this.handleReniecFailure();
             }
-            this.cdr.detectChanges();
-        }, 0);
+        } else {
+            console.log('Unexpected response format');
+            this.reniecValidating = false;
+            this.handleUnexpectedResponse(response?.validado);
+        }
+        this.cdr.detectChanges();
     }
 
     private autoFillUbigeo(ids: any) {
         if (!ids) return;
-        console.log('Autorellenando Ubigeo (IDs):', ids);
+        console.log('Autorellenando Ubigeo (Debug Logic):', ids);
 
-        if (ids.paisId) {
-            this.step1Form.patchValue({ country: ids.paisId }, { emitEvent: false });
+        const countryId = ids.paisId ? Number(ids.paisId) : null;
+        const deptId = ids.departamentoId ? Number(ids.departamentoId) : null;
+        const provId = ids.provinciaId ? Number(ids.provinciaId) : null;
+        const distId = ids.distritoId ? Number(ids.distritoId) : null;
 
-            // Manually load departments cascade
-            this.ubigeoService.getDepartments(ids.paisId).subscribe(depts => {
-                this.departments = depts;
-                this.cdr.detectChanges();
+        console.log(`Parsed IDs - Country: ${countryId}, Dept: ${deptId}, Prov: ${provId}, Dist: ${distId}`);
 
-                if (ids.departamentoId) {
-                    setTimeout(() => {
-                        this.step1Form.patchValue({ department: ids.departamentoId }, { emitEvent: false });
+        if (!countryId) return;
 
-                        this.ubigeoService.getProvinces(ids.departamentoId).subscribe(provs => {
-                            this.provinces = provs;
-                            this.cdr.detectChanges();
+        this.isAutoFilling = true;
+        this.step1Form.patchValue({ country: countryId }, { emitEvent: false });
 
-                            if (ids.provinciaId) {
-                                // Aumentamos timeout a 300ms para asegurar renderizado de lista grande de provincias
-                                setTimeout(() => {
-                                    console.log('Setting province to:', ids.provinciaId);
-                                    this.step1Form.patchValue({ province: ids.provinciaId }, { emitEvent: false });
+        let activeRequests = 0;
+        const checkDone = () => {
+            if (activeRequests === 0) {
+                console.log('All Ubigeo requests done. Extending auto-fill state by 2s...');
+                setTimeout(() => {
+                    console.log('Releasing isAutoFilling state.');
+                    this.isAutoFilling = false;
+                    this.cdr.detectChanges();
+                }, 2000);
+            }
+        };
 
-                                    this.ubigeoService.getDistricts(ids.provinciaId).subscribe(dists => {
-                                        this.districts = dists;
-                                        this.cdr.detectChanges();
+        // 1. Departments
+        this.departments = [{ id: -1, nombre: 'Cargando...' }];
+        activeRequests++;
+        console.log(`Fetching departments for Country ID: ${countryId}`);
 
-                                        if (ids.distritoId) {
-                                            setTimeout(() => {
-                                                console.log('Setting district to:', ids.distritoId);
-                                                this.step1Form.patchValue({ district: ids.distritoId }, { emitEvent: false });
-                                                this.cdr.detectChanges();
-                                            }, 150);
-                                        }
-                                    });
-                                }, 300);
-                            }
-                        });
-                    }, 100);
+        this.ubigeoService.getDepartments(countryId).subscribe({
+            next: (data) => this.ngZone.run(() => {
+                this.departments = [...data];
+                if (deptId) {
+                    console.log('Patching Dept:', deptId);
+                    this.safePatch('department', deptId, this.departments);
                 }
+                this.cdr.detectChanges();
+                activeRequests--;
+                checkDone();
+            }),
+            error: (err) => this.ngZone.run(() => {
+                console.error('Error loading depts', err);
+                this.departments = [];
+                activeRequests--;
+                checkDone();
+            })
+        });
+
+        // 2. Provinces
+        if (deptId) {
+            this.provinces = [{ id: -1, nombre: 'Cargando...' }];
+            console.log(`Fetching provinces for Dept ID: ${deptId}`);
+            activeRequests++;
+            this.ubigeoService.getProvinces(deptId).subscribe({
+                next: (data) => this.ngZone.run(() => {
+                    this.provinces = [...data];
+                    if (provId) {
+                        console.log('Patching Prov:', provId);
+                        this.safePatch('province', provId, this.provinces);
+                    }
+                    this.cdr.detectChanges();
+                    activeRequests--;
+                    checkDone();
+                }),
+                error: (err) => this.ngZone.run(() => {
+                    console.error('Error loading provs', err);
+                    this.provinces = [];
+                    activeRequests--;
+                    checkDone();
+                })
             });
+        }
+
+        // 3. Districts
+        if (provId) {
+            this.districts = [{ id: -1, nombre: 'Cargando...' }];
+            console.log(`Fetching districts for Prov ID: ${provId}`);
+            activeRequests++;
+            this.ubigeoService.getDistricts(provId).subscribe({
+                next: (data) => this.ngZone.run(() => {
+                    this.districts = [...data];
+                    if (distId) {
+                        console.log('Patching Dist:', distId);
+                        this.safePatch('district', distId, this.districts);
+                    }
+                    this.cdr.detectChanges();
+                    activeRequests--;
+                    checkDone();
+                }),
+                error: (err) => this.ngZone.run(() => {
+                    console.error('Error loading dists', err);
+                    this.districts = [];
+                    activeRequests--;
+                    checkDone();
+                })
+            });
+        }
+
+        // Initial check in case no requests triggered
+        if (activeRequests === 0) {
+            this.isAutoFilling = false;
         }
     }
 
+    private safePatch(controlName: string, id: number, list: any[]) {
+        // Validation: ensure list and id exist
+        if (!list || list.length === 0) {
+            console.warn(`List for ${controlName} is empty. Cannot patch ${id}.`);
+            return;
+        }
+
+        const found = list.find(item => Number(item.id) === id);
+        if (found) {
+            console.log(`Found ${controlName} ID: ${found.id} (${found.nombre}) in list of ${list.length} items. Scheduling patch...`);
+
+            const patchFn = () => {
+                const control = this.step1Form.get(controlName);
+                if (control) {
+                    // Try setValue to be specific
+                    control.setValue(found.id, { emitEvent: false });
+                    control.updateValueAndValidity({ emitEvent: false }); // Ensure validity updates
+                    this.cdr.detectChanges();
+                    console.log(`Patched ${controlName} with value: ${found.id}`);
+                }
+            };
+
+            // Double Patch Strategy to handle UI rendering lag
+            // Attempt 1: 100ms
+            setTimeout(patchFn, 100);
+
+            // Attempt 2: 500ms (Force consistency check)
+            setTimeout(() => {
+                const control = this.step1Form.get(controlName);
+                if (control && control.value !== found.id) {
+                    console.warn(`Retry patching ${controlName}...`);
+                    patchFn();
+                }
+            }, 500);
+
+        } else {
+            console.warn(`ID ${id} not found in list of ${list.length} items for ${controlName}`);
+            // Log first few items to see what's wrong
+            if (list.length > 0) {
+                console.log('Sample items:', list.slice(0, 3));
+            }
+        }
+    }
     private handleReniecSuccess(response?: any) {
         console.log('--- handleReniecSuccess ---');
         // 1. Detener spinner INMEDIATAMENTE para evitar bloqueos visuales
@@ -614,18 +747,15 @@ export class RegisterComponent implements OnInit {
     private handleReniecError(error: any) {
         console.error('RENIEC validation error:', error);
 
-        // Usar setTimeout para evitar ExpressionChangedAfterItHasBeenCheckedError
-        setTimeout(() => {
-            this.reniecValidating = false;
-            this.reniecServiceAvailable = false;
-            this.reniecValidated = false;
+        this.reniecValidating = false;
+        this.reniecServiceAvailable = false;
+        this.reniecValidated = false;
 
-            // Mostrar mensaje en línea (recuadro rojo) en lugar de popup
-            this.reniecError = 'El servicio de validación de RENIEC no está disponible en este momento. Podrás continuar con el registro, pero deberás subir una foto de tu DNI en el siguiente paso.';
+        // Mostrar mensaje en línea (recuadro rojo) en lugar de popup
+        this.reniecError = 'El servicio de validación de RENIEC no está disponible en este momento. Podrás continuar con el registro, pero deberás subir una foto de tu DNI en el siguiente paso.';
 
-            // Forzar actualización de la vista INMEDIATAMENTE
-            this.cdr.detectChanges();
-        }, 0);
+        // Forzar actualización de la vista INMEDIATAMENTE
+        this.cdr.detectChanges();
     }
 
     proceedToNextStep() {
@@ -633,14 +763,16 @@ export class RegisterComponent implements OnInit {
 
         try {
             // Si es DNI, SIEMPRE seleccionamos Perú por defecto, SALVO que RENIEC ya haya rellenado el formulario.
-            const isDni = this.step0Form.get('documentType')?.value === 'DNI';
-
-            if (isDni && !this.reniecValidated) {
+            if (this.isDniSelected && !this.reniecValidated) {
                 this.setPeruAsDefault();
             }
 
             // Aplicar validadores
             this.updateStep1Validators();
+
+            // Configurar restricciones de fecha
+            this.updateDateConstraints();
+
         } catch (error) {
             console.error('Error en configuración previa al siguiente paso:', error);
         }
@@ -648,6 +780,39 @@ export class RegisterComponent implements OnInit {
         // Navegar SIEMPRE, incluso si hubo error arriba
         console.log('Llamando a goToStep(1)');
         this.goToStep(1);
+    }
+
+    private updateDateConstraints() {
+        const typeName = this.step0Form.get('documentType')?.value;
+        const selectedDoc = this.documentTypes.find(d => d.nombre === typeName);
+        const code = selectedDoc?.codigo;
+
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${yyyy}-${mm}-${dd}`;
+
+        // Default: max is today
+        this.birthDateMax = todayStr;
+        this.birthDateMin = null;
+
+        // Check by CODE: DOC004 is DNI (MENOR DE EDAD)
+        if (code === 'DOC004') {
+            // Minor: Must be < 18 years old.
+            // Born AFTER (Today - 18 years).
+            const minYear = yyyy - 18;
+
+            const limitDate = new Date(today);
+            limitDate.setFullYear(today.getFullYear() - 18);
+            limitDate.setDate(limitDate.getDate() + 1);
+
+            const minY = limitDate.getFullYear();
+            const minM = String(limitDate.getMonth() + 1).padStart(2, '0');
+            const minD = String(limitDate.getDate()).padStart(2, '0');
+
+            this.birthDateMin = `${minY}-${minM}-${minD}`;
+        }
     }
 
     setPeruAsDefault() {

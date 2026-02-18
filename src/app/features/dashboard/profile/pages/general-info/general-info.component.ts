@@ -43,7 +43,7 @@ export class GeneralInfoComponent implements OnInit {
     ) {
         this.personalForm = this.fb.group({
             fotoUrl: [''],
-            summary: ['', Validators.required],
+            summary: ['', [Validators.required, Validators.maxLength(5000)]],
             fechaNacimiento: ['', Validators.required],
             sexo: ['', Validators.required],
             telefono: ['', Validators.required],
@@ -290,6 +290,19 @@ export class GeneralInfoComponent implements OnInit {
         }
     }
 
+    deletePhoto() {
+        this.photoPreview = null;
+        this.personalForm.patchValue({ fotoUrl: null });
+        this.personalForm.markAsDirty();
+    }
+
+    get initials(): string {
+        if (!this.currentUserData) return '';
+        const first = this.currentUserData.nombres ? this.currentUserData.nombres.charAt(0) : '';
+        const last = this.currentUserData.apellidoPaterno ? this.currentUserData.apellidoPaterno.charAt(0) : '';
+        return (first + last).toUpperCase();
+    }
+
     savingSource: string | null = null;
 
     saveProfile(source: 'general' | 'location') {
@@ -360,7 +373,7 @@ export class GeneralInfoComponent implements OnInit {
                 payload.celular = formValue.celular || '';
                 payload.webPersonal = formValue.webPersonal || '';
                 payload.fechaNacimiento = formValue.fechaNacimiento; // Ya viene en YYYY-MM-DD del input date
-                payload.fotoToken = formValue.fotoUrl || baseData.fotoToken || '';
+                payload.fotoToken = formValue.fotoUrl || null;
 
                 // Manejo de Sexo: Buscar el código si es un ID numérico
                 const selectedSexId = Number(formValue.sexo);

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActionButtonsComponent } from '../action-buttons/action-buttons.component';
 
@@ -18,6 +18,8 @@ export class FileUploaderComponent {
     @Output() errorChange = new EventEmitter<boolean>();
 
     errorMessage: string | null = null;
+
+    constructor(private cd: ChangeDetectorRef) { }
 
     onFileSelected(event: any) {
         const file: File = event.target.files[0];
@@ -61,5 +63,6 @@ export class FileUploaderComponent {
     private updateFiles(files: any[]) {
         this.files = files;
         this.filesChange.emit(this.files);
+        this.cd.detectChanges();
     }
 }

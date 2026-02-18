@@ -394,11 +394,76 @@ export class WorkExperienceComponent implements OnInit {
     }
 
     private setupWorkValidators() {
-        // startDate is now required by default in the group definition
+        const isCurrentControl = this.workForm.get('isCurrent');
+        const endDateControl = this.workForm.get('endDate');
+
+        // Dynamic validator for End Date based on Is Current
+        isCurrentControl?.valueChanges.subscribe(isCurrent => {
+            if (isCurrent) {
+                endDateControl?.clearValidators();
+                // Clear any existing errors
+                endDateControl?.setErrors(null);
+                endDateControl?.disable();
+                endDateControl?.setValue(null);
+            } else {
+                endDateControl?.setValidators([Validators.required]);
+                endDateControl?.enable();
+            }
+            endDateControl?.updateValueAndValidity();
+        });
+
+        // Cross-field validation: Start Date vs End Date
+        this.workForm.valueChanges.subscribe(val => {
+            if (val.startDate && val.endDate) {
+                // String comparison works for YYYY-MM-DD
+                if (val.startDate > val.endDate) {
+                    const currentErrors = endDateControl?.errors || {};
+                    endDateControl?.setErrors({ ...currentErrors, dateRange: true });
+                } else {
+                    if (endDateControl?.hasError('dateRange')) {
+                        const currentErrors = { ...endDateControl?.errors };
+                        delete currentErrors['dateRange'];
+                        endDateControl?.setErrors(Object.keys(currentErrors).length > 0 ? currentErrors : null);
+                    }
+                }
+            }
+        });
     }
 
     private setupDocentValidators() {
-        // startDate is now required by default in the group definition
+        const currentlyTeachingControl = this.docentForm.get('currentlyTeaching');
+        const endDateControl = this.docentForm.get('endDate');
+
+        // Dynamic validator for End Date based on Currently Teaching
+        currentlyTeachingControl?.valueChanges.subscribe(isTeaching => {
+            if (isTeaching) {
+                endDateControl?.clearValidators();
+                endDateControl?.setErrors(null);
+                endDateControl?.disable();
+                endDateControl?.setValue(null);
+            } else {
+                endDateControl?.setValidators([Validators.required]);
+                endDateControl?.enable();
+            }
+            endDateControl?.updateValueAndValidity();
+        });
+
+        // Cross-field validation: Start Date vs End Date
+        this.docentForm.valueChanges.subscribe(val => {
+            if (val.startDate && val.endDate) {
+                // String comparison works for YYYY-MM-DD
+                if (val.startDate > val.endDate) {
+                    const currentErrors = endDateControl?.errors || {};
+                    endDateControl?.setErrors({ ...currentErrors, dateRange: true });
+                } else {
+                    if (endDateControl?.hasError('dateRange')) {
+                        const currentErrors = { ...endDateControl?.errors };
+                        delete currentErrors['dateRange'];
+                        endDateControl?.setErrors(Object.keys(currentErrors).length > 0 ? currentErrors : null);
+                    }
+                }
+            }
+        });
     }
 
     selectInstitution(institution: any) {
@@ -511,9 +576,15 @@ export class WorkExperienceComponent implements OnInit {
                 if (target === 'docent') this.docentFiles = mappedFiles;
                 if (target === 'project') this.projectFiles = mappedFiles;
 
+                if (target === 'docent') this.docentFiles = mappedFiles;
+                if (target === 'project') this.projectFiles = mappedFiles;
+
                 this.cd.detectChanges();
             },
-            error: (err) => console.error('Error loading files', err)
+            error: (err) => {
+                console.error('Error loading files', err);
+                this.cd.detectChanges();
+            }
         });
     }
 
@@ -572,6 +643,15 @@ export class WorkExperienceComponent implements OnInit {
             roleIdi: role ? role.codigo : item.roleIdi || ''
         }, { emitEvent: false });
 
+        // Manually update disabled state for edit mode
+        const endDateControl = this.workForm.get('endDate');
+        if (item.current) {
+            endDateControl?.disable();
+            endDateControl?.setValue(null); // Clear value if current
+        } else {
+            endDateControl?.enable();
+        }
+
         if (this.currentWorkId) {
             this.loadFiles(this.currentWorkId, 'EXPLAB', 'EXPL02', 'work');
         }
@@ -598,7 +678,7 @@ export class WorkExperienceComponent implements OnInit {
         const isEditing = workId !== null && !isNaN(workId);
 
         // Date Range Validation
-        if (val.startDate && val.endDate && new Date(val.startDate) > new Date(val.endDate)) {
+        if (val.startDate && val.endDate && val.startDate > val.endDate) {
             this.alertService.error('Error', 'La fecha de inicio no puede ser mayor a la fecha de fin.');
             return;
         }
@@ -609,7 +689,7 @@ export class WorkExperienceComponent implements OnInit {
             cargo: val.position,
             descripcion: val.description || '',
             fechaInicio: val.startDate || null,
-            fechaFin: val.endDate || null,
+            fechaFin: val.isCurrent ? null : (val.endDate || null),
             nombreInstitucion: val.institution,
             rolIDi: val.roleIdi,
             rucInstitucion: this.selectedWorkInstitutionRuc || '',
@@ -920,7 +1000,16 @@ export class WorkExperienceComponent implements OnInit {
             endDate: item.endDate,
             currentlyTeaching: item.currentlyTeaching,
             courses: item.courses
-        }, { emitEvent: false }); // Also add emitEvent:false here for consistency!
+        }, { emitEvent: false });
+
+        // Manually update disabled state for edit mode
+        const docentEndDateControl = this.docentForm.get('endDate');
+        if (item.currentlyTeaching) {
+            docentEndDateControl?.disable();
+            docentEndDateControl?.setValue(null); // Clear value if current
+        } else {
+            docentEndDateControl?.enable();
+        }
 
         if (this.currentDocentId) {
             this.loadFiles(this.currentDocentId, 'EXPLAB', 'EXPL03', 'docent');
@@ -945,8 +1034,8 @@ export class WorkExperienceComponent implements OnInit {
         const docentId = (this.currentDocentId !== null && this.currentDocentId !== undefined) ? Number(this.currentDocentId) : null;
         const isEditing = docentId !== null && !isNaN(docentId);
 
-        // Date Range Validation
-        if (val.startDate && val.endDate && new Date(val.startDate) > new Date(val.endDate)) {
+        // Date Range Validation (Robust string comparison)
+        if (val.startDate && val.endDate && val.startDate > val.endDate) {
             this.alertService.error('Error', 'La fecha de inicio no puede ser mayor a la fecha de fin.');
             return;
         }
@@ -955,7 +1044,7 @@ export class WorkExperienceComponent implements OnInit {
             investigadorId: currentUser.id,
             actualmenteDicta: val.currentlyTeaching,
             cursosDictados: val.courses || '',
-            fechaFin: val.endDate || null,
+            fechaFin: val.currentlyTeaching ? null : (val.endDate || null),
             fechaInicio: val.startDate || null,
             nombreInstitucion: val.institution,
             rucInstitucion: this.selectedDocentInstitutionRuc || '',

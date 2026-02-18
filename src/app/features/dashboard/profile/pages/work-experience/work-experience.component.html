@@ -275,12 +275,19 @@
         <div class="form-row two-col">
             <div class="form-group">
                 <label>Fecha de inicio <span>*</span></label>
-                <input type="date" formControlName="startDate" class="form-input">
+                <input type="date" formControlName="startDate" class="form-input"
+                    [max]="workForm.get('endDate')?.value">
             </div>
             <div class="form-group">
                 <label>Fecha de Fin</label>
                 <input type="date" formControlName="endDate" class="form-input"
-                    [disabled]="workForm.get('isCurrent')?.value">
+                    [min]="workForm.get('startDate')?.value">
+                <div *ngIf="workForm.get('endDate')?.invalid && workForm.get('endDate')?.touched" class="error-msg">
+                    <small *ngIf="workForm.get('endDate')?.hasError('required')" class="text-danger">Fecha
+                        obligatoria</small>
+                    <small *ngIf="workForm.get('endDate')?.hasError('dateRange')" class="text-danger">La fecha fin no
+                        puede ser menor a fecha inicio</small>
+                </div>
             </div>
         </div>
 
@@ -364,12 +371,19 @@
         <div class="form-row two-col">
             <div class="form-group">
                 <label class="form-label">Fecha de inicio <span>*</span></label>
-                <input type="date" formControlName="startDate" class="form-input" placeholder="DD/MM/AAAA">
+                <input type="date" formControlName="startDate" class="form-input" placeholder="DD/MM/AAAA"
+                    [max]="docentForm.get('endDate')?.value">
             </div>
             <div class="form-group">
                 <label class="form-label">Fecha de Fin</label>
                 <input type="date" formControlName="endDate" class="form-input" placeholder="DD/MM/AAAA"
-                    [disabled]="docentForm.get('currentlyTeaching')?.value">
+                    [min]="docentForm.get('startDate')?.value">
+                <div *ngIf="docentForm.get('endDate')?.invalid && docentForm.get('endDate')?.touched" class="error-msg">
+                    <small *ngIf="docentForm.get('endDate')?.hasError('required')" class="text-danger">Fecha
+                        obligatoria</small>
+                    <small *ngIf="docentForm.get('endDate')?.hasError('dateRange')" class="text-danger">La fecha fin no
+                        puede ser menor a fecha inicio</small>
+                </div>
             </div>
         </div>
 

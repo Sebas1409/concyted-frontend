@@ -1,68 +1,68 @@
 {
     "/cti-auth-service": {
-        "target": "http://176.52.139.178:8080",
+        "target": "http://176.52.137.31:8080",
         "secure": false,
         "changeOrigin": true,
         "logLevel": "debug",
         "cookieDomainRewrite": "localhost",
         "headers": {
-            "Origin": "http://176.52.139.178:8080",
-            "Referer": "http://176.52.139.178:8080/"
+            "Origin": "http://http://176.52.137.31/:8080",
+            "Referer": "http://176.52.137.31/"
         }
     },
     "/cti-user-service": {
-        "target": "http://176.52.139.178:8080",
+        "target": "http://176.52.137.31:8080",
         "secure": false,
         "changeOrigin": true,
         "logLevel": "debug",
         "cookieDomainRewrite": "localhost",
         "headers": {
-            "Origin": "http://176.52.139.178:8080",
-            "Referer": "http://176.52.139.178:8080/"
+            "Origin": "http://176.52.137.31:8080",
+            "Referer": "http://176.52.137.31:8080/"
         }
     },
     "/cti-management-service": {
-        "target": "http://176.52.139.178:8080",
+        "target": "http://176.52.137.31:8080",
         "secure": false,
         "changeOrigin": true,
         "logLevel": "debug",
         "cookieDomainRewrite": "localhost",
         "headers": {
-            "Origin": "http://176.52.139.178:8080",
-            "Referer": "http://176.52.139.178:8080/"
+            "Origin": "http://176.52.137.31:8080",
+            "Referer": "http://176.52.137.31:8080/"
         }
     },
     "/cti-catalog-service": {
-        "target": "http://176.52.139.178:8080",
+        "target": "http://176.52.137.31:8080",
         "secure": false,
         "changeOrigin": true,
         "logLevel": "debug",
         "cookieDomainRewrite": "localhost",
         "headers": {
-            "Origin": "http://176.52.139.178:8080",
-            "Referer": "http://176.52.139.178:8080/"
+            "Origin": "http://176.52.137.31:8080",
+            "Referer": "http://176.52.137.31:8080/"
         }
     },
     "/cti-file-service": {
-        "target": "http://176.52.139.178:8080",
+        "target": "http://176.52.137.31:8080",
         "secure": false,
         "changeOrigin": true,
         "logLevel": "debug",
         "cookieDomainRewrite": "localhost",
         "headers": {
-            "Origin": "http://176.52.139.178:8080",
-            "Referer": "http://176.52.139.178:8080/"
+            "Origin": "http://176.52.137.31:8080",
+            "Referer": "http://176.52.137.31:8080/"
         }
     },
     "/cti-interop-service": {
-        "target": "http://176.52.139.178:8080",
+        "target": "http://176.52.137.31:8080",
         "secure": false,
         "changeOrigin": true,
         "logLevel": "debug",
         "cookieDomainRewrite": "localhost",
         "headers": {
-            "Origin": "http://176.52.139.178:8080",
-            "Referer": "http://176.52.139.178:8080/"
+            "Origin": "http://176.52.137.31:8080",
+            "Referer": "http://176.52.137.31:8080/"
         }
     }
 }
