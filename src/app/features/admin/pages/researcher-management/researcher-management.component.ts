@@ -441,7 +441,7 @@ export class ResearcherManagementComponent {
         this.currentResearcherProfile = null;
 
         this.accessForm = {
-            username: researcher.id,
+            username: researcher.userId,
             email: researcher.email || '',
             fullName: researcher.name,
             forceChange: false,
@@ -474,19 +474,18 @@ export class ResearcherManagementComponent {
                     const data = res.data || res;
                     if (data) {
                         this.currentResearcherProfile = data;
-                        this.editForm.email = data.email || this.editForm.email;
 
-                        // Format birthDate for type="date" (YYYY-MM-DD)
-                        // Updated to fecNacimiento as per actual API field
-                        const birthDateVal = data.fecNacimiento || data.fechaNacimiento;
-                        if (birthDateVal) {
-                            this.editForm.birthDate = birthDateVal.split('T')[0];
-                        }
 
-                        // Map gender correctly if it comes from profile
-                        if (data.sexo) {
-                            this.editForm.gender = data.sexo;
-                        }
+                        const birthDateVal = data.fechaNacimiento || null;
+
+                        // Reemplazamos el objeto completo para garantizar que
+                        // Angular detecte el cambio (evita problema de mutación)
+                        this.editForm = {
+                            fullName: this.editForm.fullName,
+                            email: data.email || this.editForm.email,
+                            birthDate: birthDateVal ? birthDateVal.split('T')[0] : '',
+                            gender: data.sexo || this.editForm.gender
+                        };
 
                         this.cdr.detectChanges();
                     }

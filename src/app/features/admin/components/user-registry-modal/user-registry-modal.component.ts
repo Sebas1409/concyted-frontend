@@ -40,25 +40,40 @@ import { environment } from '../../../../../environments/environment';
             </div>
 
             <!-- Password fields only for new users using *ngIf="!userData" -->
-            <div class="form-group" *ngIf="!userData">
+            <div class="form-group full-width" *ngIf="!userData">
                  <label>Contraseña *</label>
                  <div class="password-wrapper">
-                    <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="data.password" placeholder="Mínimo 8 caracteres">
+                    <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="data.password"
+                        placeholder="Ingrese su contraseña">
                     <button class="toggle-pass" (click)="showPassword = !showPassword" type="button">
                         <svg *ngIf="!showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                         <svg *ngIf="showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
                     </button>
                  </div>
+                 <div class="password-requirements" *ngIf="data.password">
+                     <p [class.completed]="data.password.length >= 8">Utiliza al menos 8 caracteres para tu contraseña.</p>
+                     <p [class.completed]="hasLowerCase(data.password)">Incluye una letra minúscula (a-z).</p>
+                     <p [class.completed]="hasUpperCase(data.password)">Agrega una letra mayúscula (A-Z).</p>
+                     <p [class.completed]="hasSpecialChar(data.password)">Al menos 1 carácter especial (@, #, $, %, etc.).</p>
+                     <p [class.completed]="hasNumber(data.password)">Incluye un número (0-9).</p>
+                 </div>
             </div>
 
-            <div class="form-group" *ngIf="!userData">
+            <div class="form-group full-width" *ngIf="!userData">
                  <label>Confirmar Contraseña *</label>
                  <div class="password-wrapper">
-                    <input [type]="showConfirmPassword ? 'text' : 'password'" [(ngModel)]="data.confirmPassword" placeholder="Repite la contraseña">
+                    <input
+                        [type]="showConfirmPassword ? 'text' : 'password'"
+                        [(ngModel)]="data.confirmPassword"
+                        placeholder="Repite la contraseña">
                     <button class="toggle-pass" (click)="showConfirmPassword = !showConfirmPassword" type="button">
                          <svg *ngIf="!showConfirmPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                         <svg *ngIf="showConfirmPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
                     </button>
+                 </div>
+                 <div *ngIf="data.confirmPassword && data.password !== data.confirmPassword"
+                     style="color: #DC2626; font-size: 0.8rem; margin-top: 4px;">
+                     Las contraseñas no coinciden.
                  </div>
             </div>
 
@@ -148,6 +163,29 @@ import { environment } from '../../../../../environments/environment';
         }
     }
 
+    .input-error {
+        border-color: #EF4444 !important;
+        &:focus { border-color: #DC2626 !important; }
+    }
+
+    .password-requirements {
+        padding: 4px 0;
+        margin-top: 4px;
+
+        p {
+            margin: 0.25rem 0;
+            font-size: 0.8rem;
+            color: #6B7280;
+            transition: all 0.2s;
+
+            &.completed {
+                text-decoration: line-through;
+                color: #059669;
+                opacity: 0.6;
+            }
+        }
+    }
+
     .checkbox-align {
         justify-content: center; /* Center vertically in the grid cell if needed, or flex-end to align with inputs */
         padding-top: 24px; /* Approximate alignment with label of other fields */
@@ -209,6 +247,12 @@ export class UserRegistryModalComponent implements OnInit {
 
     showPassword = false;
     showConfirmPassword = false;
+
+    // Password strength helpers (mismo patrón que register.component)
+    hasLowerCase(val: string): boolean { return /[a-z]/.test(val); }
+    hasUpperCase(val: string): boolean { return /[A-Z]/.test(val); }
+    hasNumber(val: string): boolean { return /[0-9]/.test(val); }
+    hasSpecialChar(val: string): boolean { return /[!@#$%^&*(),.?":{}|<>]/.test(val); }
 
     ngOnInit() {
         this.loadRoles();
