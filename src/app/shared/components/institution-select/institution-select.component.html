@@ -10,7 +10,7 @@
 
         <input type="text" [formControl]="control" [placeholder]="placeholder"
             class="form-input with-icon w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
-            (blur)="onBlur()" (focus)="onFocus()">
+            [class.is-invalid]="control.invalid && control.touched" (blur)="onBlur()" (focus)="onFocus()">
 
         <div *ngIf="isLoading" class="loading-wrapper">
             <svg class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -27,8 +27,9 @@
             </li>
         </ul>
 
-        <div *ngIf="control.touched && control.invalid" class="text-red-500 text-xs mt-1">
-            Este campo es requerido.
-        </div>
+    </div>
+
+    <div *ngIf="control.touched && control.invalid" class="error-message">
+        Este campo es requerido.
     </div>
 </div>

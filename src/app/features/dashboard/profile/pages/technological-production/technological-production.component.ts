@@ -477,6 +477,7 @@ export class TechnologicalProductionComponent implements OnInit {
                             token: f.token,
                             file: null // It's an existing file
                         }));
+                        this.cdr.markForCheck();
                     },
                     error: (err) => console.error('Error loading IP files', err)
                 });
@@ -648,6 +649,7 @@ export class TechnologicalProductionComponent implements OnInit {
                             token: f.token,
                             file: null
                         }));
+                        this.cdr.markForCheck();
                     },
                     error: (err) => console.error('Error loading Industrial files', err)
                 });
@@ -734,6 +736,7 @@ export class TechnologicalProductionComponent implements OnInit {
                         token: f.token,
                         file: null
                     }));
+                    this.cdr.markForCheck();
                 },
                 error: (err) => console.error('Error loading Transfer files', err)
             });
@@ -913,6 +916,7 @@ export class TechnologicalProductionComponent implements OnInit {
                         type: 'PDF' // Assuming PDF for now, or derive from name/mime
                     }));
                     this.showFileViewer = true;
+                    this.cdr.markForCheck();
                 } else {
                     this.alertService.warning('Aviso', 'No hay archivos adjuntos para este registro.');
                 }

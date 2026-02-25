@@ -21,6 +21,10 @@
         border-color: var(--primary-600, #009ca6);
         box-shadow: 0 0 0 1px var(--primary-600, #009ca6);
     }
+
+    &.is-invalid {
+        border-color: #ef4444 !important;
+    }
 }
 
 .search-icon {
@@ -69,16 +73,12 @@
     }
 }
 
-.text-red-500 {
+.error-message {
     color: #ef4444;
-}
-
-.text-xs {
     font-size: 0.75rem;
-}
-
-.mt-1 {
     margin-top: 0.25rem;
+    font-weight: 500;
+    display: block;
 }
 
 .loading-wrapper {

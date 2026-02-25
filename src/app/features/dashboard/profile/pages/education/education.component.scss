@@ -400,9 +400,24 @@
         border-color: #065F46;
     }
 
+    &.is-invalid {
+        border-color: #EF4444 !important;
+
+        &:focus {
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+        }
+    }
+
     &::placeholder {
         color: #9CA3AF;
     }
+}
+
+.error-message {
+    color: #EF4444;
+    font-size: 0.75rem;
+    margin-top: 0.2rem;
+    font-weight: 500;
 }
 
 /* File Upload Section */
@@ -501,6 +516,12 @@
 
     &:hover {
         background-color: #004663;
+    }
+
+    &:disabled {
+        background-color: #9CA3AF;
+        cursor: not-allowed;
+        opacity: 0.7;
     }
 }
 

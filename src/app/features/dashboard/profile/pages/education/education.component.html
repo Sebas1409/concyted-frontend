@@ -21,7 +21,7 @@
                 <span class="plus">+</span> Estudios Tecnico superior en curso
             </button>
             <button class="btn-action btn-outline" (click)="openComplementaryModal()">
-                <span class="plus">+</span> Información complementaria
+                <span class="plus">+</span> Formación complementaria
             </button>
         </div>
     </div>
@@ -85,7 +85,7 @@
                             </td>
                             <td class="actions">
                                 <app-action-buttons (edit)="editEducation(item)"
-                                    (delete)="deleteEducation(i)"></app-action-buttons>
+                                    (delete)="deleteEducation(item.id)"></app-action-buttons>
                             </td>
                         </tr>
                         <tr *ngIf="educationList.length === 0">
@@ -126,7 +126,8 @@
                             <td><a href="javascript:void(0)" class="link-view"
                                     (click)="openFileViewer(item, TECHNICAL_SECTION)">Ver archivos</a></td>
                             <td class="actions">
-                                <app-action-buttons (edit)="editTechnical(item)"></app-action-buttons>
+                                <app-action-buttons (edit)="editTechnical(item)"
+                                    (delete)="deleteTechnical(item.id)"></app-action-buttons>
                             </td>
                         </tr>
                         <tr *ngIf="technicalList.length === 0">
@@ -169,7 +170,8 @@
                             <td><a href="javascript:void(0)" class="link-view"
                                     (click)="openFileViewer(item, IN_PROGRESS_SECTION)">Ver archivos</a></td>
                             <td class="actions">
-                                <app-action-buttons (edit)="editInProgress(item)"></app-action-buttons>
+                                <app-action-buttons (edit)="editInProgress(item)"
+                                    (delete)="deleteInProgress(item.id)"></app-action-buttons>
                             </td>
                         </tr>
                         <tr *ngIf="inProgressList.length === 0">
@@ -217,7 +219,8 @@
                             <td><a href="javascript:void(0)" class="link-view"
                                     (click)="openFileViewer(item, COMPLEMENTARY_SECTION)">Ver archivos</a></td>
                             <td class="actions">
-                                <app-action-buttons (edit)="editComplementary(item)"></app-action-buttons>
+                                <app-action-buttons (edit)="editComplementary(item)"
+                                    (delete)="deleteComplementary(item.id)"></app-action-buttons>
                             </td>
                         </tr>
                         <tr *ngIf="complementaryList.length === 0">
@@ -243,17 +246,27 @@
         <div class="form-row two-col">
             <div class="form-group">
                 <label>Grado Obtenido <span class="required">*</span></label>
-                <select formControlName="academicLevelId" class="form-input">
+                <select formControlName="academicLevelId" class="form-input"
+                    [class.is-invalid]="educationForm.get('academicLevelId')?.invalid && educationForm.get('academicLevelId')?.touched">
                     <option value="">Seleccione</option>
                     <option *ngFor="let item of academicLevels" [value]="item.codigo">{{ item.nombre }}</option>
                 </select>
+                <span class="error-message"
+                    *ngIf="educationForm.get('academicLevelId')?.invalid && educationForm.get('academicLevelId')?.touched">
+                    Este campo es requerido.
+                </span>
             </div>
             <div class="form-group">
                 <label>País <span class="required">*</span></label>
-                <select formControlName="countryId" class="form-input">
+                <select formControlName="countryId" class="form-input"
+                    [class.is-invalid]="educationForm.get('countryId')?.invalid && educationForm.get('countryId')?.touched">
                     <option value="">Seleccione</option>
                     <option *ngFor="let item of countries" [value]="item.id">{{ item.nombre }}</option>
                 </select>
+                <span class="error-message"
+                    *ngIf="educationForm.get('countryId')?.invalid && educationForm.get('countryId')?.touched">
+                    Este campo es requerido.
+                </span>
             </div>
         </div>
 
@@ -261,7 +274,12 @@
         <div class="form-group">
             <label>Nombre del Título o Grado <span class="required">*</span></label>
             <input type="text" formControlName="degreeName" class="form-input"
+                [class.is-invalid]="educationForm.get('degreeName')?.invalid && educationForm.get('degreeName')?.touched"
                 placeholder="Ej. Licenciado en Administración, Magíster en Finanzas...">
+            <span class="error-message"
+                *ngIf="educationForm.get('degreeName')?.invalid && educationForm.get('degreeName')?.touched">
+                Este campo es requerido.
+            </span>
         </div>
 
         <!-- Row 3: Facultad -->
@@ -282,11 +300,21 @@
         <div class="form-row two-col">
             <div class="form-group">
                 <label>Fecha de Inicio <span class="required">*</span></label>
-                <input type="date" formControlName="startDate" class="form-input">
+                <input type="date" formControlName="startDate" class="form-input"
+                    [class.is-invalid]="educationForm.get('startDate')?.invalid && educationForm.get('startDate')?.touched">
+                <span class="error-message"
+                    *ngIf="educationForm.get('startDate')?.invalid && educationForm.get('startDate')?.touched">
+                    Este campo es requerido.
+                </span>
             </div>
             <div class="form-group">
                 <label>Fecha de Fin / Obtención <span class="required">*</span></label>
-                <input type="date" formControlName="endDate" class="form-input">
+                <input type="date" formControlName="endDate" class="form-input"
+                    [class.is-invalid]="educationForm.get('endDate')?.invalid && educationForm.get('endDate')?.touched">
+                <span class="error-message"
+                    *ngIf="educationForm.get('endDate')?.invalid && educationForm.get('endDate')?.touched">
+                    Este campo es requerido.
+                </span>
             </div>
         </div>
 
@@ -295,7 +323,7 @@
 
         <div class="modal-actions">
             <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
-            <button type="submit" class="btn-save" [disabled]="educationForm.invalid">Guardar Grado</button>
+            <button type="submit" class="btn-save">Guardar Grado</button>
         </div>
 
     </form>
@@ -369,18 +397,33 @@
         <div class="form-group">
             <label>Nombre de la Carrera Técnica <span class="required">*</span></label>
             <input type="text" formControlName="careerName" class="form-input"
+                [class.is-invalid]="technicalForm.get('careerName')?.invalid && technicalForm.get('careerName')?.touched"
                 placeholder="Ej. Desarrollo de Software, Diseño Gráfico...">
+            <span class="error-message"
+                *ngIf="technicalForm.get('careerName')?.invalid && technicalForm.get('careerName')?.touched">
+                Este campo es requerido.
+            </span>
         </div>
 
         <!-- Dates -->
         <div class="form-row two-col">
             <div class="form-group">
                 <label>Fecha de Inicio <span class="required">*</span></label>
-                <input type="date" formControlName="startDate" class="form-input">
+                <input type="date" formControlName="startDate" class="form-input"
+                    [class.is-invalid]="technicalForm.get('startDate')?.invalid && technicalForm.get('startDate')?.touched">
+                <span class="error-message"
+                    *ngIf="technicalForm.get('startDate')?.invalid && technicalForm.get('startDate')?.touched">
+                    Este campo es requerido.
+                </span>
             </div>
             <div class="form-group">
                 <label>Fecha de Fin / Egresado <span class="required">*</span></label>
-                <input type="date" formControlName="endDate" class="form-input">
+                <input type="date" formControlName="endDate" class="form-input"
+                    [class.is-invalid]="technicalForm.get('endDate')?.invalid && technicalForm.get('endDate')?.touched">
+                <span class="error-message"
+                    *ngIf="technicalForm.get('endDate')?.invalid && technicalForm.get('endDate')?.touched">
+                    Este campo es requerido.
+                </span>
             </div>
         </div>
 
@@ -389,7 +432,7 @@
 
         <div class="modal-actions">
             <button type="button" class="btn-cancel" (click)="closeTechnicalModal()">Cancelar</button>
-            <button type="submit" class="btn-save" [disabled]="technicalForm.invalid">Guardar Estudio</button>
+            <button type="submit" class="btn-save">Guardar Estudio</button>
         </div>
 
     </form>
@@ -414,14 +457,24 @@
         <div class="form-row two-col">
             <div class="form-group">
                 <label>Tipo de Estudio <span class="required">*</span></label>
-                <select formControlName="studyType" class="form-input">
+                <select formControlName="studyType" class="form-input"
+                    [class.is-invalid]="inProgressForm.get('studyType')?.invalid && inProgressForm.get('studyType')?.touched">
                     <option value="">Seleccione</option>
                     <option *ngFor="let item of academicLevels" [value]="item.codigo">{{ item.nombre }}</option>
                 </select>
+                <span class="error-message"
+                    *ngIf="inProgressForm.get('studyType')?.invalid && inProgressForm.get('studyType')?.touched">
+                    Este campo es requerido.
+                </span>
             </div>
             <div class="form-group">
                 <label>Fecha de Inicio <span class="required">*</span></label>
-                <input type="date" formControlName="startDate" class="form-input">
+                <input type="date" formControlName="startDate" class="form-input"
+                    [class.is-invalid]="inProgressForm.get('startDate')?.invalid && inProgressForm.get('startDate')?.touched">
+                <span class="error-message"
+                    *ngIf="inProgressForm.get('startDate')?.invalid && inProgressForm.get('startDate')?.touched">
+                    Este campo es requerido.
+                </span>
             </div>
         </div>
 
@@ -429,7 +482,12 @@
         <div class="form-group">
             <label>Nombre de la Carrera Técnica <span class="required">*</span></label>
             <input type="text" formControlName="courseName" class="form-input"
+                [class.is-invalid]="inProgressForm.get('courseName')?.invalid && inProgressForm.get('courseName')?.touched"
                 placeholder="Ej. Ingeniería de Sistemas, Marketing Digital...">
+            <span class="error-message"
+                *ngIf="inProgressForm.get('courseName')?.invalid && inProgressForm.get('courseName')?.touched">
+                Este campo es requerido.
+            </span>
         </div>
 
         <!-- File Upload -->
@@ -437,7 +495,7 @@
 
         <div class="modal-actions">
             <button type="button" class="btn-cancel" (click)="closeInProgressModal()">Cancelar</button>
-            <button type="submit" class="btn-save" [disabled]="inProgressForm.invalid">Guardar Estudio</button>
+            <button type="submit" class="btn-save">Guardar Estudio</button>
         </div>
 
     </form>
@@ -462,28 +520,49 @@
         <div class="form-group">
             <label>Nombre del Curso o Programa <span class="required">*</span></label>
             <input type="text" formControlName="courseName" class="form-input"
+                [class.is-invalid]="complementaryForm.get('courseName')?.invalid && complementaryForm.get('courseName')?.touched"
                 placeholder="Ej. Diplomado en Gestión Pública, Curso de Python Avanzado...">
+            <span class="error-message"
+                *ngIf="complementaryForm.get('courseName')?.invalid && complementaryForm.get('courseName')?.touched">
+                Este campo es requerido.
+            </span>
         </div>
 
         <!-- Row: Pais, Unidad, Cantidad -->
         <div class="form-row three-col">
             <div class="form-group">
                 <label>País de Estudios <span class="required">*</span></label>
-                <select formControlName="countryId" class="form-input">
+                <select formControlName="countryId" class="form-input"
+                    [class.is-invalid]="complementaryForm.get('countryId')?.invalid && complementaryForm.get('countryId')?.touched">
                     <option value="">Seleccione</option>
                     <option *ngFor="let item of countries" [value]="item.id">{{ item.nombre }}</option>
                 </select>
+                <span class="error-message"
+                    *ngIf="complementaryForm.get('countryId')?.invalid && complementaryForm.get('countryId')?.touched">
+                    Este campo es requerido.
+                </span>
             </div>
             <div class="form-group">
-                <label>Unidad de Medida <span class="required">*</span></label>
-                <select formControlName="measureUnitId" class="form-input">
+                <label>Frecuencia <span class="required">*</span></label>
+                <select formControlName="measureUnitId" class="form-input"
+                    [class.is-invalid]="complementaryForm.get('measureUnitId')?.invalid && complementaryForm.get('measureUnitId')?.touched">
                     <option value="">Seleccione</option>
                     <option *ngFor="let item of measureUnits" [value]="item.codigo">{{ item.nombre }}</option>
                 </select>
+                <span class="error-message"
+                    *ngIf="complementaryForm.get('measureUnitId')?.invalid && complementaryForm.get('measureUnitId')?.touched">
+                    Este campo es requerido.
+                </span>
             </div>
             <div class="form-group">
                 <label>Cantidad Total <span class="required">*</span></label>
-                <input type="number" formControlName="totalHours" class="form-input" placeholder="Ej. 48">
+                <input type="number" formControlName="totalHours" class="form-input"
+                    [class.is-invalid]="complementaryForm.get('totalHours')?.invalid && complementaryForm.get('totalHours')?.touched"
+                    placeholder="Ej. 48">
+                <span class="error-message"
+                    *ngIf="complementaryForm.get('totalHours')?.invalid && complementaryForm.get('totalHours')?.touched">
+                    Este campo es requerido.
+                </span>
             </div>
         </div>
 
@@ -491,11 +570,21 @@
         <div class="form-row two-col">
             <div class="form-group">
                 <label>Fecha de Inicio <span class="required">*</span></label>
-                <input type="date" formControlName="startDate" class="form-input">
+                <input type="date" formControlName="startDate" class="form-input"
+                    [class.is-invalid]="complementaryForm.get('startDate')?.invalid && complementaryForm.get('startDate')?.touched">
+                <span class="error-message"
+                    *ngIf="complementaryForm.get('startDate')?.invalid && complementaryForm.get('startDate')?.touched">
+                    Este campo es requerido.
+                </span>
             </div>
             <div class="form-group">
                 <label>Fecha de fin <span class="required">*</span></label>
-                <input type="date" formControlName="endDate" class="form-input">
+                <input type="date" formControlName="endDate" class="form-input"
+                    [class.is-invalid]="complementaryForm.get('endDate')?.invalid && complementaryForm.get('endDate')?.touched">
+                <span class="error-message"
+                    *ngIf="complementaryForm.get('endDate')?.invalid && complementaryForm.get('endDate')?.touched">
+                    Este campo es requerido.
+                </span>
             </div>
         </div>
 
@@ -504,7 +593,7 @@
 
         <div class="modal-actions">
             <button type="button" class="btn-cancel" (click)="closeComplementaryModal()">Cancelar</button>
-            <button type="submit" class="btn-save" [disabled]="complementaryForm.invalid">Guardar
+            <button type="submit" class="btn-save">Guardar
                 Capacitación</button>
         </div>
 

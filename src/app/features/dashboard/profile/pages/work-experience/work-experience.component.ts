@@ -1307,7 +1307,5 @@ export class WorkExperienceComponent implements OnInit {
         this.activeTab = tab;
     }
 
-    get totalProjectAmount(): number {
-        return this.projectList.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
-    }
+
 }

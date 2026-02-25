@@ -368,7 +368,10 @@ export class EducationComponent implements OnInit {
         this.educationFiles = [];
         this.fileService.listFilesMetadata(this.INVESTIGATOR_MODULE, this.EDUCATION_CATEGORY, this.ACADEMIC_SECTION, item.id)
             .subscribe({
-                next: (files) => this.educationFiles = files.map(f => ({ name: f.nombre, token: f.token, file: null })),
+                next: (files) => {
+                    this.educationFiles = files.map(f => ({ name: f.nombre, token: f.token, file: null }));
+                    this.cdr.markForCheck();
+                },
                 error: (err: any) => console.error('Error loading files', err)
             });
     }
@@ -484,7 +487,10 @@ export class EducationComponent implements OnInit {
         this.technicalFiles = [];
         this.fileService.listFilesMetadata(this.INVESTIGATOR_MODULE, this.EDUCATION_CATEGORY, this.TECHNICAL_SECTION, item.id)
             .subscribe({
-                next: (files) => this.technicalFiles = files.map(f => ({ name: f.nombre, token: f.token, file: null })),
+                next: (files) => {
+                    this.technicalFiles = files.map(f => ({ name: f.nombre, token: f.token, file: null }));
+                    this.cdr.markForCheck();
+                },
                 error: (err: any) => console.error('Error loading files', err)
             });
     }
@@ -579,7 +585,10 @@ export class EducationComponent implements OnInit {
         this.inProgressFiles = [];
         this.fileService.listFilesMetadata(this.INVESTIGATOR_MODULE, this.EDUCATION_CATEGORY, this.IN_PROGRESS_SECTION, item.id)
             .subscribe({
-                next: (files) => this.inProgressFiles = files.map(f => ({ name: f.nombre, token: f.token, file: null })),
+                next: (files) => {
+                    this.inProgressFiles = files.map(f => ({ name: f.nombre, token: f.token, file: null }));
+                    this.cdr.markForCheck();
+                },
                 error: (err: any) => console.error('Error loading files', err)
             });
     }
@@ -673,7 +682,10 @@ export class EducationComponent implements OnInit {
         this.complementaryFiles = [];
         this.fileService.listFilesMetadata(this.INVESTIGATOR_MODULE, this.EDUCATION_CATEGORY, this.COMPLEMENTARY_SECTION, item.id)
             .subscribe({
-                next: (files) => this.complementaryFiles = files.map(f => ({ name: f.nombre, token: f.token, file: null })),
+                next: (files) => {
+                    this.complementaryFiles = files.map(f => ({ name: f.nombre, token: f.token, file: null }));
+                    this.cdr.markForCheck();
+                },
                 error: (err: any) => console.error('Error loading files', err)
             });
     }
@@ -767,10 +779,12 @@ export class EducationComponent implements OnInit {
                             token: f.token
                         }));
                         this.showFileViewer = true;
+                        this.cdr.markForCheck();
                     },
                     error: () => {
                         this.viewerFiles = [];
                         this.showFileViewer = true;
+                        this.cdr.markForCheck();
                     }
                 });
         }
