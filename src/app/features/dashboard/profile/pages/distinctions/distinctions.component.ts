@@ -16,11 +16,12 @@ import { FileUploaderComponent } from '../../../../../shared/components/file-upl
 import { IntroCardComponent } from '../../../../../shared/components/intro-card/intro-card.component';
 import { forkJoin, Observable, of } from 'rxjs';
 import { FileModule, FileType } from '../../../../../core/constants/file-upload.constants';
+import { DateDisplayPipe } from '../../../../../shared/pipes/date-display.pipe';
 
 @Component({
     selector: 'app-distinctions',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, FileViewerModalComponent, ActionButtonsComponent, FormModalComponent, FileUploaderComponent, IntroCardComponent],
+    imports: [CommonModule, ReactiveFormsModule, FileViewerModalComponent, ActionButtonsComponent, FormModalComponent, FileUploaderComponent, IntroCardComponent, DateDisplayPipe],
     templateUrl: './distinctions.component.html',
     styleUrls: ['./distinctions.component.scss']
 })
@@ -44,6 +45,7 @@ export class DistinctionsComponent implements OnInit {
     // File Viewer
     showFileViewer = false;
     viewerFiles: ViewerFile[] = [];
+    today: string = new Date().toISOString().split('T')[0];
 
     institutionOptions = ['Universidad César Vallejo S.A.C.', 'CONCYTEC', 'SUNEDU'];
     countries: any[] = [];
@@ -70,6 +72,15 @@ export class DistinctionsComponent implements OnInit {
             country: ['', Validators.required],
             date: ['', Validators.required],
             url: ['']
+        });
+        this.setupValidators();
+    }
+
+    private setupValidators() {
+        this.distinctionForm.get('date')?.valueChanges.subscribe(val => {
+            if (val > this.today) {
+                this.distinctionForm.get('date')?.setErrors({ futureDate: true });
+            }
         });
     }
 
@@ -396,41 +407,14 @@ export class DistinctionsComponent implements OnInit {
 
     viewFile(distinction: Distinction) {
         if (!distinction || !distinction.id) return;
-
-        this.fileService.listFilesMetadata(FileModule.INVESTIGATOR, 'DISPRE', '', distinction.id).subscribe({
-            next: (files) => {
-                if (!files || files.length === 0) {
-                    this.alertService.warning('Aviso', 'No hay archivos adjuntos para este registro.');
-                    return;
+        this.fileService.fetchFilesForViewer(FileModule.INVESTIGATOR, 'DISPRE', '', distinction.id)
+            .subscribe(files => {
+                if (files.length > 0) {
+                    this.viewerFiles = files;
+                    this.showFileViewer = true;
+                    this.cdr.detectChanges();
                 }
-
-                this.viewerFiles = files.map((f: any) => {
-                    const displayName = f.nombre || f.fileName || f.name || 'Archivo';
-                    const ext = displayName.split('.').pop()?.toLowerCase() || '';
-                    let type: ViewerFileType = 'PDF';
-
-                    if (['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'].includes(ext)) {
-                        type = 'IMAGE';
-                    } else if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv'].includes(ext)) {
-                        type = 'OFFICE';
-                    }
-
-                    return {
-                        url: '',
-                        token: f.token,
-                        name: displayName,
-                        type: type
-                    };
-                });
-
-                this.showFileViewer = true;
-                this.cdr.detectChanges();
-            },
-            error: (err) => {
-                console.error('Error fetching files for viewer', err);
-                this.alertService.error('Error', 'No se pudieron cargar los archivos.');
-            }
-        });
+            });
     }
 
     onUploaderFilesChange(event: any[]) {

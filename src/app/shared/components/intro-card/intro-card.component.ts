@@ -9,6 +9,6 @@ import { CommonModule } from '@angular/common';
     styleUrls: ['./intro-card.component.scss']
 })
 export class IntroCardComponent {
-    @Input() title: string = '';
+    @Input() cardTitle: string = '';
     @Input() subtitle: string = '';
 }

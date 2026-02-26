@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { AlertService } from './alert.service';
+import { ViewerFile, ViewerFileType } from '../../shared/components/file-viewer-modal/file-viewer-modal.component';
 
 @Injectable({
     providedIn: 'root'
@@ -9,7 +12,38 @@ import { environment } from '../../../environments/environment';
 export class FileService {
     private apiUrl = `${environment.fileServiceUrl}/files`;
 
-    constructor(private http: HttpClient) { }
+    constructor(
+        private http: HttpClient,
+        private alertService: AlertService
+    ) { }
+
+    getFileType(filename: string): ViewerFileType {
+        const ext = filename.split('.').pop()?.toLowerCase();
+        if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(ext || '')) return 'IMAGE';
+        if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv'].includes(ext || '')) return 'OFFICE';
+        return 'PDF';
+    }
+
+    fetchFilesForViewer(module: string, category: string, section: string, parentId: number): Observable<ViewerFile[]> {
+        return this.listFilesMetadata(module, category, section, parentId).pipe(
+            map(files => {
+                if (!files || files.length === 0) {
+                    this.alertService.noFilesFound();
+                    return [];
+                }
+                return files.map(f => ({
+                    token: f.token,
+                    name: f.nombre || f.fileName || f.name,
+                    type: this.getFileType(f.nombre || f.fileName || f.name),
+                    url: ''
+                }));
+            }),
+            catchError(err => {
+                this.alertService.error('Error', 'No se pudieron cargar los archivos.');
+                return throwError(() => err);
+            })
+        );
+    }
 
     uploadFile(file: File, module: string, type: string, category: string = '', section: string = '', isPublic: boolean = false): Observable<any> {
         const formData = new FormData();

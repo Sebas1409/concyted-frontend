@@ -5,6 +5,7 @@ import { ActionButtonsComponent } from '../../../../../shared/components/action-
 import { FormModalComponent } from '../../../../../shared/components/form-modal/form-modal.component';
 import { InstitutionSelectComponent } from '../../../../../shared/components/institution-select/institution-select.component';
 import { IntroCardComponent } from '../../../../../shared/components/intro-card/intro-card.component';
+import { QualificationBadgeComponent } from '../../../../../shared/components/qualification-badge/qualification-badge.component';
 
 import { FileUploaderComponent } from '../../../../../shared/components/file-uploader/file-uploader.component';
 import { FileViewerModalComponent, ViewerFile } from '../../../../../shared/components/file-viewer-modal/file-viewer-modal.component';
@@ -80,7 +81,8 @@ interface WorkExperienceEntry {
         FileUploaderComponent,
         FileViewerModalComponent,
         DateDisplayPipe,
-        IntroCardComponent
+        IntroCardComponent,
+        QualificationBadgeComponent
     ],
     templateUrl: './work-experience.component.html',
     styleUrl: './work-experience.component.scss'
@@ -141,6 +143,7 @@ export class WorkExperienceComponent implements OnInit {
     isLoadingProjectEntities = false;
     selectedProjectEntityCode = '';
     executionYears: number[] = [];
+    today: string = new Date().toISOString().split('T')[0];
 
     constructor(
         private fb: FormBuilder,
@@ -193,6 +196,15 @@ export class WorkExperienceComponent implements OnInit {
             repositoryUrl: ['', Validators.required],
             file: [null]
         });
+        this.setupThesisValidators();
+    }
+
+    private setupThesisValidators() {
+        this.thesisAdvisorForm.get('acceptanceDate')?.valueChanges.subscribe(val => {
+            if (val > this.today) {
+                this.thesisAdvisorForm.get('acceptanceDate')?.setErrors({ futureDate: true });
+            }
+        });
     }
 
     ngOnInit() {
@@ -220,33 +232,14 @@ export class WorkExperienceComponent implements OnInit {
 
     viewFiles(item: any, category: string, section: string) {
         if (!item || !item.id) return;
-
-        this.fileService.listFilesMetadata(FileModule.INVESTIGATOR, category, section, Number(item.id)).subscribe({
-            next: (files) => {
-                if (!files || files.length === 0) {
-                    this.alertService.warning('Aviso', 'No hay archivos adjuntos para este registro.');
-                    return;
+        this.fileService.fetchFilesForViewer(FileModule.INVESTIGATOR, category, section, Number(item.id))
+            .subscribe(files => {
+                if (files.length > 0) {
+                    this.viewerFiles = files;
+                    this.showFileViewer = true;
+                    this.cd.detectChanges();
                 }
-
-                this.viewerFiles = files.map((f: any) => {
-                    const displayName = f.nombre || f.fileName || f.name || 'Archivo';
-                    return {
-                        url: '',
-                        token: f.token,
-                        name: displayName,
-                        type: displayName.toLowerCase().endsWith('.pdf') ? 'PDF' :
-                            (displayName.match(/\.(jpg|jpeg|png|gif)$/i) ? 'IMAGE' : 'OFFICE')
-                    };
-                });
-
-                this.showFileViewer = true;
-                this.cd.detectChanges();
-            },
-            error: (err) => {
-                console.error('Error fetching files for viewer', err);
-                this.alertService.error('Error', 'No se pudieron cargar los archivos.');
-            }
-        });
+            });
     }
 
     closeFileViewer() {
@@ -414,8 +407,23 @@ export class WorkExperienceComponent implements OnInit {
 
         // Cross-field validation: Start Date vs End Date
         this.workForm.valueChanges.subscribe(val => {
+            const startDateControl = this.workForm.get('startDate');
+            const endDateControl = this.workForm.get('endDate');
+
+            // 1. Future Date Validation for Start Date
+            if (val.startDate && val.startDate > this.today) {
+                const currentErrors = startDateControl?.errors || {};
+                startDateControl?.setErrors({ ...currentErrors, futureDate: true });
+            } else {
+                if (startDateControl?.hasError('futureDate')) {
+                    const currentErrors = { ...startDateControl?.errors };
+                    delete currentErrors['futureDate'];
+                    startDateControl?.setErrors(Object.keys(currentErrors).length > 0 ? currentErrors : null);
+                }
+            }
+
+            // 2. Date Range Validation (Start vs End)
             if (val.startDate && val.endDate) {
-                // String comparison works for YYYY-MM-DD
                 if (val.startDate > val.endDate) {
                     const currentErrors = endDateControl?.errors || {};
                     endDateControl?.setErrors({ ...currentErrors, dateRange: true });
@@ -450,6 +458,21 @@ export class WorkExperienceComponent implements OnInit {
 
         // Cross-field validation: Start Date vs End Date
         this.docentForm.valueChanges.subscribe(val => {
+            const startDateControl = this.docentForm.get('startDate');
+            const endDateControl = this.docentForm.get('endDate');
+
+            // 1. Future Date Validation for Start Date
+            if (val.startDate && val.startDate > this.today) {
+                const currentErrors = startDateControl?.errors || {};
+                startDateControl?.setErrors({ ...currentErrors, futureDate: true });
+            } else {
+                if (startDateControl?.hasError('futureDate')) {
+                    const currentErrors = { ...startDateControl?.errors };
+                    delete currentErrors['futureDate'];
+                    startDateControl?.setErrors(Object.keys(currentErrors).length > 0 ? currentErrors : null);
+                }
+            }
+
             if (val.startDate && val.endDate) {
                 // String comparison works for YYYY-MM-DD
                 if (val.startDate > val.endDate) {
@@ -607,6 +630,7 @@ export class WorkExperienceComponent implements OnInit {
             startDate: '',
             endDate: '',
             isCurrent: false,
+            isPrincipal: false,
             description: ''
         });
         this.workFiles = [];

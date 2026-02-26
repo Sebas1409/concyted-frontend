@@ -1,0 +1,35 @@
+<div class="badge-container" [attr.data-tooltip]="tooltipText">
+    <!-- RENACYT ICON -->
+    <svg *ngIf="type === 'renacyt'" width="22" height="22" viewBox="0 0 24 24" fill="none"
+        xmlns="http://www.w3.org/2000/svg">
+        <!-- Clipboard Body -->
+        <path d="M5 6V19.5C5 20.3284 5.67157 21 6.5 21H16.5C17.3284 21 18 20.3284 18 19.5V6H5Z" fill="#A4C639" />
+        <!-- Clipboard Top/Header -->
+        <path d="M5 4.5V6H18V4.5C18 3.67157 17.3284 3 16.5 3H6.5C5.67157 3 5 3.67157 5 4.5Z" fill="#2C5E7A" />
+        <rect x="7" y="3" width="9" height="1.5" rx="0.75" fill="#5D99BB" />
+        <!-- Checkmark -->
+        <path d="M8.5 13.5L10.5 15.5L14.5 11" stroke="white" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+        <!-- Pen Body -->
+        <path d="M20.5 7V17L21.5 20L22.5 17V7H20.5Z" fill="#5D99BB" />
+        <path d="M20.5 7H22.5V6H20.5V7Z" fill="#2C5E7A" />
+    </svg>
+
+    <!-- VINCULATE ICON -->
+    <svg *ngIf="type === 'vinculate'" width="22" height="22" viewBox="0 0 24 24" fill="none"
+        xmlns="http://www.w3.org/2000/svg">
+        <!-- Center point roughly at (12,12) -->
+        <!-- Top Left arrow (Black) -->
+        <path d="M7 7L11 11M11 11V8.5M11 11H8.5" stroke="black" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+        <!-- Top Right arrow (Green) -->
+        <path d="M17 7L13 11M13 11V8.5M13 11H15.5" stroke="#A4C639" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+        <!-- Bottom Left arrow (Light Blue) -->
+        <path d="M7 17L11 13M11 13V15.5M11 13H8.5" stroke="#5D99BB" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+        <!-- Bottom Right arrow (Black) -->
+        <path d="M17 17L13 13M13 13V15.5M13 13H15.5" stroke="black" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+    </svg>
+</div>

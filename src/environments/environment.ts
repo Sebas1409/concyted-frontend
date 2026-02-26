@@ -6,6 +6,7 @@ export const environment = {
     catalogServiceUrl: '/cti-catalog-service/api',
     fileServiceUrl: '/cti-file-service/api',
     reniecApiUrl: '/cti-interop-service/api/reniec/validar',
+    suneduApiUrl: '/cti-interop-service/api/sunedu/grados-titulos',
     landingPublicUrl: '/cti-management-service/public/api',
     baseHref: '/', // En desarrollo, sin contexto
     recaptchaKey: '6LdoGmgsAAAAAP18jOTutHjDI0FflD90lhV_lA0K'

@@ -18,6 +18,7 @@ import { FileService } from '../../../../../core/services/file.service';
 import { FileModule, FileType } from '../../../../../core/constants/file-upload.constants';
 import { forkJoin, Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { DateDisplayPipe } from '../../../../../shared/pipes/date-display.pipe';
 
 interface TechnologicalTransferItem {
     id: number;
@@ -40,7 +41,7 @@ interface TechnologicalTransferItem {
 @Component({
     selector: 'app-technological-production',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, ActionButtonsComponent, FileUploaderComponent, FormModalComponent, IntroCardComponent, FileViewerModalComponent],
+    imports: [CommonModule, ReactiveFormsModule, ActionButtonsComponent, FileUploaderComponent, FormModalComponent, IntroCardComponent, FileViewerModalComponent, DateDisplayPipe],
     templateUrl: './technological-production.component.html',
     styleUrls: ['./technological-production.component.scss']
 })
@@ -98,6 +99,7 @@ export class TechnologicalProductionComponent implements OnInit {
 
     // File Viewer State
     showFileViewer = false;
+    today: string = new Date().toISOString().split('T')[0];
     viewerFiles: ViewerFile[] = [];
 
     // Constants
@@ -160,6 +162,15 @@ export class TechnologicalProductionComponent implements OnInit {
             oecdSubArea: [''],
             role: [''],
             registrationDate: ['']
+        });
+        this.setupValidators();
+    }
+
+    private setupValidators() {
+        this.transferForm.get('registrationDate')?.valueChanges.subscribe(val => {
+            if (val > this.today) {
+                this.transferForm.get('registrationDate')?.setErrors({ futureDate: true });
+            }
         });
     }
 
@@ -906,25 +917,14 @@ export class TechnologicalProductionComponent implements OnInit {
     }
 
     openFileViewer(item: any, section: string) {
-        this.fileService.listFilesMetadata(this.INVESTIGATOR_MODULE, this.PROTEC_CATEGORY, section, item.id).subscribe({
-            next: (files: any[]) => {
-                if (files && files.length > 0) {
-                    this.viewerFiles = files.map(f => ({
-                        url: this.fileService.getFileUrl(f.token),
-                        token: f.token,
-                        name: f.nombre,
-                        type: 'PDF' // Assuming PDF for now, or derive from name/mime
-                    }));
+        if (!item.id) return;
+        this.fileService.fetchFilesForViewer(this.INVESTIGATOR_MODULE, this.PROTEC_CATEGORY, section, item.id)
+            .subscribe(files => {
+                if (files.length > 0) {
+                    this.viewerFiles = files;
                     this.showFileViewer = true;
                     this.cdr.markForCheck();
-                } else {
-                    this.alertService.warning('Aviso', 'No hay archivos adjuntos para este registro.');
                 }
-            },
-            error: (err) => {
-                console.error('Error loading files for viewer', err);
-                this.alertService.error('Error', 'No se pudieron cargar los archivos.');
-            }
-        });
+            });
     }
 }

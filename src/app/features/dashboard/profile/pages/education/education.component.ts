@@ -15,6 +15,7 @@ import { EducationService } from '../../../../../core/services/education.service
 import { FileModule, FileType } from '../../../../../core/constants/file-upload.constants';
 import { forkJoin, Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { DateDisplayPipe } from '../../../../../shared/pipes/date-display.pipe';
 
 interface EducationEntry {
     id: number;
@@ -84,7 +85,8 @@ interface SuneduEntry {
         FormModalComponent,
         InstitutionSelectComponent,
         FileUploaderComponent,
-        FileViewerModalComponent
+        FileViewerModalComponent,
+        DateDisplayPipe
     ],
     templateUrl: './education.component.html',
     styleUrl: './education.component.scss'
@@ -121,6 +123,7 @@ export class EducationComponent implements OnInit {
     viewerFiles: ViewerFile[] = [];
     isEditing = false;
     currentEditId: number | null = null;
+    today: string = new Date().toISOString().split('T')[0];
 
     // Lists
     educationList: EducationEntry[] = [];
@@ -133,10 +136,7 @@ export class EducationComponent implements OnInit {
     academicLevels: any[] = [];
     measureUnits: any[] = [];
 
-    suneduList: SuneduEntry[] = [
-        { id: 1, selected: true, institution: 'Univ. César Vallejo', degree: 'Bachiller en Ingenieria de Sistemas', date: '15/05/2021' },
-        { id: 2, selected: true, institution: 'Univ. César Vallejo', degree: 'Ingeniero de Sistemas', date: '20/12/2022' }
-    ];
+    suneduList: any[] = [];
 
     // User Info
     fullName: string = '';
@@ -190,6 +190,38 @@ export class EducationComponent implements OnInit {
             totalHours: ['', Validators.required],
             startDate: ['', Validators.required],
             endDate: ['', Validators.required],
+        });
+        this.setupValidators();
+    }
+
+    private setupValidators() {
+        // Education Form
+        this.educationForm.get('startDate')?.valueChanges.subscribe(val => {
+            if (val > this.today) this.educationForm.get('startDate')?.setErrors({ futureDate: true });
+        });
+        this.educationForm.get('endDate')?.valueChanges.subscribe(val => {
+            if (val > this.today) this.educationForm.get('endDate')?.setErrors({ futureDate: true });
+        });
+
+        // Technical Form
+        this.technicalForm.get('startDate')?.valueChanges.subscribe(val => {
+            if (val > this.today) this.technicalForm.get('startDate')?.setErrors({ futureDate: true });
+        });
+        this.technicalForm.get('endDate')?.valueChanges.subscribe(val => {
+            if (val > this.today) this.technicalForm.get('endDate')?.setErrors({ futureDate: true });
+        });
+
+        // In Progress Form
+        this.inProgressForm.get('startDate')?.valueChanges.subscribe(val => {
+            if (val > this.today) this.inProgressForm.get('startDate')?.setErrors({ futureDate: true });
+        });
+
+        // Complementary Form
+        this.complementaryForm.get('startDate')?.valueChanges.subscribe(val => {
+            if (val > this.today) this.complementaryForm.get('startDate')?.setErrors({ futureDate: true });
+        });
+        this.complementaryForm.get('endDate')?.valueChanges.subscribe(val => {
+            if (val > this.today) this.complementaryForm.get('endDate')?.setErrors({ futureDate: true });
         });
     }
 
@@ -248,10 +280,10 @@ export class EducationComponent implements OnInit {
                 this.educationList = data.map(item => ({
                     id: item.id,
                     code: item.id.toString(),
-                    isSunedu: item.esSunedu, // NOTE: Check if esSunedu is in response. If not, default false.
-                    institution: item.institucionNombre, // Updated from screenshot schema
-                    degreeType: item.nivelAcademicoNombre, // Updated from screenshot schema
-                    titleName: item.nombreTituloGrado, // Updated from screenshot schema
+                    isSunedu: item.sunedu || false,
+                    institution: item.institucionNombre,
+                    degreeType: item.nivelAcademicoNombre,
+                    titleName: item.nombreTituloGrado,
                     startDate: item.fechaInicio,
                     endDate: item.fechaFin,
                     originalItem: item
@@ -766,35 +798,15 @@ export class EducationComponent implements OnInit {
     }
 
     openFileViewer(item: any, section: string) {
-        const id = item.id;
-        if (id) {
-            this.fileService.listFilesMetadata(this.INVESTIGATOR_MODULE, this.EDUCATION_CATEGORY, section, id)
-                .subscribe({
-                    next: (files) => {
-                        this.viewerFiles = files.map(f => ({
-                            id: 0,
-                            name: f.nombre,
-                            url: '',
-                            type: this.getFileType(f.nombre),
-                            token: f.token
-                        }));
-                        this.showFileViewer = true;
-                        this.cdr.markForCheck();
-                    },
-                    error: () => {
-                        this.viewerFiles = [];
-                        this.showFileViewer = true;
-                        this.cdr.markForCheck();
-                    }
-                });
-        }
-    }
-
-    getFileType(filename: string): ViewerFileType {
-        const ext = filename.split('.').pop()?.toLowerCase();
-        if (ext === 'pdf') return 'PDF';
-        if (['jpg', 'jpeg', 'png'].includes(ext || '')) return 'IMAGE';
-        return 'PDF';
+        if (!item.id) return;
+        this.fileService.fetchFilesForViewer(this.INVESTIGATOR_MODULE, this.EDUCATION_CATEGORY, section, item.id)
+            .subscribe(files => {
+                if (files.length > 0) {
+                    this.viewerFiles = files;
+                    this.showFileViewer = true;
+                    this.cdr.markForCheck();
+                }
+            });
     }
 
     deleteTechnical(id: number | undefined) {
@@ -875,7 +887,63 @@ export class EducationComponent implements OnInit {
 
     // --- Sunedu Import (Mock for now, or use service if available) ---
     openImportModal() {
-        this.showImportModal = true;
+        if (!this.dni) {
+            this.alertService.warning('Advertencia', 'No se encontró el DNI del investigador.');
+            return;
+        }
+
+        this.alertService.loading('Cargando', 'Buscando registros en SUNEDU...');
+        this.educationService.getSuneduDegrees(this.dni).subscribe({
+            next: (data) => {
+                this.alertService.close();
+                if (data && data.gradosTitulos) {
+                    this.suneduList = data.gradosTitulos.map((item: any, index: number) => {
+                        return {
+                            id: index + 1,
+                            selected: true,
+                            institution: item.universidad,
+                            degree: item.tituloProfesional,
+                            startDate: '', // User will fill this
+                            endDate: '',   // User will fill this
+                            paisId: item.paisId,
+                            abreviaturaTitulo: item.abreviaturaTitulo,
+                            originalItem: item
+                        };
+                    });
+                    this.showImportModal = true;
+                    this.cdr.markForCheck();
+                } else {
+                    this.alertService.info('Sin resultados', 'No se encontraron registros en SUNEDU para el DNI proporcionado.');
+                }
+            },
+            error: (err) => {
+                this.alertService.close();
+                console.error('Error fetching SUNEDU degrees', err);
+                this.alertService.error('Error', 'No se pudo conectar con el servicio de SUNEDU.');
+            }
+        });
+    }
+
+    private formatSuneduDateToIso(dateStr: string): string {
+        // Assuming format YYYYMMDD from Swagger image 20260225 -> YYYY-MM-DD
+        if (dateStr && dateStr.length === 8) {
+            const year = dateStr.substring(0, 4);
+            const month = dateStr.substring(4, 6);
+            const day = dateStr.substring(6, 8);
+            return `${year}-${month}-${day}`;
+        }
+        return dateStr;
+    }
+
+    private formatSuneduDate(dateStr: string): string {
+        // Assuming format YYYYMMDD from Swagger image 20260225
+        if (dateStr && dateStr.length === 8) {
+            const year = dateStr.substring(0, 4);
+            const month = dateStr.substring(4, 6);
+            const day = dateStr.substring(6, 8);
+            return `${day}/${month}/${year}`;
+        }
+        return dateStr;
     }
 
     closeImportModal() {
@@ -884,11 +952,96 @@ export class EducationComponent implements OnInit {
 
     importSelected() {
         const selected = this.suneduList.filter(x => x.selected);
-        // Implement backend import logic if API exists for it.
-        // For now, leave as is or basic mock adds to list but list is now driven by backend.
-        // Usually import means "fetch from Sunedu and save to DB".
-        // I will assume for now we just show a message or call a bulk create endpoint if it existed.
-        this.alertService.info('Importar', 'Funcionalidad de importación en desarrollo (conectando con backend).');
-        this.closeImportModal();
+        if (selected.length === 0) {
+            this.alertService.warning('Importar', 'Debe seleccionar al menos un registro.');
+            return;
+        }
+
+        const currentUser = this.authService.getCurrentUser();
+        if (!currentUser?.id) return;
+
+        this.alertService.confirm('Confirmación', `¿Desea importar los ${selected.length} registros seleccionados?`).then(confirmed => {
+            if (confirmed) {
+                this.alertService.loading('Importando', 'Validando instituciones...');
+
+                // Get unique university names to resolve IDs
+                const uniNames = [...new Set(selected.map(x => x.institution))];
+                const searchRequests = uniNames.map(name =>
+                    this.catalogService.searchMasterDetails('UNIVER', name).pipe(
+                        map(results => {
+                            // Try to find exact match or first result
+                            const match = results.find(r => r.nombre.toLowerCase() === name.toLowerCase()) || results[0];
+                            return { name, id: match ? match.codigo : '' };
+                        })
+                    )
+                );
+
+                forkJoin(searchRequests).subscribe({
+                    next: (resolutions) => {
+                        const nameToIdMap = new Map(resolutions.map(r => [r.name, r.id]));
+
+                        const payload = selected.map(item => ({
+                            active: true,
+                            facultad: '',
+                            fechaFin: item.endDate,
+                            fechaInicio: item.startDate || item.endDate,
+                            institucionId: nameToIdMap.get(item.institution) || '',
+                            investigadorId: Number(currentUser.id),
+                            nivelAcademicoId: this.resolveAcademicLevel(item),
+                            nombreTituloGrado: item.degree,
+                            paisId: Number(item.paisId) || 179,
+                            sunedu: true,
+                            tokens: [] as string[]
+                        }));
+
+                        this.alertService.loading('Importando', 'Guardando registros seleccionados...');
+                        this.educationService.createAcademicAll(payload).subscribe({
+                            next: (res) => {
+                                this.alertService.success('Éxito', `Se importaron ${res.success} registros correctamente.`);
+                                this.loadEducation(currentUser.id);
+                                this.closeImportModal();
+                            },
+                            error: (err) => {
+                                this.alertService.close();
+                                console.error('Error importing records', err);
+                                this.alertService.error('Error', 'Ocurrió un error al importar los registros.');
+                            }
+                        });
+                    },
+                    error: (err) => {
+                        this.alertService.close();
+                        console.error('Error resolving institutions', err);
+                        this.alertService.error('Error', 'No se pudieron validar las instituciones.');
+                    }
+                });
+            }
+        });
+    }
+
+    private resolveAcademicLevel(item: any): string {
+        if (!this.academicLevels || this.academicLevels.length === 0) {
+            return this.mapAbreviatura(item.originalItem?.abreviaturaTitulo || '');
+        }
+
+        const degreeName = item.degree.toLowerCase();
+
+        // Priority mapping by keywords found in the degree name from SUNEDU
+        // We look for the level name (e.g., "Bachiller") within the SUNEDU degree name
+        const match = this.academicLevels.find(level => {
+            const levelName = level.nombre.toLowerCase();
+            return degreeName.includes(levelName);
+        });
+
+        if (match) return match.codigo;
+
+        // Fallback to abbreviation mapping if no catalog match found
+        return this.mapAbreviatura(item.originalItem?.abreviaturaTitulo || '');
+    }
+
+    private mapAbreviatura(abreviatura: string): string {
+        // Map SUNEDU abbreviations to our catalog IDs as fallback
+        if (abreviatura === 'GRAD03') return 'BACH';
+        if (abreviatura === 'TITU01') return 'TITU';
+        return abreviatura;
     }
 }

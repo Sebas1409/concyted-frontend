@@ -12,8 +12,14 @@ export class EducationService {
     private technicalUrl = environment.userServiceUrl + '/formacion-tecnica';
     private inProgressUrl = environment.userServiceUrl + '/formacion-academica';
     private complementaryUrl = environment.userServiceUrl + '/formacion-complementaria';
+    private suneduUrl = environment.suneduApiUrl;
 
     constructor(private http: HttpClient) { }
+
+    // --- SUNEDU ---
+    getSuneduDegrees(dni: string): Observable<any> {
+        return this.http.post(`${this.suneduUrl}/${dni}`, {});
+    }
 
     // --- Formación Académica ---
     getAcademicByInvestigator(investigatorId: number): Observable<any[]> {
@@ -22,6 +28,10 @@ export class EducationService {
 
     createAcademic(payload: any): Observable<any> {
         return this.http.post(this.academicUrl, payload);
+    }
+
+    createAcademicAll(payload: any[]): Observable<any> {
+        return this.http.post(`${this.academicUrl}/all`, payload);
     }
 
     updateAcademic(id: number, payload: any): Observable<any> {

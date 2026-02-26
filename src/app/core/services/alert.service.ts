@@ -49,6 +49,17 @@ export class AlertService {
         });
     }
 
+    noFilesFound() {
+        return Swal.fire({
+            title: 'Información',
+            text: 'No se encontraron archivos adjuntos para este registro.',
+            icon: 'info',
+            iconColor: '#005470',
+            confirmButtonColor: '#005470',
+            confirmButtonText: 'Entendido'
+        });
+    }
+
     confirm(title: string, text: string, confirmButtonText: string = 'Sí, continuar'): Promise<boolean> {
         return Swal.fire({
             title: title,

@@ -15,13 +15,51 @@
     margin-bottom: 3rem;
 }
 
-.buttons-row {
+/* Button with badges styling */
+.btn-action.btn-outline {
+    height: 44px;
+    /* Increased height to fit icons nicely */
+    padding: 0 16px;
     display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    border: 1.5px solid #006C8F;
+    color: #006C8F;
+    font-weight: 600;
 
-/* .btn-action styles handled globally by .btn-outline in styles.scss */
+    &:hover {
+        background-color: #006C8F;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 108, 143, 0.2);
+
+        /* Ensure SVG colors adjust if needed (though they have hardcoded colors) */
+        app-qualification-badge {
+            filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
+        }
+    }
+
+    .plus {
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+
+    .badges {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: auto;
+        /* Push badges to the right */
+    }
+
+    /* Force badge size inside button if needed */
+    app-qualification-badge {
+        display: flex;
+        align-items: center;
+    }
+}
 
 /* TABS */
 .tabs-container {

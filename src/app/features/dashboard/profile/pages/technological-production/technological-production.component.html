@@ -2,7 +2,7 @@
 
     <!-- Header / Intro -->
     <!-- Header / Intro -->
-    <app-intro-card title="Producción Tecnológica e Industrial"
+    <app-intro-card cardTitle="Producción Tecnológica e Industrial"
         subtitle="Gestiona tu portafolio de propiedad intelectual, desarrollos industriales y actividades de transferencia tecnológica.">
         <button class="btn-action btn-outline" (click)="openIntellectualModal()">
             <span class="plus">+</span> Propiedad Intelectual
@@ -105,7 +105,7 @@
                             <td>{{ item.productType }}</td>
                             <td>{{ item.participationType }}</td>
                             <td>{{ item.status }}</td>
-                            <td>{{ item.scope | date:'dd/MM/yyyy' }}</td>
+                            <td>{{ item.scope | dateDisplay }}</td>
                             <td>
                                 <span class="link-action" (click)="openFileViewer(item, INDUSTRIAL_SECTION)">Ver
                                     archivos</span>
@@ -158,7 +158,7 @@
                             <td>{{ item.type }}</td>
                             <td>{{ item.trl }}</td>
                             <td>{{ item.role }}</td>
-                            <td>{{ item.date | date:'dd/MM/yyyy' }}</td>
+                            <td>{{ item.date | dateDisplay }}</td>
                             <td>
                                 <span class="link-action" (click)="openFileViewer(item, TRANSFER_SECTION)">Ver
                                     archivos</span>
@@ -444,7 +444,12 @@
             </div>
             <div class="form-group">
                 <label>Fecha de Registro</label>
-                <input type="date" formControlName="registrationDate" class="form-input" placeholder="dd/mm/aaaa">
+                <input type="date" formControlName="registrationDate" class="form-input" placeholder="dd/mm/aaaa"
+                    [max]="today">
+                <div *ngIf="transferForm.get('registrationDate')?.hasError('futureDate') && transferForm.get('registrationDate')?.touched"
+                    class="error-msg">
+                    <small class="text-danger">La fecha no puede ser mayor a hoy</small>
+                </div>
             </div>
         </div>
 

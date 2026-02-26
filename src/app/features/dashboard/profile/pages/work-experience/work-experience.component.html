@@ -1,19 +1,26 @@
 <div class="work-container">
 
     <!-- TOP ACTIONS -->
-    <app-intro-card title="Registrar Nueva Experiencia"
+    <app-intro-card cardTitle="Registrar Nueva Experiencia"
         subtitle="Selecciona una categoría para añadir un nuevo registro a tu hoja de vida.">
         <button class="btn-action btn-outline" (click)="openModal()">
             <span class="plus">+</span> Laboral
+            <div class="badges">
+                <app-qualification-badge type="renacyt"></app-qualification-badge>
+                <app-qualification-badge type="vinculate"></app-qualification-badge>
+            </div>
         </button>
         <button class="btn-action btn-outline" (click)="openDocentModal()">
             <span class="plus">+</span> Docente
+            <app-qualification-badge type="renacyt"></app-qualification-badge>
         </button>
         <button class="btn-action btn-outline" (click)="openThesisAdvisorModal()">
             <span class="plus">+</span> Asesor de tesis
+            <app-qualification-badge type="renacyt"></app-qualification-badge>
         </button>
         <button class="btn-action btn-outline" (click)="openProjectModal()">
             <span class="plus">+</span> Evaluador/Formulador de proyectos
+            <app-qualification-badge type="vinculate"></app-qualification-badge>
         </button>
     </app-intro-card>
 
@@ -53,6 +60,7 @@
                 <table class="custom-table">
                     <thead>
                         <tr>
+                            <th class="w-5 text-center">N°</th>
                             <th class="w-10 text-center">Institución<br>Principal</th>
                             <th class="w-30">Institución</th>
                             <th class="w-20">Cargo</th>
@@ -64,6 +72,7 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let item of workList; let i = index">
+                            <td class="text-center">{{ i + 1 }}</td>
                             <td class="text-center">
                                 <label class="custom-chk">
                                     <input type="checkbox" [checked]="item.isPrincipal" disabled>
@@ -83,7 +92,7 @@
                             </td>
                         </tr>
                         <tr *ngIf="workList.length === 0">
-                            <td colspan="7" class="text-center text-gray-500 py-4">No hay registros de experiencia
+                            <td colspan="8" class="text-center text-gray-500 py-4">No hay registros de experiencia
                                 laboral.</td>
                         </tr>
                     </tbody>
@@ -102,6 +111,7 @@
                 <table class="custom-table">
                     <thead>
                         <tr>
+                            <th class="w-5 text-center">N°</th>
                             <th>Institución</th>
                             <th>Tipo Docente</th>
                             <th>Tipo Institución</th>
@@ -113,6 +123,7 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let item of docentList; let i = index">
+                            <td class="text-center">{{ i + 1 }}</td>
                             <td>{{ item.institution }}</td>
                             <td>{{ item.docentType }}</td>
                             <td>{{ item.institutionType }}</td>
@@ -127,7 +138,7 @@
                             </td>
                         </tr>
                         <tr *ngIf="docentList.length === 0">
-                            <td colspan="7" class="text-center text-gray-500 py-4">No hay registros de experiencia
+                            <td colspan="8" class="text-center text-gray-500 py-4">No hay registros de experiencia
                                 docente.</td>
                         </tr>
                     </tbody>
@@ -146,7 +157,7 @@
                 <table class="custom-table">
                     <thead>
                         <tr>
-                            <th>Código</th>
+                            <th class="w-5 text-center">N°</th>
                             <th>Universidad</th>
                             <th>Tesis</th>
                             <th>Tesista(s)</th>
@@ -158,7 +169,7 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let item of thesisAdvisorList; let i = index">
-                            <td>{{ item.code }}</td>
+                            <td class="text-center">{{ i + 1 }}</td>
                             <td>{{ item.university }}</td>
                             <td>{{ item.thesis }}</td>
                             <td>{{ item.students }}</td>
@@ -175,7 +186,7 @@
                             </td>
                         </tr>
                         <tr *ngIf="thesisAdvisorList.length === 0">
-                            <td colspan="8" class="text-center text-gray-500 py-4">No hay registros de asesoría de
+                            <td colspan="9" class="text-center text-gray-500 py-4">No hay registros de asesoría de
                                 tesis.</td>
                         </tr>
                     </tbody>
@@ -194,7 +205,7 @@
                 <table class="custom-table">
                     <thead>
                         <tr>
-                            <th>Código</th>
+                            <th class="w-5 text-center">N°</th>
                             <th>Año</th>
                             <th>Tipo experiencia</th>
                             <th>Tipo de proyecto</th>
@@ -207,7 +218,7 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let item of projectList; let i = index">
-                            <td>{{ item.code }}</td>
+                            <td class="text-center">{{ i + 1 }}</td>
                             <td>{{ item.executionYear }}</td>
                             <td>{{ item.role }}</td>
                             <td>{{ item.projectType }}</td>
@@ -223,7 +234,7 @@
                             </td>
                         </tr>
                         <tr *ngIf="projectList.length === 0">
-                            <td colspan="9" class="text-center text-gray-500 py-4">No hay registros de proyectos.</td>
+                            <td colspan="10" class="text-center text-gray-500 py-4">No hay registros de proyectos.</td>
                         </tr>
                     </tbody>
 
@@ -270,17 +281,23 @@
             <div class="form-group">
                 <label>Fecha de inicio <span>*</span></label>
                 <input type="date" formControlName="startDate" class="form-input"
-                    [max]="workForm.get('endDate')?.value">
+                    [max]="workForm.get('endDate')?.value || today">
+                <div *ngIf="workForm.get('startDate')?.invalid && workForm.get('startDate')?.touched" class="error-msg">
+                    <small *ngIf="workForm.get('startDate')?.hasError('futureDate')" class="text-danger">La fecha no
+                        puede ser mayor a hoy</small>
+                </div>
             </div>
             <div class="form-group">
                 <label>Fecha de Fin</label>
-                <input type="date" formControlName="endDate" class="form-input"
-                    [min]="workForm.get('startDate')?.value">
+                <input type="date" formControlName="endDate" class="form-input" [min]="workForm.get('startDate')?.value"
+                    [max]="today">
                 <div *ngIf="workForm.get('endDate')?.invalid && workForm.get('endDate')?.touched" class="error-msg">
                     <small *ngIf="workForm.get('endDate')?.hasError('required')" class="text-danger">Fecha
                         obligatoria</small>
                     <small *ngIf="workForm.get('endDate')?.hasError('dateRange')" class="text-danger">La fecha fin no
                         puede ser menor a fecha inicio</small>
+                    <small *ngIf="workForm.get('endDate')?.hasError('futureDate')" class="text-danger">La fecha no puede
+                        ser mayor a hoy</small>
                 </div>
             </div>
         </div>
@@ -366,17 +383,24 @@
             <div class="form-group">
                 <label class="form-label">Fecha de inicio <span>*</span></label>
                 <input type="date" formControlName="startDate" class="form-input" placeholder="DD/MM/AAAA"
-                    [max]="docentForm.get('endDate')?.value">
+                    [max]="docentForm.get('endDate')?.value || today">
+                <div *ngIf="docentForm.get('startDate')?.invalid && docentForm.get('startDate')?.touched"
+                    class="error-msg">
+                    <small *ngIf="docentForm.get('startDate')?.hasError('futureDate')" class="text-danger">La fecha no
+                        puede ser mayor a hoy</small>
+                </div>
             </div>
             <div class="form-group">
                 <label class="form-label">Fecha de Fin</label>
                 <input type="date" formControlName="endDate" class="form-input" placeholder="DD/MM/AAAA"
-                    [min]="docentForm.get('startDate')?.value">
+                    [min]="docentForm.get('startDate')?.value" [max]="today">
                 <div *ngIf="docentForm.get('endDate')?.invalid && docentForm.get('endDate')?.touched" class="error-msg">
                     <small *ngIf="docentForm.get('endDate')?.hasError('required')" class="text-danger">Fecha
                         obligatoria</small>
                     <small *ngIf="docentForm.get('endDate')?.hasError('dateRange')" class="text-danger">La fecha fin no
                         puede ser menor a fecha inicio</small>
+                    <small *ngIf="docentForm.get('endDate')?.hasError('futureDate')" class="text-danger">La fecha no
+                        puede ser mayor a hoy</small>
                 </div>
             </div>
         </div>
@@ -444,7 +468,15 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Fecha de Aceptación / Sustentación <span class="required">*</span></label>
-                <input type="date" formControlName="acceptanceDate" class="form-input" placeholder="DD/MM/AAAA">
+                <input type="date" formControlName="acceptanceDate" class="form-input" placeholder="DD/MM/AAAA"
+                    [max]="today">
+                <div *ngIf="thesisAdvisorForm.get('acceptanceDate')?.invalid && thesisAdvisorForm.get('acceptanceDate')?.touched"
+                    class="error-msg">
+                    <small *ngIf="thesisAdvisorForm.get('acceptanceDate')?.hasError('required')"
+                        class="text-danger">Fecha obligatoria</small>
+                    <small *ngIf="thesisAdvisorForm.get('acceptanceDate')?.hasError('futureDate')"
+                        class="text-danger">La fecha no puede ser mayor a hoy</small>
+                </div>
             </div>
         </div>
 

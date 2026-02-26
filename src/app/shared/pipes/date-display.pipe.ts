@@ -14,16 +14,22 @@ export class DateDisplayPipe implements PipeTransform {
         if (!date) return '';
 
         try {
-            // Check if YYYY-MM-DD
+            let d: Date;
+            // Handle YYYY-MM-DD
             if (date.match(/^\d{4}-\d{2}-\d{2}$/)) {
                 const [year, month, day] = date.split('-').map(Number);
-                const d = new Date(year, month - 1, day);
-                const formatter = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' });
-                const formatted = formatter.format(d);
-                // Capitalize first letter: "diciembre 2024" -> "Diciembre 2024"
-                return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+                d = new Date(year, month - 1, day);
+            } else {
+                // Try parsing as ISO or other format
+                d = new Date(date);
             }
-            return date;
+
+            if (isNaN(d.getTime())) return date;
+
+            const formatter = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' });
+            const formatted = formatter.format(d);
+            // Capitalize first letter: "diciembre 2024" -> "Diciembre 2024"
+            return formatted.charAt(0).toUpperCase() + formatted.slice(1);
         } catch (e) {
             return date;
         }
