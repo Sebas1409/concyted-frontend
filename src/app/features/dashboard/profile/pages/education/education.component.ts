@@ -6,6 +6,7 @@ import { FormModalComponent } from '../../../../../shared/components/form-modal/
 import { InstitutionSelectComponent } from '../../../../../shared/components/institution-select/institution-select.component';
 import { FileUploaderComponent } from '../../../../../shared/components/file-uploader/file-uploader.component';
 import { FileViewerModalComponent, ViewerFile, ViewerFileType } from '../../../../../shared/components/file-viewer-modal/file-viewer-modal.component';
+import { QualificationBadgeComponent } from '../../../../../shared/components/qualification-badge/qualification-badge.component';
 import { FileService } from '../../../../../core/services/file.service';
 import { AuthService } from '../../../../../core/services/auth.service';
 import { UbigeoService } from '../../../../../core/services/ubigeo.service';
@@ -51,6 +52,7 @@ interface InProgressEntry {
     courseName: string;
     studyType: string;
     startDate: string;
+    endDate?: string;
     tokens?: string[];
     originalItem?: any;
 }
@@ -86,7 +88,8 @@ interface SuneduEntry {
         InstitutionSelectComponent,
         FileUploaderComponent,
         FileViewerModalComponent,
-        DateDisplayPipe
+        DateDisplayPipe,
+        QualificationBadgeComponent
     ],
     templateUrl: './education.component.html',
     styleUrl: './education.component.scss'
@@ -179,6 +182,7 @@ export class EducationComponent implements OnInit {
             studyType: ['', Validators.required],
             courseName: ['', Validators.required],
             startDate: ['', Validators.required],
+            endDate: [''],
         });
 
         this.complementaryForm = this.fb.group({
@@ -214,6 +218,9 @@ export class EducationComponent implements OnInit {
         // In Progress Form
         this.inProgressForm.get('startDate')?.valueChanges.subscribe(val => {
             if (val > this.today) this.inProgressForm.get('startDate')?.setErrors({ futureDate: true });
+        });
+        this.inProgressForm.get('endDate')?.valueChanges.subscribe(val => {
+            if (val > this.today) this.inProgressForm.get('endDate')?.setErrors({ futureDate: true });
         });
 
         // Complementary Form

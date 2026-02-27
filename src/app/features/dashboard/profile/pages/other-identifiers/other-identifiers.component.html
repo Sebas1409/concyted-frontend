@@ -42,7 +42,19 @@
                         <span class="logo-text">iD</span>
                     </div>
                     <div class="action-text">
-                        <span class="action-title title-orcid">Crea tu ORCID iD</span>
+                        <span class="action-title title-orcid">
+                            Crea tu ORCID iD
+                            <span class="help-info-icon"
+                                data-tooltip="Al presionar el botón, usted debe iniciar sesión con su cuenta de ORCID.">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
+                            </span>
+                        </span>
                         <span class="action-subtitle">Regístrate en el sitio oficial</span>
                     </div>
                     <div class="arrow">→</div>
@@ -74,12 +86,21 @@
             </div>
             <div class="form-group mb-4">
                 <label class="form-label">Scopus Author ID 🌐</label>
-                <input type="text" class="form-input" placeholder="Ingresa tu ID aquí...">
+                <div class="input-with-icon-group" style="position: relative; display: flex; align-items: center;">
+                    <input type="text" class="form-input" placeholder="Ingresa tu ID aquí..."
+                        style="padding-right: 50px;">
+                    <div class="input-badges"
+                        style="position: absolute; right: 12px; display: flex; align-items: center; pointer-events: none;">
+                        <app-qualification-badge type="renacyt"
+                            style="transform: scale(1.0); pointer-events: auto;"></app-qualification-badge>
+                    </div>
+                </div>
             </div>
             <div class="form-group">
                 <label class="form-label">Índice H 🌐</label>
                 <input type="text" class="form-input" placeholder="Se sincronizará automáticamente" readonly>
-                <div class="field-hint">¿No sabes tu ID? <a href="#" class="link-scopus">Búscalo en Scopus</a></div>
+                <div class="field-hint">¿No sabes tu ID? <a href="https://www.scopus.com/pages/home" target="_blank"
+                        class="link-scopus">Búscalo en Scopus</a></div>
             </div>
         </div>
 

@@ -1,5 +1,6 @@
 .badge-container {
     position: relative;
+    z-index: 100;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -22,7 +23,7 @@
             font-size: 12px;
             font-weight: 500;
             white-space: nowrap;
-            z-index: 1000;
+            z-index: 9999;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             pointer-events: none;
             line-height: 1.4;
@@ -37,7 +38,7 @@
             border-width: 6px 6px 0 6px;
             border-style: solid;
             border-color: rgba(33, 37, 41, 0.95) transparent transparent transparent;
-            z-index: 1000;
+            z-index: 9999;
             pointer-events: none;
         }
     }

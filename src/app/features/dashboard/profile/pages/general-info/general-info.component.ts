@@ -7,11 +7,12 @@ import { AuthService } from '../../../../../core/services/auth.service';
 import { AlertService } from '../../../../../core/services/alert.service';
 import { FileService } from '../../../../../core/services/file.service';
 import { FileModule, FileType } from '../../../../../core/constants/file-upload.constants';
+import { QualificationBadgeComponent } from '../../../../../shared/components/qualification-badge/qualification-badge.component';
 
 @Component({
     selector: 'app-general-info',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, FormsModule],
+    imports: [CommonModule, ReactiveFormsModule, FormsModule, QualificationBadgeComponent],
     templateUrl: './general-info.component.html',
     styleUrl: './general-info.component.scss'
 })
@@ -273,7 +274,8 @@ export class GeneralInfoComponent implements OnInit {
                             this.currentUserData.fotoToken = token;
                         }
 
-                        //this.alertService.success('Foto Subida', 'La fotografía se ha cargado correctamente. Recuerda guardar los cambios.');
+                        // Automatically save the profile to persist the new photo
+                        this.saveProfile('general', true);
                     } else {
                         console.warn('Token not found in response:', res);
                         // Still allow saving in case response structure is weird but upload worked
@@ -291,9 +293,18 @@ export class GeneralInfoComponent implements OnInit {
     }
 
     deletePhoto() {
-        this.photoPreview = null;
-        this.personalForm.patchValue({ fotoUrl: null });
-        this.personalForm.markAsDirty();
+        this.alertService.confirm(
+            'Foto Perfil',
+            '¿Está seguro que desea eliminarlo?',
+            'Sí, eliminar'
+        ).then((confirmed) => {
+            if (confirmed) {
+                this.photoPreview = null;
+                this.personalForm.patchValue({ fotoUrl: null });
+                this.personalForm.markAsDirty();
+                this.saveProfile('general', true);
+            }
+        });
     }
 
     get initials(): string {
@@ -305,7 +316,7 @@ export class GeneralInfoComponent implements OnInit {
 
     savingSource: string | null = null;
 
-    saveProfile(source: 'general' | 'location') {
+    saveProfile(source: 'general' | 'location', isSilent: boolean = false) {
         if (this.savingSource) return;
 
         let formToValidate: FormGroup | null = null;
@@ -318,7 +329,9 @@ export class GeneralInfoComponent implements OnInit {
         }
 
         if (formToValidate && formToValidate.valid && this.currentUserData) {
-            this.savingSource = source;
+            if (!isSilent) {
+                this.savingSource = source;
+            }
             formValue = formToValidate.value;
 
             const baseData = this.currentUserData;
@@ -397,10 +410,12 @@ export class GeneralInfoComponent implements OnInit {
                     this.savingSource = null; // Stop loading
                     console.log('Update successful', res);
 
-                    this.alertService.success(
-                        '¡Actualizado!',
-                        source === 'general' ? 'Datos personales actualizados.' : 'Ubicación actualizada.'
-                    );
+                    if (!isSilent) {
+                        this.alertService.success(
+                            '¡Actualizado!',
+                            source === 'general' ? 'Datos personales actualizados.' : 'Ubicación actualizada.'
+                        );
+                    }
 
                     // Recargar datos
                     this.authService.refreshCurrentUser().subscribe(() => {

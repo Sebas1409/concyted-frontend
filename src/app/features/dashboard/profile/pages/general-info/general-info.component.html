@@ -32,7 +32,7 @@
                                 [disabled]="isUploadingPhoto">
                                 {{ isUploadingPhoto ? 'Subiendo...' : 'Cambiar Fotografía' }}
                             </button>
-                            <button type="button" class="btn-icon-trash" (click)="deletePhoto()">
+                            <button *ngIf="photoPreview" type="button" class="btn-icon-trash" (click)="deletePhoto()">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                     fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round"
                                     stroke-linejoin="round">
@@ -146,8 +146,18 @@
                                 </svg>
                             </span>
                         </label>
-                        <input type="text" class="form-input" formControlName="telefono"
-                            placeholder="Ej. +51 9876543121">
+                        <div class="input-with-icon-group"
+                            style="position: relative; display: flex; align-items: center;">
+                            <input type="text" class="form-input" formControlName="telefono"
+                                placeholder="Ej. +51 9876543121" style="padding-right: 90px;">
+                            <div class="input-badges"
+                                style="position: absolute; right: 12px; display: flex; gap: 8px; align-items: center; pointer-events: none;">
+                                <app-qualification-badge type="renacyt"
+                                    style="transform: scale(1.0); pointer-events: auto;"></app-qualification-badge>
+                                <app-qualification-badge type="vinculate"
+                                    style="transform: scale(1.0); pointer-events: auto;"></app-qualification-badge>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Celular -->
@@ -162,8 +172,18 @@
                                 </svg>
                             </span>
                         </label>
-                        <input type="text" class="form-input" formControlName="celular"
-                            placeholder="Ej. +51 9876543121">
+                        <div class="input-with-icon-group"
+                            style="position: relative; display: flex; align-items: center;">
+                            <input type="text" class="form-input" formControlName="celular"
+                                placeholder="Ej. +51 9876543121" style="padding-right: 90px;">
+                            <div class="input-badges"
+                                style="position: absolute; right: 12px; display: flex; gap: 8px; align-items: center; pointer-events: none;">
+                                <app-qualification-badge type="renacyt"
+                                    style="transform: scale(1.0); pointer-events: auto;"></app-qualification-badge>
+                                <app-qualification-badge type="vinculate"
+                                    style="transform: scale(1.0); pointer-events: auto;"></app-qualification-badge>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -180,8 +200,18 @@
                                 </svg>
                             </span>
                         </label>
-                        <input type="email" class="form-input" formControlName="email" readonly
-                            placeholder="Ej. josephalex@gmail.com">
+                        <div class="input-with-icon-group"
+                            style="position: relative; display: flex; align-items: center;">
+                            <input type="email" class="form-input readonly-field"
+                                [value]="personalForm.get('email')?.value" readonly style="padding-right: 90px;">
+                            <div class="input-badges"
+                                style="position: absolute; right: 12px; display: flex; gap: 8px; align-items: center; pointer-events: none;">
+                                <app-qualification-badge type="renacyt"
+                                    style="transform: scale(1.0); pointer-events: auto;"></app-qualification-badge>
+                                <app-qualification-badge type="vinculate"
+                                    style="transform: scale(1.0); pointer-events: auto;"></app-qualification-badge>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Email Public (Globe) -->

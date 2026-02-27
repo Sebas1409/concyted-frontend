@@ -22,7 +22,10 @@
             <!-- Meta Stats (Right Aligned) -->
             <div class="user-meta-grid">
                 <div class="meta-item">
-                    <label>Ficha Pública CTI</label>
+                    <label>Ficha Pública CTI
+                        <app-qualification-badge type="renacyt"
+                            style="transform: scale(0.65); display: inline-flex; vertical-align: middle;"></app-qualification-badge>
+                    </label>
                     <!-- fichaCti no longer in response, using codigoUnico if available or placeholder -->
                     <a [href]="getPublicProfileUrl(user)" target="_blank" class="link-external"
                         *ngIf="user.codigoUnico; else noFicha">
@@ -34,7 +37,10 @@
                     </ng-template>
                 </div>
                 <div class="meta-item">
-                    <label>Ubicación</label>
+                    <label>Ubicación
+                        <app-qualification-badge type="vinculate"
+                            style="transform: scale(0.65); display: inline-flex; vertical-align: middle;"></app-qualification-badge>
+                    </label>
                     <div class="value">{{ fullLocation$ | async }}</div>
                 </div>
                 <div class="meta-item">

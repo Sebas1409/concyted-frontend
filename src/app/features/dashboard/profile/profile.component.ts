@@ -8,11 +8,12 @@ import { take, switchMap, map } from 'rxjs/operators';
 import { CvExportService } from '../../../core/services/cv-export.service';
 import { AlertService } from '../../../core/services/alert.service';
 import { UbigeoService } from '../../../core/services/ubigeo.service';
+import { QualificationBadgeComponent } from '../../../shared/components/qualification-badge/qualification-badge.component';
 
 @Component({
     selector: 'app-profile-layout',
     standalone: true,
-    imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+    imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, QualificationBadgeComponent],
     templateUrl: './profile.component.html',
     styleUrl: './profile.component.scss'
 })

@@ -31,14 +31,19 @@ export class HeaderComponent {
         }
     }
 
-    getPhotoUrl(): string {
+    getPhotoUrl(): string | null {
         if (this.user && this.user.fotoToken) {
-            // Photos are public by default based on upload config
             return this.fileService.getFileUrl(this.user.fotoToken, true);
         }
-        // Fallback to placeholder
-        const username = this.user ? this.user.username : 'User';
-        return `https://i.pravatar.cc/150?u=${username}`;
+        return null;
+    }
+
+    get initials(): string {
+        if (!this.user) return '';
+        const first = this.user.nombres ? this.user.nombres.charAt(0) : '';
+        const last = this.user.apellidoPaterno ? this.user.apellidoPaterno.charAt(0) : '';
+        if (!first && !last && this.user.username) return this.user.username.charAt(0).toUpperCase();
+        return (first + last).toUpperCase();
     }
 
     logout() {

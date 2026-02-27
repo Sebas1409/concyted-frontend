@@ -15,8 +15,8 @@
         <!-- User Info Dropdown Trigger -->
         <div class="user-profile" *ngIf="user">
             <div class="avatar">
-                <!-- Use actual avatar if available, or placeholder/initials -->
-                <img [src]="getPhotoUrl()" alt="Avatar">
+                <img *ngIf="getPhotoUrl()" [src]="getPhotoUrl()" alt="Avatar">
+                <span *ngIf="!getPhotoUrl()" class="initials">{{ initials }}</span>
             </div>
             <div class="user-info">
                 <!-- Display name if available, otherwise email/username -->

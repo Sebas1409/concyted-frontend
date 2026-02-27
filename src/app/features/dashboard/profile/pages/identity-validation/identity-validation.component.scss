@@ -110,6 +110,64 @@
     justify-content: flex-end;
     /* Right aligned button */
     margin-top: 2.5rem;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Tooltip Styles for Info Icon */
+.help-info-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    color: #3b82f6;
+    /* Blue icon */
+    cursor: help;
+    z-index: 100;
+
+    &::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 150%;
+        right: 0;
+        background-color: #1f2937;
+        color: white;
+        padding: 0.6rem 1rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        white-space: normal;
+        /* Allow text wrapping for longer messages */
+        width: 250px;
+        text-align: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s ease;
+        z-index: 9999;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        line-height: 1.4;
+    }
+
+    &::before {
+        content: '';
+        position: absolute;
+        bottom: 130%;
+        right: 15px;
+        border-width: 6px;
+        border-style: solid;
+        border-color: #1f2937 transparent transparent transparent;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s ease;
+        z-index: 9999;
+    }
+
+    &:hover::after,
+    &:hover::before {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(-5px);
+    }
 }
 
 .btn-save {
@@ -192,10 +250,6 @@
 /* Skeleton Loader */
 .skeleton-loader {
     width: 100%;
-
-    .identity-grid {
-        // Inherits parent grid layout
-    }
 }
 
 .skeleton-text {

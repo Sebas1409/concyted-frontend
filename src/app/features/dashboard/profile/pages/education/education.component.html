@@ -51,7 +51,13 @@
     <!-- Table 1: Formacion academica -->
     <div class="section-container mb-5" *ngIf="activeTab === 'all' || activeTab === 'education'">
         <div class="card-header-simple">
-            <h3 class="section-title">Formación académica <i class="fas fa-graduation-cap ml-2"></i></h3>
+            <div class="title-with-badges">
+                <h3 class="section-title">Formación académica <i class="fas fa-graduation-cap ml-2"></i></h3>
+                <div class="header-badges">
+                    <app-qualification-badge type="renacyt"></app-qualification-badge>
+                    <app-qualification-badge type="vinculate"></app-qualification-badge>
+                </div>
+            </div>
         </div>
         <div class="card table-card">
             <div class="table-responsive">
@@ -65,7 +71,7 @@
                             <th>Fecha inicio</th>
                             <th>Fecha fin</th>
                             <th>Adjuntos</th>
-                            <th>Fuente</th>
+                            <th class="text-center">Fuente</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -100,7 +106,12 @@
     <!-- Table 2: Estudio tecnico superior -->
     <div class="section-container mb-5" *ngIf="activeTab === 'all' || activeTab === 'technical'">
         <div class="card-header-simple">
-            <h3 class="section-title">Estudio técnico superior <i class="fas fa-user-cog ml-2"></i></h3>
+            <div class="title-with-badges">
+                <h3 class="section-title">Estudio técnico superior <i class="fas fa-user-cog ml-2"></i></h3>
+                <div class="header-badges">
+                    <app-qualification-badge type="renacyt"></app-qualification-badge>
+                </div>
+            </div>
         </div>
         <div class="card table-card">
             <div class="table-responsive">
@@ -142,9 +153,14 @@
     <!-- Table 3: Estudios academico/tecnico superior en curso -->
     <div class="section-container mb-5" *ngIf="activeTab === 'all' || activeTab === 'inProgress'">
         <div class="card-header-simple">
-            <h3 class="section-title">Estudios academico/tecnico superior en curso <i
-                    class="fas fa-book-reader ml-2"></i>
-            </h3>
+            <div class="title-with-badges">
+                <h3 class="section-title">Estudios academico/tecnico superior en curso <i
+                        class="fas fa-book-reader ml-2"></i>
+                </h3>
+                <div class="header-badges">
+                    <app-qualification-badge type="renacyt"></app-qualification-badge>
+                </div>
+            </div>
         </div>
         <div class="card table-card">
             <div class="table-responsive">
@@ -156,6 +172,7 @@
                             <th>Carrera</th>
                             <th>Tipo de estudios</th>
                             <th>Fecha inicio</th>
+                            <th>Fecha fin</th>
                             <th>Adjuntos</th>
                             <th>Accciones</th>
                         </tr>
@@ -167,6 +184,7 @@
                             <td>{{ item.courseName }}</td>
                             <td>{{ item.studyType }}</td>
                             <td>{{ item.startDate | dateDisplay }}</td>
+                            <td>{{ item.endDate | dateDisplay }}</td>
                             <td><a href="javascript:void(0)" class="link-view"
                                     (click)="openFileViewer(item, IN_PROGRESS_SECTION)">Ver archivos</a></td>
                             <td class="actions">
@@ -175,7 +193,7 @@
                             </td>
                         </tr>
                         <tr *ngIf="inProgressList.length === 0">
-                            <td colspan="7" class="text-center p-4 text-muted bg-light"
+                            <td colspan="8" class="text-center p-4 text-muted bg-light"
                                 style="color:#6B7280; text-align:center; padding: 2rem;">
                                 No hay registros
                             </td>
@@ -191,7 +209,13 @@
     <!-- Table 4: Formación complementaria -->
     <div class="section-container mb-5" *ngIf="activeTab === 'all' || activeTab === 'complementary'">
         <div class="card-header-simple">
-            <h3 class="section-title">Formación complementaria <i class="fas fa-certificate ml-2"></i></h3>
+            <div class="title-with-badges">
+                <h3 class="section-title">Formación complementaria <i class="fas fa-certificate ml-2"></i></h3>
+                <div class="header-badges">
+                    <app-qualification-badge type="renacyt"></app-qualification-badge>
+                    <app-qualification-badge type="vinculate"></app-qualification-badge>
+                </div>
+            </div>
         </div>
         <div class="card table-card">
             <div class="table-responsive">
@@ -204,6 +228,7 @@
                             <th>Frecuencia</th>
                             <th>Cantidad</th>
                             <th>Fecha inicio</th>
+                            <th>Fecha fin</th>
                             <th>Adjuntos</th>
                             <th>Acciones</th>
                         </tr>
@@ -216,6 +241,7 @@
                             <td>{{ item.measureUnit }}</td>
                             <td>{{ item.totalHours }}</td>
                             <td>{{ item.startDate | dateDisplay }}</td>
+                            <td>{{ item.endDate | dateDisplay }}</td>
                             <td><a href="javascript:void(0)" class="link-view"
                                     (click)="openFileViewer(item, COMPLEMENTARY_SECTION)">Ver archivos</a></td>
                             <td class="actions">
@@ -224,7 +250,7 @@
                             </td>
                         </tr>
                         <tr *ngIf="complementaryList.length === 0">
-                            <td colspan="8" class="text-center p-4 text-muted bg-light"
+                            <td colspan="9" class="text-center p-4 text-muted bg-light"
                                 style="color:#6B7280; text-align:center; padding: 2rem;">
                                 No hay registros
                             </td>
@@ -270,7 +296,14 @@
             </div>
         </div>
 
-        <!-- Row 2: Titulo -->
+        <!-- Row 2: Institucion -->
+        <div class="form-group">
+            <app-institution-select [control]="$any(educationForm.get('institution'))" label="Institución Educativa *"
+                placeholder="Buscar institución..." (selectionChange)="selectEducationInstitution($event)">
+            </app-institution-select>
+        </div>
+
+        <!-- Row 3: Titulo -->
         <div class="form-group">
             <label>Nombre del Título o Grado <span class="required">*</span></label>
             <input type="text" formControlName="degreeName" class="form-input"
@@ -282,18 +315,11 @@
             </span>
         </div>
 
-        <!-- Row 3: Facultad -->
+        <!-- Row 4: Facultad -->
         <div class="form-group">
             <label>Facultad</label>
             <input type="text" formControlName="faculty" class="form-input"
                 placeholder="Ej. Facultad de Ciencias Económicas">
-        </div>
-
-        <!-- Row 4: Institucion -->
-        <div class="form-group">
-            <app-institution-select [control]="$any(educationForm.get('institution'))" label="Institución Educativa *"
-                placeholder="Buscar institución..." (selectionChange)="selectEducationInstitution($event)">
-            </app-institution-select>
         </div>
 
         <!-- Row 5: Dates -->
@@ -491,11 +517,22 @@
                 <label>Fecha de Inicio <span class="required">*</span></label>
                 <input type="date" formControlName="startDate" class="form-input"
                     [class.is-invalid]="inProgressForm.get('startDate')?.invalid && inProgressForm.get('startDate')?.touched"
-                    [max]="today">
+                    [max]="inProgressForm.get('endDate')?.value || today">
                 <span class="error-message"
                     *ngIf="inProgressForm.get('startDate')?.invalid && inProgressForm.get('startDate')?.touched">
                     <span *ngIf="inProgressForm.get('startDate')?.hasError('required')">Este campo es requerido.</span>
                     <span *ngIf="inProgressForm.get('startDate')?.hasError('futureDate')">La fecha no puede ser mayor a
+                        hoy.</span>
+                </span>
+            </div>
+            <div class="form-group">
+                <label>Fecha de Fin</label>
+                <input type="date" formControlName="endDate" class="form-input"
+                    [class.is-invalid]="inProgressForm.get('endDate')?.invalid && inProgressForm.get('endDate')?.touched"
+                    [min]="inProgressForm.get('startDate')?.value">
+                <span class="error-message"
+                    *ngIf="inProgressForm.get('endDate')?.invalid && inProgressForm.get('endDate')?.touched">
+                    <span *ngIf="inProgressForm.get('endDate')?.hasError('futureDate')">La fecha no puede ser mayor a
                         hoy.</span>
                 </span>
             </div>
