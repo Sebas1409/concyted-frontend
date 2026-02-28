@@ -3,6 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IntroCardComponent } from '../../../../shared/components/intro-card/intro-card.component';
 import { FormModalComponent } from '../../../../shared/components/form-modal/form-modal.component';
+import { AlertService } from '../../../../core/services/alert.service';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface Institution {
     id: string; // RUC
@@ -20,8 +24,14 @@ interface Institution {
 })
 export class InstitutionManagementComponent {
     searchTerm: string = '';
+    appliedSearchTerm: string = '';
     pageSize: number = 10;
+    currentPage: number = 1;
     showLinkModal: boolean = false;
+
+    // Sorting
+    sortField: string = 'name';
+    sortOrder: 'asc' | 'desc' = 'asc';
 
     linkForm = {
         ruc: '',
@@ -40,6 +50,68 @@ export class InstitutionManagementComponent {
         { id: '20890123456', name: 'H Academia Superior', url: 'https://dina.concytec.gob.pe/universidad-nacional-de-cajamarca', checked: true },
     ];
 
+    constructor(private alertService: AlertService) { }
+
+    get filteredInstitutions(): Institution[] {
+        let result = this.institutions;
+
+        if (this.appliedSearchTerm) {
+            const term = this.appliedSearchTerm.toLowerCase();
+            result = result.filter(i =>
+                i.id.toLowerCase().includes(term) ||
+                i.name.toLowerCase().includes(term) ||
+                i.url.toLowerCase().includes(term)
+            );
+        }
+
+        if (this.sortField) {
+            result = [...result].sort((a: any, b: any) => {
+                const valA = a[this.sortField]?.toString().toLowerCase() || '';
+                const valB = b[this.sortField]?.toString().toLowerCase() || '';
+
+                if (valA < valB) return this.sortOrder === 'asc' ? -1 : 1;
+                if (valA > valB) return this.sortOrder === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        return result;
+    }
+
+    get paginatedInstitutions(): Institution[] {
+        const filtered = this.filteredInstitutions;
+        const start = (this.currentPage - 1) * this.pageSize;
+        return filtered.slice(start, start + this.pageSize);
+    }
+
+    get totalPages() {
+        return Math.ceil(this.filteredInstitutions.length / this.pageSize) || 1;
+    }
+
+    get pagesArray() {
+        const total = this.totalPages;
+        const pages = [];
+        for (let i = 1; i <= total; i++) {
+            pages.push(i);
+        }
+        return pages;
+    }
+
+    setPage(page: number) {
+        if (page >= 1 && page <= this.totalPages) {
+            this.currentPage = page;
+        }
+    }
+
+    toggleSort(field: string) {
+        if (this.sortField === field) {
+            this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+        } else {
+            this.sortField = field;
+            this.sortOrder = 'asc';
+        }
+    }
+
     openLinkModal() {
         this.linkForm = {
             ruc: '',
@@ -56,28 +128,84 @@ export class InstitutionManagementComponent {
     }
 
     search() {
-        console.log('Searching for:', this.searchTerm);
-        // Implement filtering logic here
+        this.appliedSearchTerm = this.searchTerm;
+        this.currentPage = 1;
+    }
+
+    private getSelectedData() {
+        const selected = this.filteredInstitutions.filter(i => i.checked);
+        const dataToExport = selected.length > 0 ? selected : this.filteredInstitutions;
+
+        return dataToExport.map(i => ({
+            'RUC': i.id,
+            'Razón Social': i.name,
+            'URL': i.url
+        }));
     }
 
     copyToClipboard() {
-        console.log('Copying to clipboard');
+        const data = this.getSelectedData();
+        if (data.length === 0) return;
+
+        const headers = Object.keys(data[0]).join('\t');
+        const rows = data.map(obj => Object.values(obj).join('\t')).join('\n');
+        const text = `${headers}\n${rows}`;
+
+        navigator.clipboard.writeText(text).then(() => {
+            this.alertService.success('Copiado', 'Datos copiados al portapapeles');
+        });
     }
 
     downloadExcel() {
-        console.log('Downloading Excel');
+        const data = this.getSelectedData();
+        if (data.length === 0) return;
+
+        const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data);
+        const wb: XLSX.WorkBook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Instituciones');
+        XLSX.writeFile(wb, `Instituciones_${new Date().getTime()}.xlsx`);
     }
 
     downloadCSV() {
-        console.log('Downloading CSV');
+        const data = this.getSelectedData();
+        if (data.length === 0) return;
+
+        const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data);
+        const csv = XLSX.utils.sheet_to_csv(ws);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `Instituciones_${new Date().getTime()}.csv`;
+        link.click();
     }
 
     printPDF() {
-        console.log('Printing PDF');
+        const data = this.getSelectedData();
+        if (data.length === 0) return;
+
+        const doc = new jsPDF();
+        const headers = [Object.keys(data[0])];
+        const rows = data.map(obj => Object.values(obj).map(String));
+
+        autoTable(doc, {
+            head: headers,
+            body: rows,
+            theme: 'grid',
+            headStyles: { fillColor: [0, 84, 112] }
+        });
+
+        doc.save(`Instituciones_${new Date().getTime()}.pdf`);
     }
 
     confirmLink() {
-        console.log('Linking institution:', this.linkForm);
+        if (this.linkForm.ruc) {
+            this.institutions.push({
+                id: this.linkForm.ruc,
+                name: this.linkForm.socialReason || 'Nueva Institución',
+                url: 'https://dina.concytec.gob.pe/...',
+                checked: true
+            });
+        }
         this.showLinkModal = false;
     }
 }

@@ -516,10 +516,10 @@
     </form>
 </app-form-modal>
 
-<!-- MODAL: Evaluador/Formulador de Proyectos -->
+<!-- MODAL: Experiencia en Proyecto -->
 <app-form-modal *ngIf="showProjectModal"
-    [title]="currentProjectId !== null ? 'Editar Proyecto I+D+i' : 'Agregar Proyecto I+D+i'"
-    subtitle="Registra tu participación en proyectos de investigación, desarrollo o innovación."
+    [title]="currentProjectId !== null ? 'Editar Experiencia en Proyectos' : 'Agregar Experiencia en Proyectos'"
+    subtitle="Registra tu participación en la formulación o evaluación de proyectos de CTI financiados."
     (close)="closeProjectModal()">
 
     <form [formGroup]="projectForm" class="flex flex-col gap-5">

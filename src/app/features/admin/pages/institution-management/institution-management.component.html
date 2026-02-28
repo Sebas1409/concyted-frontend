@@ -73,7 +73,7 @@
                 </div>
 
                 <div class="results-info">
-                    <span class="count">{{ institutions.length }}</span> resultados encontrados
+                    <span class="count">{{ filteredInstitutions.length }}</span> resultados encontrados
                 </div>
             </div>
         </div>
@@ -83,20 +83,30 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 100px;">Seleccionar</th>
-                        <th>RUC ⇅</th>
-                        <th>Razón Social ⇅</th>
-                        <th>URL ⇅</th>
+                        <th style="width: 80px; text-align: center;">Seleccionar</th>
+                        <th style="width: 60px; text-align: center;">N°</th>
+                        <th (click)="toggleSort('id')" style="cursor: pointer;">
+                            RUC {{ sortField === 'id' ? (sortOrder === 'asc' ? '↑' : '↓') : '⇅' }}
+                        </th>
+                        <th (click)="toggleSort('name')" style="cursor: pointer;">
+                            Razón Social {{ sortField === 'name' ? (sortOrder === 'asc' ? '↑' : '↓') : '⇅' }}
+                        </th>
+                        <th (click)="toggleSort('url')" style="cursor: pointer;">
+                            URL {{ sortField === 'url' ? (sortOrder === 'asc' ? '↑' : '↓') : '⇅' }}
+                        </th>
                         <th style="width: 80px; text-align: center;">Acción</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let item of institutions">
+                    <tr *ngFor="let item of paginatedInstitutions; let i = index">
                         <td style="text-align: center;">
                             <label class="checkbox-container">
                                 <input type="checkbox" [(ngModel)]="item.checked">
                                 <span class="checkmark"></span>
                             </label>
+                        </td>
+                        <td style="text-align: center; font-weight: 500; color: #64748B;">
+                            {{ (currentPage - 1) * pageSize + i + 1 }}
                         </td>
                         <td>{{ item.id }}</td>
                         <td class="name-cell">{{ item.name }}</td>
@@ -111,6 +121,11 @@
                             </button>
                         </td>
                     </tr>
+                    <tr *ngIf="paginatedInstitutions.length === 0">
+                        <td colspan="5" style="text-align: center; padding: 40px; color: #64748B;">
+                            No se encontraron instituciones que coincidan con la búsqueda.
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -119,7 +134,7 @@
         <div class="pagination-container">
             <div class="items-per-page">
                 <span>Mostrar</span>
-                <select [(ngModel)]="pageSize">
+                <select [(ngModel)]="pageSize" (change)="setPage(1)">
                     <option [value]="10">10</option>
                     <option [value]="20">20</option>
                     <option [value]="50">50</option>
@@ -128,12 +143,14 @@
             </div>
 
             <div class="page-controls">
-                <button class="btn-page text">Anterior</button>
-                <button class="btn-page number active">1</button>
-                <button class="btn-page number">2</button>
-                <span class="dots">...</span>
-                <button class="btn-page number">5</button>
-                <button class="btn-page text">Siguiente</button>
+                <button class="btn-page text" (click)="setPage(currentPage - 1)"
+                    [disabled]="currentPage === 1">Anterior</button>
+                <button *ngFor="let p of pagesArray" class="btn-page number" [class.active]="p === currentPage"
+                    (click)="setPage(p)">
+                    {{ p }}
+                </button>
+                <button class="btn-page text" (click)="setPage(currentPage + 1)"
+                    [disabled]="currentPage === totalPages">Siguiente</button>
             </div>
         </div>
     </div>
