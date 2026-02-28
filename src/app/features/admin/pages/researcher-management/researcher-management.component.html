@@ -274,7 +274,7 @@
             <table class="modern-table">
                 <thead>
                     <tr>
-                        <th style="width: 100px;">ID</th>
+                        <th style="width: 100px;">N°</th>
                         <th>Fecha</th>
                         <th>Investigador</th>
                         <th>Motivo</th>
@@ -283,8 +283,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let req of paginatedRequests">
-                        <td>{{ req.id }}</td>
+                    <tr *ngFor="let req of paginatedRequests; let i = index">
+                        <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
                         <td>{{ req.date | dateFormat }}</td>
                         <td class="name-cell">
                             <span class="full-name">{{ req.researcherName }}</span>

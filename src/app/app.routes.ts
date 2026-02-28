@@ -2,6 +2,9 @@ import { Routes } from '@angular/router';
 import { AuthLayoutComponent } from './layout/auth-layout/auth-layout.component';
 import { LandingLayoutComponent } from './layout/landing-layout/landing-layout.component';
 import { DashboardLayoutComponent } from './layout/dashboard-layout/dashboard-layout.component';
+import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
+import { ROLES } from './core/constants/roles.constants';
 
 export const routes: Routes = [
     // 1. Rutas Públicas de Landing
@@ -49,6 +52,7 @@ export const routes: Routes = [
     {
         path: 'app',
         component: DashboardLayoutComponent,
+        canActivate: [roleGuard([ROLES.INVESTIGADOR, ROLES.CONSULTA, ROLES.USER])],
         children: [
             { path: '', redirectTo: 'profile', pathMatch: 'full' },
             {
@@ -117,6 +121,7 @@ export const routes: Routes = [
     // 4. Panel Administrativo (Nuevo)
     {
         path: 'admin',
+        canActivate: [roleGuard([ROLES.ADMIN, ROLES.SUPERADMIN])],
         loadComponent: () => import('./features/admin/layout/admin-layout/admin-layout.component').then(m => m.AdminLayoutComponent),
         children: [
             { path: '', redirectTo: 'analytics', pathMatch: 'full' },

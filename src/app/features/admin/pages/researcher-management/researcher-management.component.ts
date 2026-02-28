@@ -289,7 +289,7 @@ export class ResearcherManagementComponent {
             (r.researcherName.toLowerCase().includes(this.appliedSearchTerm.toLowerCase()) ||
                 r.email.toLowerCase().includes(this.appliedSearchTerm.toLowerCase()) ||
                 r.id.toString().includes(this.appliedSearchTerm))
-        );
+        ).sort((a, b) => Number(a.id) - Number(b.id));
     }
 
     get filteredResearchers(): Researcher[] {
