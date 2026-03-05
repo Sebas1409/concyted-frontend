@@ -395,13 +395,26 @@
             <label>Nombre Completo</label>
             <input type="text" [(ngModel)]="editForm.fullName" disabled class="input-disabled">
         </div>
+
+        <div class="form-group">
+            <label>Tipo de Documento</label>
+            <select [(ngModel)]="editForm.documentType" class="form-select">
+                <option value="">Seleccione...</option>
+                <option *ngFor="let type of documentTypes" [value]="type.codigo">{{ type.nombre }}</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Número de Documento</label>
+            <input type="text" [(ngModel)]="editForm.documentNumber" class="form-input">
+        </div>
+
         <div class="form-group">
             <label>Correo Electrónico</label>
-            <input type="email" [(ngModel)]="editForm.email">
+            <input type="email" [(ngModel)]="editForm.email" class="form-input">
         </div>
         <div class="form-group">
             <label>Fecha de Nacimiento</label>
-            <input type="date" [(ngModel)]="editForm.birthDate">
+            <input type="date" [(ngModel)]="editForm.birthDate" class="form-input">
         </div>
 
         <div class="form-group full-width">

@@ -601,7 +601,8 @@
 
         input[type="text"],
         input[type="email"],
-        input[type="date"] {
+        input[type="date"],
+        select {
             padding: 10px 12px;
             border: 1px solid #E2E8F0;
             border-radius: 6px;

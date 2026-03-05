@@ -316,15 +316,15 @@
             <div class="form-row two-col">
                 <div class="form-group">
                     <label>Indexado en</label>
-                    <select formControlName="indexedIn">
-                        <option value="">Seleccionar el indexado...</option>
-                        <option *ngFor="let opt of indexedInOptions" [value]="opt">{{ opt }}</option>
+                    <select formControlName="indexedIn" class="form-select">
+                        <option value="" disabled selected>Seleccione indexado...</option>
+                        <option *ngFor="let opt of indexedInOptions" [value]="opt.codigo">{{ opt.nombre }}</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>DOI (Digital Object Identifier):</label>
                     <div class="input-with-button">
-                        <input type="text" formControlName="doi" placeholder="Ej. 001584-2023/DIN">
+                        <input type="text" formControlName="doi" class="form-input" placeholder="Ej. 001584-2023/DIN">
                         <button class="btn-validate">Validar DOI</button>
                     </div>
                 </div>
@@ -334,16 +334,16 @@
             <div class="form-row two-col">
                 <div class="form-group">
                     <label>Categoría de Trabajo *</label>
-                    <select formControlName="category">
-                        <option value="">Seleccionar la categoría...</option>
-                        <option *ngFor="let opt of workCategoryOptions" [value]="opt">{{ opt }}</option>
+                    <select formControlName="category" class="form-select">
+                        <option value="" disabled selected>Seleccione la categoría...</option>
+                        <option *ngFor="let opt of workCategoryOptions" [value]="opt.codigo">{{ opt.nombre }}</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Tipo de Obra *</label>
-                    <select formControlName="workType">
-                        <option value="">Seleccionar tipo de obra...</option>
-                        <option *ngFor="let opt of workTypeOptions" [value]="opt">{{ opt }}</option>
+                    <select formControlName="workType" class="form-select">
+                        <option value="" disabled selected>Seleccione tipo de obra...</option>
+                        <option *ngFor="let opt of workTypeOptions" [value]="opt.codigo">{{ opt.nombre }}</option>
                     </select>
                 </div>
             </div>
@@ -351,19 +351,19 @@
             <!-- Row 3: Titulo -->
             <div class="form-group">
                 <label>Título de la Publicación</label>
-                <input type="text" formControlName="title" placeholder="Ej. Métodos de proteínas">
+                <input type="text" formControlName="title" class="form-input" placeholder="Ej. Métodos de proteínas">
             </div>
 
             <!-- Row 4: URL y Revista -->
             <div class="form-row two-col">
                 <div class="form-group">
                     <label>URL de la Publicación:</label>
-                    <input type="text" formControlName="url" placeholder="https://">
+                    <input type="text" formControlName="url" class="form-input" placeholder="https://">
                 </div>
                 <div class="form-group">
                     <label>Nombre de la Revista / Editorial</label>
-                    <select formControlName="journal">
-                        <option value="">Ej. Revista Cielo</option>
+                    <select formControlName="journal" class="form-select">
+                        <option value="" disabled selected>Seleccione revista / editorial...</option>
                         <option *ngFor="let opt of journalOptions" [value]="opt">{{ opt }}</option>
                     </select>
                 </div>
@@ -373,14 +373,14 @@
             <div class="form-row two-col">
                 <div class="form-group">
                     <label>País de Publicación</label>
-                    <select formControlName="country">
-                        <option value="">Seleccionar el país...</option>
-                        <option *ngFor="let opt of countryOptions" [value]="opt">{{ opt }}</option>
+                    <select formControlName="country" class="form-select">
+                        <option value="" disabled selected>Seleccione el país...</option>
+                        <option *ngFor="let opt of countryOptions" [value]="opt.codigo">{{ opt.nombre }}</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Fecha de Publicación</label>
-                    <input type="date" formControlName="date">
+                    <input type="date" formControlName="date" class="form-input">
                 </div>
             </div>
 
@@ -388,15 +388,15 @@
             <div class="form-row three-col">
                 <div class="form-group">
                     <label>Volumen</label>
-                    <input type="text" formControlName="volume" placeholder="Ej. 001">
+                    <input type="text" formControlName="volume" class="form-input" placeholder="Ej. 001">
                 </div>
                 <div class="form-group">
                     <label>Fascículo (Issue)</label>
-                    <input type="text" formControlName="issue" placeholder="Ej. 002">
+                    <input type="text" formControlName="issue" class="form-input" placeholder="Ej. 002">
                 </div>
                 <div class="form-group">
                     <label>Rango de Páginas</label>
-                    <input type="text" formControlName="pageRange" placeholder="3 - 6">
+                    <input type="text" formControlName="pageRange" class="form-input" placeholder="3 - 6">
                 </div>
             </div>
 
@@ -404,49 +404,31 @@
             <div class="form-row two-col">
                 <div class="form-group">
                     <label>Rol en la Publicación</label>
-                    <select formControlName="role">
-                        <option value="">Seleccionar el rol...</option>
+                    <select formControlName="role" class="form-select">
+                        <option value="" disabled selected>Seleccione el rol...</option>
                         <option *ngFor="let opt of roleOptions" [value]="opt">{{ opt }}</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Orden de Autoría *</label>
-                    <select formControlName="authorshipOrder">
-                        <option value="">Seleccionar el rol...</option>
-                        <option *ngFor="let opt of authorshipOrderOptions" [value]="opt">{{ opt }}</option>
+                    <select formControlName="authorshipOrder" class="form-select">
+                        <option value="" disabled selected>Seleccione orden...</option>
+                        <option *ngFor="let opt of authorshipOrderOptions" [value]="opt.codigo">{{ opt.nombre }}
+                        </option>
                     </select>
                 </div>
             </div>
 
             <!-- Attachment Section -->
-            <div class="attachment-section">
-                <button class="btn-attach">
-                    <span class="icon">upload</span> Adjuntar archivo (PDF, Max 5MB)
-                </button>
+            <div class="mb-4">
+                <app-file-uploader [(files)]="publicationFiles"
+                    (errorChange)="onUploadError($event)"></app-file-uploader>
             </div>
-
-            <table class="attachment-table">
-                <thead>
-                    <tr>
-                        <th>Codigo</th>
-                        <th>Archivo</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>01</td>
-                        <td>Diciembre 2024</td>
-                        <td><app-action-buttons [canEdit]="false"
-                                (delete)="removeAttachment(file)"></app-action-buttons></td>
-                    </tr>
-                </tbody>
-            </table>
         </div>
 
         <div class="modal-footer-simple">
             <button class="btn-cancel" (click)="closeAddModal()">Cancelar</button>
-            <button class="btn-save" (click)="closeAddModal()">Guardar Registro</button>
+            <button class="btn-save" (click)="savePublication()" [disabled]="hasUploadError">Guardar Registro</button>
         </div>
     </div>
 </div>
@@ -468,16 +450,16 @@
             <div class="form-row two-col">
                 <div class="form-group">
                     <label>Tipo de Obra</label>
-                    <select formControlName="workType">
-                        <option value="">Seleccionar el tipo...</option>
-                        <option *ngFor="let opt of workTypeOptions" [value]="opt">{{ opt }}</option>
+                    <select formControlName="workType" class="form-select">
+                        <option value="" disabled selected>Seleccione tipo de obra...</option>
+                        <option *ngFor="let opt of workTypeOptions" [value]="opt.codigo">{{ opt.nombre }}</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>País de Origen</label>
-                    <select formControlName="country">
-                        <option value="">Seleccionar el pais...</option>
-                        <option *ngFor="let opt of countryOptions" [value]="opt">{{ opt }}</option>
+                    <select formControlName="country" class="form-select">
+                        <option value="" disabled selected>Seleccione el país...</option>
+                        <option *ngFor="let opt of countryOptions" [value]="opt.codigo">{{ opt.nombre }}</option>
                     </select>
                 </div>
             </div>
@@ -485,19 +467,19 @@
             <!-- Row 2: Titulo -->
             <div class="form-group">
                 <label>Título</label>
-                <input type="text" formControlName="title" placeholder="Ej. Métodos de proteínas">
+                <input type="text" formControlName="title" class="form-input" placeholder="Ej. Métodos de proteínas">
             </div>
 
             <!-- Row 3: Sub-titulo -->
             <div class="form-group">
                 <label>Sub-título</label>
-                <input type="text" formControlName="subtitle" placeholder="Ej. alimentos...">
+                <input type="text" formControlName="subtitle" class="form-input" placeholder="Ej. alimentos...">
             </div>
 
             <!-- Row 4: Resumen -->
             <div class="form-group">
                 <label>Resumen / Descripción</label>
-                <textarea formControlName="summary" rows="3"
+                <textarea formControlName="summary" class="form-input" rows="3"
                     placeholder="Breve descripción de los objetivos y resultados esperados..."></textarea>
             </div>
 
@@ -505,11 +487,11 @@
             <div class="form-row two-col">
                 <div class="form-group">
                     <label>Fecha de Publicación</label>
-                    <input type="date" formControlName="date">
+                    <input type="date" formControlName="date" class="form-input">
                 </div>
                 <div class="form-group">
                     <label>Fecha de Finalización</label>
-                    <input type="date" formControlName="endDate">
+                    <input type="date" formControlName="endDate" class="form-input">
                 </div>
             </div>
 
@@ -517,35 +499,38 @@
             <div class="form-row two-col">
                 <div class="form-group">
                     <label>Institución / Entidad Editora</label>
-                    <input type="text" formControlName="institution" placeholder="Seleccionar la insitución...">
+                    <input type="text" formControlName="institution" class="form-input"
+                        placeholder="Seleccionar la insitución...">
                 </div>
                 <div class="form-group">
                     <label>DOI / Handle</label>
-                    <input type="text" formControlName="doi" placeholder="Seleccionar tipo de obra...">
+                    <input type="text" formControlName="doi" class="form-input"
+                        placeholder="Seleccionar tipo de obra...">
                 </div>
             </div>
 
             <!-- Row 7: URL -->
             <div class="form-group">
                 <label>URL de las Memorias / Certificado</label>
-                <input type="text" formControlName="url" placeholder="Seleccionar el pais...">
+                <input type="text" formControlName="url" class="form-input" placeholder="URL...">
             </div>
 
             <!-- Row 8: Rol y Orden -->
             <div class="form-row two-col">
                 <div class="form-group">
                     <label>Función / Rol *</label>
-                    <select formControlName="role">
-                        <option value="">Seleccionar rol...</option>
+                    <select formControlName="role" class="form-select">
+                        <option value="" disabled selected>Seleccione rol...</option>
                         <option *ngFor="let opt of roleOptions" [value]="opt">{{ opt }}</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Orden de Autoría *</label>
                     <div class="input-with-button">
-                        <select formControlName="authorshipOrder">
-                            <option value="">Seleccionar orden...</option>
-                            <option *ngFor="let opt of authorshipOrderOptions" [value]="opt">{{ opt }}</option>
+                        <select formControlName="authorshipOrder" class="form-select">
+                            <option value="" disabled selected>Seleccione orden...</option>
+                            <option *ngFor="let opt of authorshipOrderOptions" [value]="opt.codigo">{{ opt.nombre }}
+                            </option>
                         </select>
                         <button class="btn-validate">Agregar Colaborador</button>
                     </div>
@@ -553,34 +538,16 @@
             </div>
 
             <!-- Attachment Section -->
-            <div class="attachment-section">
-                <button class="btn-attach">
-                    <span class="icon">upload</span> Adjuntar archivo de sustento (PDF, Max 5MB)
-                </button>
+            <div class="mb-4">
+                <app-file-uploader [(files)]="otherFiles" (errorChange)="onUploadError($event)"></app-file-uploader>
             </div>
 
-            <table class="attachment-table">
-                <thead>
-                    <tr>
-                        <th>Codigo</th>
-                        <th>Archivo</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>01</td>
-                        <td>Diciembre 2024</td>
-                        <td><app-action-buttons [canEdit]="false"
-                                (delete)="removeAttachment(file)"></app-action-buttons></td>
-                    </tr>
-                </tbody>
-            </table>
         </div>
 
         <div class="modal-footer-simple">
             <button class="btn-cancel" (click)="closeAddOtherModal()">Cancelar</button>
-            <button class="btn-save" (click)="closeAddOtherModal()">Guardar Registro</button>
+            <button class="btn-save" (click)="saveOtherProduction()" [disabled]="hasUploadError">Guardar
+                Registro</button>
         </div>
     </div>
 </div>
@@ -613,9 +580,9 @@
                 </div>
                 <div class="form-group">
                     <label>País del Evento *</label>
-                    <select formControlName="country">
-                        <option value="">Seleccionar el indexado...</option>
-                        <option *ngFor="let opt of countryOptions" [value]="opt">{{ opt }}</option>
+                    <select formControlName="country" class="form-select">
+                        <option value="" disabled selected>Seleccione el país...</option>
+                        <option *ngFor="let opt of countryOptions" [value]="opt.codigo">{{ opt.nombre }}</option>
                     </select>
                 </div>
             </div>
@@ -623,25 +590,25 @@
             <!-- Row 2: Fecha Presentacion -->
             <div class="form-group">
                 <label>Fecha de Presentación</label>
-                <input type="date" formControlName="presentationDate">
+                <input type="date" formControlName="presentationDate" class="form-input">
             </div>
 
             <!-- Row 3: Titulo -->
             <div class="form-group">
                 <label>Título del Trabajo Presentado *</label>
-                <input type="text" formControlName="title" placeholder="Métodos de proteínas">
+                <input type="text" formControlName="title" class="form-input" placeholder="Métodos de proteínas">
             </div>
 
             <!-- Row 4: Sub-titulo -->
             <div class="form-group">
                 <label>Sub-título *</label>
-                <input type="text" formControlName="subtitle" placeholder="https://">
+                <input type="text" formControlName="subtitle" class="form-input" placeholder="https://">
             </div>
 
             <!-- Row 5: Resumen -->
             <div class="form-group">
                 <label>Resumen / Descripción</label>
-                <textarea formControlName="summary" rows="3"
+                <textarea formControlName="summary" class="form-input" rows="3"
                     placeholder="Breve descripción de los objetivos y resultados esperados..."></textarea>
             </div>
 
@@ -649,39 +616,40 @@
             <div class="form-row two-col">
                 <div class="form-group">
                     <label>Tipo de Obra / Presentación*</label>
-                    <select formControlName="presentationType">
-                        <option value="">Seleccionar la categoria...</option>
+                    <select formControlName="presentationType" class="form-select">
+                        <option value="" disabled selected>Seleccione la presentación...</option>
                         <!-- Reusing workTypeOptions as placeholder, or define logic for this specific dropdown if needed -->
-                        <option *ngFor="let opt of workTypeOptions" [value]="opt">{{ opt }}</option>
+                        <option *ngFor="let opt of workTypeOptions" [value]="opt.codigo">{{ opt.nombre }}</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>DOI (Si aplica)</label>
-                    <input type="text" formControlName="doi" placeholder="Seleccionar tipo de obra...">
+                    <input type="text" formControlName="doi" class="form-input" placeholder="DOI...">
                 </div>
             </div>
 
             <!-- Row 7: URL Memorias -->
             <div class="form-group">
                 <label>URL de las Memorias / Certificado</label>
-                <input type="text" formControlName="certificateUrl" placeholder="Seleccionar el pais...">
+                <input type="text" formControlName="certificateUrl" class="form-input" placeholder="https://">
             </div>
 
             <!-- Row 8: Rol y Orden -->
             <div class="form-row two-col">
                 <div class="form-group">
                     <label>Función / Rol *</label>
-                    <select formControlName="role">
-                        <option value="">Seleccionar rol...</option>
+                    <select formControlName="role" class="form-select">
+                        <option value="" disabled selected>Seleccione rol...</option>
                         <option *ngFor="let opt of roleOptions" [value]="opt">{{ opt }}</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Orden de Autoría *</label>
                     <div class="input-with-button">
-                        <select formControlName="authorshipOrder">
-                            <option value="">Seleccionar orden...</option>
-                            <option *ngFor="let opt of authorshipOrderOptions" [value]="opt">{{ opt }}</option>
+                        <select formControlName="authorshipOrder" class="form-select">
+                            <option value="" disabled selected>Seleccione orden...</option>
+                            <option *ngFor="let opt of authorshipOrderOptions" [value]="opt.codigo">{{ opt.nombre }}
+                            </option>
                         </select>
                         <button class="btn-validate">Agregar Colaborador</button>
                     </div>
@@ -689,34 +657,15 @@
             </div>
 
             <!-- Attachment Section -->
-            <div class="attachment-section">
-                <button class="btn-attach">
-                    <span class="icon">upload</span> Adjuntar archivo de sustento (PDF, Max 5MB)
-                </button>
+            <div class="mb-4">
+                <app-file-uploader [(files)]="congressFiles" (errorChange)="onUploadError($event)"></app-file-uploader>
             </div>
 
-            <table class="attachment-table">
-                <thead>
-                    <tr>
-                        <th>Codigo</th>
-                        <th>Archivo</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>01</td>
-                        <td>Diciembre 2024</td>
-                        <td><app-action-buttons [canEdit]="false"
-                                (delete)="removeAttachment(file)"></app-action-buttons></td>
-                    </tr>
-                </tbody>
-            </table>
         </div>
 
         <div class="modal-footer-simple">
             <button class="btn-cancel" (click)="closeAddCongressModal()">Cancelar</button>
-            <button class="btn-save" (click)="closeAddCongressModal()">Guardar Registro</button>
+            <button class="btn-save" (click)="saveCongress()" [disabled]="hasUploadError">Guardar Registro</button>
         </div>
     </div>
 </div>

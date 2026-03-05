@@ -60,7 +60,7 @@ export class AlertService {
         });
     }
 
-    confirm(title: string, text: string, confirmButtonText: string = 'Sí, continuar'): Promise<boolean> {
+    confirm(title: string, text: string, confirmButtonText: string = 'Sí, continuar', cancelButtonText: string = 'Cancelar'): Promise<boolean> {
         return Swal.fire({
             title: title,
             text: text,
@@ -69,7 +69,7 @@ export class AlertService {
             confirmButtonColor: '#005470',
             cancelButtonColor: '#6B7280',
             confirmButtonText: confirmButtonText,
-            cancelButtonText: 'Cancelar'
+            cancelButtonText: cancelButtonText
         }).then((result: any) => {
             return result.isConfirmed;
         });

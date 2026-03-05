@@ -1,18 +1,27 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActionButtonsComponent } from '../../../../../shared/components/action-buttons/action-buttons.component';
 import { IntroCardComponent } from '../../../../../shared/components/intro-card/intro-card.component';
+import { FileUploaderComponent } from '../../../../../shared/components/file-uploader/file-uploader.component';
+import { CatalogService, CatalogItem } from '../../../../../core/services/catalog.service';
+import { UbigeoService } from '../../../../../core/services/ubigeo.service';
 
 @Component({
     selector: 'app-scientific-production',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, FormsModule, ActionButtonsComponent, IntroCardComponent],
+    imports: [CommonModule, ReactiveFormsModule, FormsModule, ActionButtonsComponent, IntroCardComponent, FileUploaderComponent],
     templateUrl: './scientific-production.component.html',
     styleUrls: ['./scientific-production.component.scss']
 })
-export class ScientificProductionComponent {
+export class ScientificProductionComponent implements OnInit {
     activeTab: 'all' | 'imported' | 'manual' = 'all';
+
+    // File lists
+    publicationFiles: any[] = [];
+    congressFiles: any[] = [];
+    otherFiles: any[] = [];
+    hasUploadError = false;
 
     // Import Modal State
     showImportModal = false;
@@ -65,14 +74,14 @@ export class ScientificProductionComponent {
     showAddModal = false;
     publicationForm: FormGroup;
 
-    // Dropdown Options (Mock)
-    indexedInOptions = ['Scopus', 'WOS', 'Scielo'];
-    workCategoryOptions = ['Articulo Original', 'Review', 'Letter'];
-    workTypeOptions = ['Paper', 'Book Chapter'];
+    // Dropdown Options
+    indexedInOptions: CatalogItem[] = [];
+    workCategoryOptions: CatalogItem[] = [];
+    workTypeOptions: CatalogItem[] = [];
     journalOptions = ['Revista Cielo', 'Revista IEEE'];
-    countryOptions = ['Peru', 'USA', 'Brazil'];
+    countryOptions: any[] = [];
     roleOptions = ['Autor Principal', 'Co-Autor'];
-    authorshipOrderOptions = ['Primer Autor', 'Segundo Autor'];
+    authorshipOrderOptions: CatalogItem[] = [];
 
     // Add Other Production Modal State
     showAddOtherModal = false;
@@ -82,7 +91,11 @@ export class ScientificProductionComponent {
     showAddCongressModal = false;
     congressForm: FormGroup;
 
-    constructor(private fb: FormBuilder) {
+    constructor(
+        private fb: FormBuilder,
+        private catalogService: CatalogService,
+        private ubigeoService: UbigeoService
+    ) {
         this.publicationForm = this.fb.group({
             indexedIn: [''],
             doi: [''],
@@ -130,6 +143,67 @@ export class ScientificProductionComponent {
         });
     }
 
+    ngOnInit() {
+        this.loadCatalogs();
+    }
+
+    private loadCatalogs() {
+        // CATTRA
+        this.catalogService.getMasterDetailsByCode('CATTRA').subscribe(data => {
+            this.workCategoryOptions = data;
+        });
+
+        // TIPOBR
+        this.catalogService.getMasterDetailsByCode('TIPOBR').subscribe(data => {
+            this.workTypeOptions = data;
+        });
+
+        // Countries
+        this.ubigeoService.getCountries().subscribe(data => {
+            this.countryOptions = data;
+        });
+
+        // Indexado en: INDXEN
+        this.catalogService.getMasterDetailsByCode('INDXEN').subscribe(data => {
+            this.indexedInOptions = data;
+        });
+
+        // Orden autoría: ORDAUT
+        this.catalogService.getMasterDetailsByCode('ORDAUT').subscribe(data => {
+            this.authorshipOrderOptions = data;
+        });
+    }
+
+    savePublication() {
+        if (this.publicationForm.invalid || this.hasUploadError) {
+            this.publicationForm.markAllAsTouched();
+            return;
+        }
+        console.log('Guardando Publicación...', this.publicationForm.value);
+        console.log('Archivos adjuntos:', this.publicationFiles);
+        this.closeAddModal();
+    }
+
+    saveOtherProduction() {
+        if (this.otherProductionForm.invalid || this.hasUploadError) {
+            this.otherProductionForm.markAllAsTouched();
+            return;
+        }
+        console.log('Guardando Otros...', this.otherProductionForm.value);
+        console.log('Archivos adjuntos:', this.otherFiles);
+        this.closeAddOtherModal();
+    }
+
+    saveCongress() {
+        if (this.congressForm.invalid || this.hasUploadError) {
+            this.congressForm.markAllAsTouched();
+            return;
+        }
+        console.log('Guardando Congreso...', this.congressForm.value);
+        console.log('Archivos adjuntos:', this.congressFiles);
+        this.closeAddCongressModal();
+    }
+
     openAddModal() {
         this.showAddModal = true;
     }
@@ -137,6 +211,7 @@ export class ScientificProductionComponent {
     closeAddModal() {
         this.showAddModal = false;
         this.publicationForm.reset();
+        this.publicationFiles = [];
     }
 
     openAddOtherModal() {
@@ -146,6 +221,7 @@ export class ScientificProductionComponent {
     closeAddOtherModal() {
         this.showAddOtherModal = false;
         this.otherProductionForm.reset();
+        this.otherFiles = [];
     }
 
     openAddCongressModal() {
@@ -155,6 +231,7 @@ export class ScientificProductionComponent {
     closeAddCongressModal() {
         this.showAddCongressModal = false;
         this.congressForm.reset({ congressType: 'Nacional' }); // Reset with default
+        this.congressFiles = [];
     }
 
     setActiveTab(tab: 'all' | 'imported' | 'manual') {
@@ -309,5 +386,9 @@ export class ScientificProductionComponent {
         if (confirm('¿Estás seguro de eliminar este archivo?')) {
             this.file = null;
         }
+    }
+
+    onUploadError(error: boolean) {
+        this.hasUploadError = error;
     }
 }

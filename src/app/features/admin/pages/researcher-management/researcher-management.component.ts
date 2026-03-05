@@ -91,6 +91,7 @@ export class ResearcherManagementComponent {
     areas: any[] = [];
     departments: any[] = [];
     genders: any[] = [];
+    documentTypes: any[] = [];
 
     // For the active menu dropdown
     selectedItemForMenu: Researcher | null = null;
@@ -111,9 +112,12 @@ export class ResearcherManagementComponent {
 
     editForm = {
         fullName: '',
+        username: '',
         email: '',
         birthDate: '',
-        gender: '' as string
+        gender: '' as string,
+        documentType: '',
+        documentNumber: ''
     };
     currentResearcherProfile: any = null;
 
@@ -171,6 +175,9 @@ export class ResearcherManagementComponent {
         });
         this.catalogService.getMasterDetails(2).subscribe(data => {
             this.genders = data;
+        });
+        this.catalogService.getMasterDetails(1).subscribe(data => {
+            this.documentTypes = data;
         });
     }
 
@@ -460,9 +467,12 @@ export class ResearcherManagementComponent {
         // Initialize with basic data from researcher directory row
         this.editForm = {
             fullName: researcher.name,
+            username: researcher.userId || '',
             email: researcher.email || '',
             birthDate: '', // To be filled from researcher profile
-            gender: (researcher.raw?.sexo || '') as string
+            gender: (researcher.raw?.sexo || '') as string,
+            documentType: (researcher.raw?.tipoDoc || '') as string,
+            documentNumber: (researcher.raw?.numDoc || '') as string
         };
 
         this.showEditModal = true;
@@ -476,18 +486,31 @@ export class ResearcherManagementComponent {
                         this.currentResearcherProfile = data;
 
 
-                        const birthDateVal = data.fechaNacimiento || null;
+                        const birthDateVal = data.fechaNacimiento;
+                        let formattedDate = '';
 
-                        // Reemplazamos el objeto completo para garantizar que
-                        // Angular detecte el cambio (evita problema de mutación)
+                        if (birthDateVal && typeof birthDateVal === 'string') {
+                            // Extract only YYYY-MM-DD even if it's a full ISO string or has spaces
+                            const matches = birthDateVal.match(/^\d{4}-\d{2}-\d{2}/);
+                            if (matches) {
+                                formattedDate = matches[0];
+                            }
+                        }
+
+                        console.log('Birth date from API:', birthDateVal, 'Formatted for input:', formattedDate);
+
                         this.editForm = {
-                            fullName: this.editForm.fullName,
+                            fullName: (data.nombres || '').trim() + ' ' + (data.apellidoPaterno || '').trim() + ' ' + (data.apellidoMaterno || '').trim(),
+                            username: data.username || this.editForm.username,
                             email: data.email || this.editForm.email,
-                            birthDate: birthDateVal ? birthDateVal.split('T')[0] : '',
-                            gender: data.sexo || this.editForm.gender
+                            birthDate: formattedDate,
+                            gender: data.sexo || this.editForm.gender,
+                            documentType: data.tipoDoc || this.editForm.documentType,
+                            documentNumber: data.numDoc || this.editForm.documentNumber
                         };
 
                         this.cdr.detectChanges();
+                        this.cdr.markForCheck();
                     }
                 },
                 error: (err) => console.error('Error fetching researcher profile', err)
@@ -574,7 +597,6 @@ export class ResearcherManagementComponent {
             googleScholarId: p.googleScholarId,
             nacionalidad: p.nacionalidad,
             nombres: p.nombres,
-            numDoc: p.numDoc,
             orcid: p.orcid,
             paisNacimientoId: p.paisNacimientoId,
             paisResidenciaId: p.paisResidenciaId,
@@ -586,7 +608,8 @@ export class ResearcherManagementComponent {
             sexo: this.editForm.gender,
             telefono: p.telefono,
             telefonoAlternativo: p.telefonoAlternativo,
-            tipoDoc: p.tipoDoc,
+            tipoDoc: this.editForm.documentType,
+            numDoc: this.editForm.documentNumber,
             ubigeo: p.ubigeo,
             usuarioId: p.usuarioId,
             validado: p.validado,
@@ -677,7 +700,64 @@ export class ResearcherManagementComponent {
 
     cancelAccount(item: Researcher) {
         this.selectedItemForMenu = null;
-        this.alertService.warning('Anular Cuenta', `¿Está seguro que desea anular la cuenta de ${item.name}?`);
+        const investigatorId = item.idInvestigador;
+
+        if (!investigatorId) {
+            this.alertService.error('Error', 'No se ha podido identificar el ID de investigador para esta cuenta.');
+            return;
+        }
+
+        this.alertService.confirm(
+            'Confirmar Anulación de Cuenta',
+            `¿Está seguro que desea dar de baja la cuenta de ${item.name}?`,
+            'Sí',
+            'No'
+        ).then(confirmed => {
+            if (confirmed) {
+                this.alertService.loading('Procesando baja inmediata...');
+                this.authService.deleteAccountImmediately(investigatorId).subscribe({
+                    next: () => {
+                        this.alertService.close();
+                        this.alertService.success('Operación Exitosa', 'La cuenta ha sido anulada correctamente.');
+                        this.loadResearchers();
+                    },
+                    error: (err) => {
+                        this.alertService.close();
+                        console.error('Error in immediate deletion', err);
+                        this.alertService.error('Error', 'No se pudo procesar la baja inmediata en este momento.');
+                    }
+                });
+            }
+        });
+    }
+
+    immediateDerecognitionFromRequest() {
+        if (!this.selectedRequest) return;
+        const investigatorId = this.selectedRequest.researcherId;
+
+        this.alertService.confirm(
+            'Baja Inmediata',
+            `¿Desea proceder con la baja inmediata para ${this.selectedRequest.researcherName}?`,
+            'Sí',
+            'No'
+        ).then(confirmed => {
+            if (confirmed) {
+                this.alertService.loading('Procesando baja inmediata...');
+                this.authService.deleteAccountImmediately(investigatorId).subscribe({
+                    next: () => {
+                        this.alertService.close();
+                        this.alertService.success('Operación Exitosa', 'La cuenta ha sido anulada de forma inmediata.');
+                        this.showReviewModal = false;
+                        this.loadRequests();
+                    },
+                    error: (err) => {
+                        this.alertService.close();
+                        console.error('Error in immediate deletion via request', err);
+                        this.alertService.error('Error', 'No se pudo procesar la baja inmediata.');
+                    }
+                });
+            }
+        });
     }
 
     approveDerecognition(isValid: boolean = true) {

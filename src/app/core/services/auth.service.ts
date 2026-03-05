@@ -109,6 +109,10 @@ export class AuthService {
         });
     }
 
+    deleteAccountImmediately(id: number | string): Observable<any> {
+        return this.http.put(`${environment.userServiceUrl}/solicitud-anulacion/${id}/baja-inmediata`, {});
+    }
+
     sendContactMessage(payload: { celular: string, email: string, mensaje: string }): Observable<any> {
         return this.http.post(`${environment.userServiceUrl}/contacto`, payload);
     }
