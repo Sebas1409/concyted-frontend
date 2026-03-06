@@ -125,6 +125,7 @@ export class EducationComponent implements OnInit {
     showFileViewer = false;
     viewerFiles: ViewerFile[] = [];
     isEditing = false;
+    isEditingSunedu = false;
     currentEditId: number | null = null;
     today: string = new Date().toISOString().split('T')[0];
 
@@ -358,22 +359,16 @@ export class EducationComponent implements OnInit {
         });
     }
 
-    // --- Modal Logic ---
-    // --- Modal Logic ---
     openModal() {
         this.showModal = true;
         this.isEditing = false;
         this.currentEditId = null;
         this.educationFiles = [];
-        this.educationForm.reset({
-            academicLevel: '',
-            country: '',
-            degreeName: '',
-            faculty: '',
-            institution: '',
-            startDate: '',
-            endDate: ''
-        });
+        this.isEditingSunedu = false;
+        this.educationForm.get('startDate')?.setValidators([Validators.required]);
+        this.educationForm.get('endDate')?.setValidators([Validators.required]);
+        this.educationForm.get('startDate')?.updateValueAndValidity();
+        this.educationForm.get('endDate')?.updateValueAndValidity();
 
         this.educationForm.reset({
             academicLevelId: '',
@@ -390,8 +385,19 @@ export class EducationComponent implements OnInit {
     editEducation(item: EducationEntry) {
         this.showModal = true;
         this.isEditing = true;
+        this.isEditingSunedu = item.isSunedu;
         this.currentEditId = item.id;
         const raw = item.originalItem || item;
+
+        if (this.isEditingSunedu) {
+            this.educationForm.get('startDate')?.clearValidators();
+            this.educationForm.get('endDate')?.clearValidators();
+        } else {
+            this.educationForm.get('startDate')?.setValidators([Validators.required]);
+            this.educationForm.get('endDate')?.setValidators([Validators.required]);
+        }
+        this.educationForm.get('startDate')?.updateValueAndValidity();
+        this.educationForm.get('endDate')?.updateValueAndValidity();
 
         this.educationForm.patchValue({
             academicLevelId: raw.nivelAcademicoId || item.degreeType,
@@ -907,7 +913,7 @@ export class EducationComponent implements OnInit {
                     this.suneduList = data.gradosTitulos.map((item: any, index: number) => {
                         return {
                             id: index + 1,
-                            selected: true,
+                            selected: false,
                             institution: item.universidad,
                             degree: item.tituloProfesional,
                             startDate: '', // User will fill this

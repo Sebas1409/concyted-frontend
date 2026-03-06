@@ -102,7 +102,7 @@ export class GeneralInfoComponent implements OnInit {
 
                     // Set preview if token exists
                     if (userData.fotoToken) {
-                        this.photoPreview = this.fileService.getFileUrl(userData.fotoToken);
+                        this.photoPreview = this.fileService.getFileUrl(userData.fotoToken, true);
                     }
 
                     // Trigger location loading sequences if IDs exist

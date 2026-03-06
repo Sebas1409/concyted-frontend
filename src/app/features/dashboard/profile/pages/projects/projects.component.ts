@@ -98,20 +98,20 @@ export class ProjectsComponent implements OnInit {
         this.projectForm = this.fb.group({
             projectName: ['', Validators.required],
             description: [''],
-            keywords: [''],
+            keywords: ['', Validators.required],
             projectType: ['', Validators.required],
             executionRegion: ['', Validators.required],
             startDate: ['', Validators.required],
             endDate: ['', Validators.required],
             academicContext: ['', Validators.required], // vinculacionAcademicaId
             role: ['', Validators.required], // rolDesempenadoId
-            principalInvestigator: [''],
+            principalInvestigator: ['', Validators.required],
             mainInstitution: ['', Validators.required],
             collaboratingInstitution: [''], // Optional
             fundedBy: ['', Validators.required], // financiadoraId
             grantContest: ['', Validators.required], // concursoSubvencionId
-            contractNumber: [''],
-            financedAmount: [0],
+            contractNumber: ['', Validators.required],
+            financedAmount: [0, Validators.required],
             oecdArea: ['', Validators.required],
             oecdSubArea: ['', Validators.required],
             oecdDiscipline: ['', Validators.required],
@@ -318,15 +318,16 @@ export class ProjectsComponent implements OnInit {
     }
 
     get modalTitle(): string {
+        const action = this.currentProjectId ? 'Editar' : 'Agregar';
         return this.modalType === 'research'
-            ? 'Agregar Proyecto de Investigación y Desarrollo'
-            : 'Agregar Proyecto de Innovación';
+            ? `${action} Proyecto de Investigación y Desarrollo`
+            : `${action} Proyecto de Innovación`;
     }
 
     get modalDescription(): string {
         return this.modalType === 'research'
-            ? 'Registra proyectos científicos, definiendo su vinculación académica y equipo de trabajo.'
-            : 'Registra proyectos orientados a la creación o mejora significativa de productos, procesos o servicios (I+D+i empresarial).';
+            ? 'Registra y actualiza proyectos científicos, definiendo su vinculación académica y equipo de trabajo.'
+            : 'Registra y actualiza proyectos orientados a la creación o mejora significativa de productos, procesos o servicios (I+D+i empresarial).';
     }
 
     get nameLabel(): string {

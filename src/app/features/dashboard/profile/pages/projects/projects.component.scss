@@ -299,13 +299,15 @@
 .modal-container {
     background: #F3F4F6;
     /* Gray background */
-    width: 600px;
+    width: 750px;
+    max-width: 95vw;
     height: 100%;
     padding: 2.5rem;
     box-shadow: -10px 0 25px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    padding-bottom: 5rem;
     animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -342,7 +344,7 @@
 .modal-form {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    /* Removed height 100% to allow parent container to scroll properly */
 }
 
 .form-card {
@@ -393,15 +395,40 @@
             box-shadow: 0 0 0 3px rgba(0, 84, 112, 0.1);
         }
 
+        &.is-invalid {
+            border-color: #EF4444;
+            background-color: #FEF2F2;
+
+            &:focus {
+                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+            }
+        }
+
         &::placeholder {
             color: #9CA3AF;
         }
+    }
+
+    .error-text {
+        font-size: 0.75rem;
+        color: #EF4444;
+        margin-top: -0.25rem;
+        font-weight: 500;
     }
 
     .form-textarea {
         resize: vertical;
         min-height: 80px;
     }
+}
+
+.form-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #005f73;
+    margin-top: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #E5E7EB;
 }
 
 .form-row {

@@ -325,25 +325,27 @@
         <!-- Row 5: Dates -->
         <div class="form-row two-col">
             <div class="form-group">
-                <label>Fecha de Inicio <span class="required">*</span></label>
+                <label>Fecha de Inicio <span class="required" *ngIf="!isEditingSunedu">*</span></label>
                 <input type="date" formControlName="startDate" class="form-input"
                     [class.is-invalid]="educationForm.get('startDate')?.invalid && educationForm.get('startDate')?.touched"
                     [max]="educationForm.get('endDate')?.value || today">
                 <span class="error-message"
                     *ngIf="educationForm.get('startDate')?.invalid && educationForm.get('startDate')?.touched">
-                    <span *ngIf="educationForm.get('startDate')?.hasError('required')">Este campo es requerido.</span>
+                    <span *ngIf="educationForm.get('startDate')?.hasError('required') && !isEditingSunedu">Este campo es
+                        requerido.</span>
                     <span *ngIf="educationForm.get('startDate')?.hasError('futureDate')">La fecha no puede ser mayor a
                         hoy.</span>
                 </span>
             </div>
             <div class="form-group">
-                <label>Fecha de Fin / Obtención <span class="required">*</span></label>
+                <label>Fecha de Fin / Obtención <span class="required" *ngIf="!isEditingSunedu">*</span></label>
                 <input type="date" formControlName="endDate" class="form-input"
                     [class.is-invalid]="educationForm.get('endDate')?.invalid && educationForm.get('endDate')?.touched"
                     [min]="educationForm.get('startDate')?.value" [max]="today">
                 <span class="error-message"
                     *ngIf="educationForm.get('endDate')?.invalid && educationForm.get('endDate')?.touched">
-                    <span *ngIf="educationForm.get('endDate')?.hasError('required')">Este campo es requerido.</span>
+                    <span *ngIf="educationForm.get('endDate')?.hasError('required') && !isEditingSunedu">Este campo es
+                        requerido.</span>
                     <span *ngIf="educationForm.get('endDate')?.hasError('futureDate')">La fecha no puede ser mayor a
                         hoy.</span>
                 </span>
@@ -378,11 +380,9 @@
             <table class="import-table">
                 <thead>
                     <tr>
-                        <th style="width: 5%">Seleccionar</th>
-                        <th style="width: 25%">Centro de estudios</th>
-                        <th style="width: 30%">Grado Obtenido</th>
-                        <th style="width: 20%">Fecha de Inicio</th>
-                        <th style="width: 20%">Fecha Fin / Obtención</th>
+                        <th style="width: 10%">Seleccionar</th>
+                        <th style="width: 45%">Centro de estudios</th>
+                        <th style="width: 45%">Grado Obtenido</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -396,14 +396,6 @@
                         </td>
                         <td>{{ item.institution }}</td>
                         <td>{{ item.degree }}</td>
-                        <td>
-                            <input type="date" [(ngModel)]="item.startDate" class="table-input"
-                                [ngModelOptions]="{standalone: true}">
-                        </td>
-                        <td>
-                            <input type="date" [(ngModel)]="item.endDate" class="table-input"
-                                [ngModelOptions]="{standalone: true}">
-                        </td>
                     </tr>
                     <!-- Mock empty row if needed, but sunedu usually found items -->
                 </tbody>

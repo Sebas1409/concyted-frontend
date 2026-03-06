@@ -99,7 +99,7 @@
                 <table class="custom-table">
                     <thead>
                         <tr>
-                            <th>Código</th>
+                            <th>N°</th>
                             <th>Tipo Producción</th>
                             <th>Título</th>
                             <th>Fecha producción</th>
@@ -108,8 +108,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let item of manualProductions">
-                            <td>{{ item.code }}</td>
+                        <tr *ngFor="let item of manualProductions; let i = index">
+                            <td>{{ i + 1 }}</td>
                             <td>{{ item.type }}</td>
                             <td>{{ item.title }}</td>
                             <td>{{ item.date }}</td>

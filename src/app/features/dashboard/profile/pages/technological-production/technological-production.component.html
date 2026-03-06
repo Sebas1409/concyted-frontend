@@ -53,8 +53,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let item of intellectualProperties">
-                            <td>00{{ item.id }}</td>
+                        <tr *ngFor="let item of intellectualProperties; let i = index">
+                            <td>{{ i + 1 }}</td>
                             <td>{{ item.type }}</td>
                             <td>{{ item.status }}</td>
                             <td>{{ item.title }}</td>
@@ -100,7 +100,7 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let item of industrialDevelopments; let i = index">
-                            <td>{{ (i + 1).toString().padStart(3, '0') }}</td>
+                            <td>{{ i + 1 }}</td>
                             <td>{{ item.name }}</td>
                             <td>{{ item.productType }}</td>
                             <td>{{ item.participationType }}</td>
@@ -149,8 +149,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let item of technologicalTransfers">
-                            <td>00{{ item.id }}</td>
+                        <tr *ngFor="let item of technologicalTransfers; let i = index">
+                            <td>{{ i + 1 }}</td>
                             <td>{{ item.title }}</td>
                             <td>{{ item.description }}</td>
                             <td>{{ item.oecdArea }}</td>

@@ -38,6 +38,7 @@ export class LandingPageComponent implements OnInit, OnDestroy {
   benefitsSection: LandingSection | undefined;
   testimonialsSection: LandingSection | undefined;
   heroSection: LandingSection | undefined;
+  ayudaSection: LandingSection | undefined;
   loading = true;
 
   constructor(
@@ -91,6 +92,12 @@ export class LandingPageComponent implements OnInit, OnDestroy {
         this.testimonialsSection = data.find(s => s.encabezado?.codigo === LandingSectionCode.TESTIMONIOS);
         if (!this.testimonialsSection) {
           this.testimonialsSection = data.find(s => s.encabezado?.codigo === 'TESTVO');
+        }
+
+        // Ayuda Section
+        this.ayudaSection = data.find(s => s.encabezado?.codigo === LandingSectionCode.AYUDA);
+        if (!this.ayudaSection) {
+          this.ayudaSection = data.find(s => s.encabezado?.codigo === 'CTAHEL');
         }
 
         setTimeout(() => {

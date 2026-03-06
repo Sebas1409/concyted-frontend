@@ -10,7 +10,8 @@
         </button>
         <button *ngIf="canEdit" class="tab-btn" [class.active]="activeTab === 'requests'"
             (click)="toggleTab('requests')">
-            Solicitudes de Baja <span class="badge">02</span>
+            Solicitudes de Baja <span class="badge" *ngIf="pendingRequestsCount > 0">{{ pendingRequestsCount < 10 ? '0'
+                    + pendingRequestsCount : pendingRequestsCount }}</span>
         </button>
     </div>
 

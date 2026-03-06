@@ -33,7 +33,8 @@
             <div class="skeleton-image" *ngIf="loading"></div>
 
             <ng-container *ngIf="!loading && currentSlide">
-                <img [src]="currentSlide.image" [alt]="currentSlide.name" class="hero-img fade-in-animation">
+                <img [src]="currentSlide.image" (error)="onImageError($event)" [alt]="currentSlide.name"
+                    class="hero-img fade-in-animation">
 
                 <!-- Overlay Badge Top Left -->
                 <div class="hero-badge" *ngIf="currentSlide.level">

@@ -24,7 +24,7 @@
                 <table class="custom-table">
                     <thead>
                         <tr>
-                            <th>Código</th>
+                            <th>N°</th>
                             <th>Distinción</th>
                             <th>Descripción</th>
                             <th>Institución</th>
@@ -34,8 +34,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let item of distinctionsList">
-                            <td>{{ item.id }}</td>
+                        <tr *ngFor="let item of distinctionsList; let i = index">
+                            <td>{{ i + 1 }}</td>
                             <td>{{ item.nombre }}</td>
                             <td>{{ item.descripcion }}</td>
                             <td>{{ item.nombreInstitucion }}</td>
@@ -160,7 +160,7 @@
                         <table class="custom-table">
                             <thead>
                                 <tr>
-                                    <th class="w-code text-center">Codigo</th>
+                                    <th class="w-code text-center">N°</th>
                                     <th>Archivo</th>
                                     <th class="w-action text-center">Acción</th>
                                 </tr>

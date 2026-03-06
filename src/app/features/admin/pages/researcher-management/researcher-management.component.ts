@@ -163,6 +163,13 @@ export class ResearcherManagementComponent {
     ngOnInit() {
         this.loadCatalogs();
         this.loadResearchers();
+        if (this.canEdit) {
+            this.loadRequests();
+        }
+    }
+
+    get pendingRequestsCount(): number {
+        return Math.max(0, this.requests.filter(r => r.status === 'Pendiente' || r.status === 'PENDIENTE').length);
     }
 
     loadCatalogs() {

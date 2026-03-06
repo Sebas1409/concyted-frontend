@@ -1,8 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { LandingService, LandingHeader } from '../../../../core/services/landing.service';
-import { LandingSectionCode } from '../../../../core/constants/landing-section-codes';
+import { LandingSection, LandingHeader } from '../../../../core/services/landing.service';
 
 @Component({
     selector: 'app-landing-header',
@@ -11,25 +10,20 @@ import { LandingSectionCode } from '../../../../core/constants/landing-section-c
     templateUrl: './header.component.html',
     styleUrl: './header.component.scss'
 })
-export class HeaderComponent implements OnInit {
+export class HeaderComponent implements OnChanges {
+    @Input() sectionData: LandingSection | undefined;
+
     public openMobile = false;
     public ctaHeader: LandingHeader | null = null;
 
-    constructor(private landingService: LandingService) { }
-
-    ngOnInit(): void {
-        this.landingService.getHeaderByCode(LandingSectionCode.AYUDA).subscribe({
-            next: (data) => {
-                if (this.isBannerActive(data)) {
-                    this.ctaHeader = data;
-                } else {
-                    this.ctaHeader = null;
-                }
-            },
-            error: (err) => {
-                console.error('Error fetching CTA Header', err);
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['sectionData'] && this.sectionData && this.sectionData.encabezado) {
+            if (this.isBannerActive(this.sectionData.encabezado)) {
+                this.ctaHeader = this.sectionData.encabezado;
+            } else {
+                this.ctaHeader = null;
             }
-        });
+        }
     }
 
     private isBannerActive(header: LandingHeader): boolean {

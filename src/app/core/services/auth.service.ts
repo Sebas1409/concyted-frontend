@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, of, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
@@ -35,14 +36,19 @@ export class AuthService {
     // User State Management
     private currentUserSubject = new BehaviorSubject<AuthResponse | null>(null);
     currentUser$ = this.currentUserSubject.asObservable();
+    private logoutTimer: any;
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private router: Router) {
         this.restoreSession();
     }
 
     login(credentials: LoginRequest): Observable<any> {
         return this.http.post(`${this.authUrl}/login`, credentials)
             .pipe(map(response => response));
+    }
+
+    refreshToken(token: string): Observable<any> {
+        return this.http.post(`${this.authUrl}/refresh`, { refreshToken: token });
     }
 
     register(user: any): Observable<any> {
@@ -124,6 +130,12 @@ export class AuthService {
     setCurrentUser(user: AuthResponse) {
         this.currentUserSubject.next(user);
         localStorage.setItem('currentUser', JSON.stringify(user));
+
+        // Start timer based on current token
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+            this.setLogoutTimer(token);
+        }
     }
 
     getCurrentUser(): AuthResponse | null {
@@ -136,6 +148,12 @@ export class AuthService {
             try {
                 const user: AuthResponse = JSON.parse(storedUser);
                 this.currentUserSubject.next(user);
+
+                // Re-verify token expiration
+                const token = localStorage.getItem('accessToken');
+                if (token) {
+                    this.setLogoutTimer(token);
+                }
             } catch (e) {
                 console.error('Error parsing stored user', e);
                 this.logout();
@@ -145,12 +163,19 @@ export class AuthService {
 
     logout() {
         console.log('AuthService: Logging out...');
+
+        if (this.logoutTimer) {
+            clearTimeout(this.logoutTimer);
+            this.logoutTimer = null;
+        }
+
         // Remove all data from local storage to ensure clean state
         localStorage.clear();
         console.log('AuthService: Storage cleared. Items remaining:', localStorage.length);
 
         // Reset state
         this.currentUserSubject.next(null);
+        this.router.navigate(['/auth/login']);
     }
     processLoginResponse(response: any): Observable<boolean> {
         if (response && response.accessToken) {
@@ -166,6 +191,9 @@ export class AuthService {
 
                 // Save token immediately for interceptor
                 localStorage.setItem('accessToken', response.accessToken);
+                if (response.refreshToken) {
+                    localStorage.setItem('refreshToken', response.refreshToken);
+                }
 
                 // Roles check to choose API
                 const roles = decoded.roles || decoded.authorities || [];
@@ -248,6 +276,34 @@ export class AuthService {
         } catch (e) {
             console.error('Failed to decode token', e);
             return null;
+        }
+    }
+
+    private setLogoutTimer(token: string) {
+        try {
+            const decoded = this.decodeToken(token);
+            if (!decoded || !decoded.exp) return;
+
+            const expirationTime = decoded.exp * 1000; // to ms
+            const currentTime = Date.now();
+            const timeout = expirationTime - currentTime;
+
+            if (this.logoutTimer) {
+                clearTimeout(this.logoutTimer);
+            }
+
+            if (timeout <= 0) {
+                console.warn('Token already expired. Logging out now.');
+                this.logout();
+            } else {
+                console.log(`Session will expire in ${Math.round(timeout / 1000 / 60)} minutes.`);
+                this.logoutTimer = setTimeout(() => {
+                    console.error('Session expired (Timer). Redirecting to login.');
+                    this.logout();
+                }, timeout);
+            }
+        } catch (e) {
+            console.error('Failed to set logout timer', e);
         }
     }
     refreshCurrentUser(): Observable<AuthResponse> {

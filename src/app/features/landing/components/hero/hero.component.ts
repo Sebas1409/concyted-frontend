@@ -105,6 +105,11 @@ export class HeroComponent implements OnChanges, OnDestroy {
         this.cdr.markForCheck(); // Using OnPush or just safe check
     }
 
+    onImageError(event: Event) {
+        const imgElement = event.target as HTMLImageElement;
+        imgElement.src = 'assets/images/landing/investigador-nivel2.png';
+    }
+
     ngOnDestroy() {
         this.stopCarousel();
     }

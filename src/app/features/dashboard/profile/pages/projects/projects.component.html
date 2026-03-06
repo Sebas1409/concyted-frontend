@@ -61,7 +61,7 @@
                 <table class="custom-table">
                     <thead>
                         <tr>
-                            <th class="w-5">Código</th>
+                            <th class="w-5">N°</th>
                             <th class="w-15">Tipo proyecto</th>
                             <th class="w-15">Título</th>
                             <th class="w-20">Descripción</th>
@@ -73,8 +73,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let project of manualProjects">
-                            <td>{{ project.code }}</td>
+                        <tr *ngFor="let project of manualProjects; let i = index">
+                            <td>{{ i + 1 }}</td>
                             <td>{{ project.projectType }}</td>
                             <td>{{ project.title }}</td>
                             <td>{{ project.description }}</td>
@@ -110,7 +110,7 @@
                 <table class="custom-table">
                     <thead>
                         <tr>
-                            <th class="w-5">Código</th>
+                            <th class="w-5">N°</th>
                             <th class="w-10">Tipo financiamiento</th>
                             <th class="w-15">Título</th>
                             <th class="w-20">Descripción</th>
@@ -122,8 +122,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let project of orcidProjects">
-                            <td>{{ project.code }}</td>
+                        <tr *ngFor="let project of orcidProjects; let i = index">
+                            <td>{{ i + 1 }}</td>
                             <td>{{ project.fundingType }}</td>
                             <td>{{ project.title }}</td>
                             <td>{{ project.description }}</td>
@@ -169,7 +169,11 @@
                 <div class="form-group">
                     <label>{{ nameLabel }} <span>*</span></label>
                     <input type="text" formControlName="projectName" class="form-input"
+                        [class.is-invalid]="projectForm.get('projectName')?.invalid && projectForm.get('projectName')?.touched"
                         placeholder="Ingresa el nombre oficial del proyecto...">
+                    <span class="error-text"
+                        *ngIf="projectForm.get('projectName')?.invalid && projectForm.get('projectName')?.touched">El
+                        nombre es requerido</span>
                 </div>
 
                 <!-- Description -->
@@ -183,24 +187,36 @@
                 <div class="form-group">
                     <label>Palabras Clave <span>*</span></label>
                     <input type="text" formControlName="keywords" class="form-input"
+                        [class.is-invalid]="projectForm.get('keywords')?.invalid && projectForm.get('keywords')?.touched"
                         placeholder="Ej. Biotecnología, Minería de Datos (Separar con comas)">
+                    <span class="error-text"
+                        *ngIf="projectForm.get('keywords')?.invalid && projectForm.get('keywords')?.touched">Las
+                        palabras clave son requeridas</span>
                 </div>
 
                 <!-- Type and Region -->
                 <div class="form-row two-col">
                     <div class="form-group">
                         <label>Tipo de Proyecto <span>*</span></label>
-                        <select formControlName="projectType" class="form-select">
+                        <select formControlName="projectType" class="form-select"
+                            [class.is-invalid]="projectForm.get('projectType')?.invalid && projectForm.get('projectType')?.touched">
                             <option value="" disabled selected>Seleccionar tipo...</option>
                             <option *ngFor="let type of projectTypes" [value]="type.id">{{ type.nombre }}</option>
                         </select>
+                        <span class="error-text"
+                            *ngIf="projectForm.get('projectType')?.invalid && projectForm.get('projectType')?.touched">Selecciona
+                            un tipo</span>
                     </div>
                     <div class="form-group">
                         <label>Región de Ejecución <span>*</span></label>
-                        <select formControlName="executionRegion" class="form-select">
+                        <select formControlName="executionRegion" class="form-select"
+                            [class.is-invalid]="projectForm.get('executionRegion')?.invalid && projectForm.get('executionRegion')?.touched">
                             <option value="" disabled selected>Seleccionar región...</option>
                             <option *ngFor="let dept of departments" [value]="dept.id">{{ dept.nombre }}</option>
                         </select>
+                        <span class="error-text"
+                            *ngIf="projectForm.get('executionRegion')?.invalid && projectForm.get('executionRegion')?.touched">Selecciona
+                            una región</span>
                     </div>
                 </div>
 
@@ -208,11 +224,17 @@
                 <div class="form-row two-col">
                     <div class="form-group">
                         <label>Fecha de Inicio <span>*</span></label>
-                        <input type="date" formControlName="startDate" class="form-input">
+                        <input type="date" formControlName="startDate" class="form-input"
+                            [class.is-invalid]="projectForm.get('startDate')?.invalid && projectForm.get('startDate')?.touched">
+                        <span class="error-text"
+                            *ngIf="projectForm.get('startDate')?.invalid && projectForm.get('startDate')?.touched">Requerido</span>
                     </div>
                     <div class="form-group">
                         <label>Fecha de fin <span>*</span></label>
-                        <input type="date" formControlName="endDate" class="form-input">
+                        <input type="date" formControlName="endDate" class="form-input"
+                            [class.is-invalid]="projectForm.get('endDate')?.invalid && projectForm.get('endDate')?.touched">
+                        <span class="error-text"
+                            *ngIf="projectForm.get('endDate')?.invalid && projectForm.get('endDate')?.touched">Requerido</span>
                     </div>
                 </div>
 
@@ -220,18 +242,24 @@
                 <div class="form-row two-col">
                     <div class="form-group">
                         <label>Vinculación Académica / Empresarial <span>*</span></label>
-                        <select formControlName="academicContext" class="form-select">
+                        <select formControlName="academicContext" class="form-select"
+                            [class.is-invalid]="projectForm.get('academicContext')?.invalid && projectForm.get('academicContext')?.touched">
                             <option value="" disabled selected>Seleccionar contexto...</option>
                             <option *ngFor="let context of academicContexts" [value]="context.id">{{ context.nombre }}
                             </option>
                         </select>
+                        <span class="error-text"
+                            *ngIf="projectForm.get('academicContext')?.invalid && projectForm.get('academicContext')?.touched">Requerido</span>
                     </div>
                     <div class="form-group">
                         <label>Rol Desempeñado <span>*</span></label>
-                        <select formControlName="role" class="form-select">
+                        <select formControlName="role" class="form-select"
+                            [class.is-invalid]="projectForm.get('role')?.invalid && projectForm.get('role')?.touched">
                             <option value="" disabled selected>Seleccionar rol...</option>
                             <option *ngFor="let role of projectRoles" [value]="role.id">{{ role.nombre }}</option>
                         </select>
+                        <span class="error-text"
+                            *ngIf="projectForm.get('role')?.invalid && projectForm.get('role')?.touched">Requerido</span>
                     </div>
                 </div>
 
@@ -246,16 +274,22 @@
                     </div>
                 </div>
 
+                <!-- Sección: Institución y Financiamiento -->
+                <div class="form-section-title">Institución y Financiamiento</div>
+
                 <!-- Main Institution & Collaborating Institution -->
                 <div class="form-row two-col">
                     <div class="form-group">
                         <label>Institución Principal <span>*</span></label>
-                        <select formControlName="mainInstitution" class="form-select">
+                        <select formControlName="mainInstitution" class="form-select"
+                            [class.is-invalid]="projectForm.get('mainInstitution')?.invalid && projectForm.get('mainInstitution')?.touched">
                             <option value="" disabled selected>Buscar institución...</option>
                             <option value="Concytec">Concytec</option>
                             <option value="UPC">UPC</option>
                             <option value="PUCP">PUCP</option>
                         </select>
+                        <span class="error-text"
+                            *ngIf="projectForm.get('mainInstitution')?.invalid && projectForm.get('mainInstitution')?.touched">Requerido</span>
                     </div>
                     <div class="form-group">
                         <label>Institución Colaboradora <span>*</span></label>
@@ -271,20 +305,26 @@
                 <div class="form-row two-col">
                     <div class="form-group">
                         <label>Subvencionado Por (Financiadora) <span>*</span></label>
-                        <select formControlName="fundedBy" class="form-select">
+                        <select formControlName="fundedBy" class="form-select"
+                            [class.is-invalid]="projectForm.get('fundedBy')?.invalid && projectForm.get('fundedBy')?.touched">
                             <option value="" disabled selected>Buscar institución...</option>
                             <option value="ProCiencia">ProCiencia</option>
                             <option value="Concytec">Concytec</option>
                             <option value="Privado">Sector Privado</option>
                         </select>
+                        <span class="error-text"
+                            *ngIf="projectForm.get('fundedBy')?.invalid && projectForm.get('fundedBy')?.touched">Requerido</span>
                     </div>
                     <div class="form-group">
                         <label>Concurso / Subvención <span>*</span></label>
-                        <select formControlName="grantContest" class="form-select">
+                        <select formControlName="grantContest" class="form-select"
+                            [class.is-invalid]="projectForm.get('grantContest')?.invalid && projectForm.get('grantContest')?.touched">
                             <option value="" disabled selected>Ej. Proyectos Semilla 2023</option>
                             <option value="Semilla2023">Proyectos Semilla 2023</option>
                             <option value="Basica2023">Proyectos Investigación Básica 2023</option>
                         </select>
+                        <span class="error-text"
+                            *ngIf="projectForm.get('grantContest')?.invalid && projectForm.get('grantContest')?.touched">Requerido</span>
                     </div>
                 </div>
 
@@ -293,39 +333,58 @@
                     <div class="form-group">
                         <label>N° de Contrato <span>*</span></label>
                         <input type="text" formControlName="contractNumber" class="form-input"
+                            [class.is-invalid]="projectForm.get('contractNumber')?.invalid && projectForm.get('contractNumber')?.touched"
                             placeholder="Ej. 125-2023-FONDECYT">
+                        <span class="error-text"
+                            *ngIf="projectForm.get('contractNumber')?.invalid && projectForm.get('contractNumber')?.touched">Requerido</span>
                     </div>
                     <div class="form-group">
                         <label>Monto Financiado <span>*</span></label>
-                        <input type="number" formControlName="financedAmount" class="form-input" placeholder="0.00">
+                        <input type="number" formControlName="financedAmount" class="form-input"
+                            [class.is-invalid]="projectForm.get('financedAmount')?.invalid && projectForm.get('financedAmount')?.touched"
+                            placeholder="0.00">
+                        <span class="error-text"
+                            *ngIf="projectForm.get('financedAmount')?.invalid && projectForm.get('financedAmount')?.touched">Requerido</span>
                     </div>
                 </div>
+
+                <!-- Sección: Clasificación y Temática -->
+                <div class="form-section-title">Clasificación OECD y Temática</div>
 
                 <!-- OECD Fields -->
                 <div class="form-row two-col">
                     <div class="form-group">
                         <label>Área OCDE <span>*</span></label>
-                        <select formControlName="oecdArea" class="form-select" (change)="onAreaChange($event)">
+                        <select formControlName="oecdArea" class="form-select" (change)="onAreaChange($event)"
+                            [class.is-invalid]="projectForm.get('oecdArea')?.invalid && projectForm.get('oecdArea')?.touched">
                             <option value="" disabled selected>Seleccionar área...</option>
                             <option *ngFor="let area of areas" [value]="area.idArea">{{ area.descripcion }}</option>
                         </select>
+                        <span class="error-text"
+                            *ngIf="projectForm.get('oecdArea')?.invalid && projectForm.get('oecdArea')?.touched">Requerido</span>
                     </div>
                     <div class="form-group">
                         <label>Sub-área OCDE <span>*</span></label>
-                        <select formControlName="oecdSubArea" class="form-select" (change)="onSubAreaChange($event)">
-                            <option value="" disabled selected>Seleccionar sub-área...</option>
+                        <select formControlName="oecdSubArea" class="form-select" (change)="onSubAreaChange($event)"
+                            [class.is-invalid]="projectForm.get('oecdSubArea')?.invalid && projectForm.get('oecdSubArea')?.touched">
+                            <option value="" disabled selected>Seleccionar sub-area...</option>
                             <option *ngFor="let sub of subAreas" [value]="sub.id">{{ sub.descripcion }}</option>
                         </select>
+                        <span class="error-text"
+                            *ngIf="projectForm.get('oecdSubArea')?.invalid && projectForm.get('oecdSubArea')?.touched">Requerido</span>
                     </div>
                 </div>
 
                 <div class="form-row two-col">
                     <div class="form-group">
                         <label>Disciplina OCDE <span>*</span></label>
-                        <select formControlName="oecdDiscipline" class="form-select">
+                        <select formControlName="oecdDiscipline" class="form-select"
+                            [class.is-invalid]="projectForm.get('oecdDiscipline')?.invalid && projectForm.get('oecdDiscipline')?.touched">
                             <option value="" disabled selected>Seleccionar disciplina...</option>
                             <option *ngFor="let disc of disciplines" [value]="disc.id">{{ disc.descripcion }}</option>
                         </select>
+                        <span class="error-text"
+                            *ngIf="projectForm.get('oecdDiscipline')?.invalid && projectForm.get('oecdDiscipline')?.touched">Requerido</span>
                     </div>
                     <div class="form-group">
                         <label>Temática Ambiental <span>*</span></label>
@@ -340,8 +399,7 @@
                 <!-- Actions -->
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
-                    <button type="button" class="btn-save" (click)="saveProject()"
-                        [disabled]="projectForm.invalid">Guardar
+                    <button type="button" class="btn-save" (click)="saveProject()">Guardar
                         Proyecto</button>
                 </div>
             </div>
@@ -394,7 +452,7 @@
                 <table class="custom-table" style="font-size: 0.85rem;">
                     <thead>
                         <tr>
-                            <th>Código</th>
+                            <th>N°</th>
                             <th>Apellido Paterno</th>
                             <th>Apellido Materno</th>
                             <th>Nombres</th>
@@ -404,7 +462,7 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let collab of collaborators; let i = index">
-                            <td>0{{collab.id}}</td>
+                            <td>{{ i + 1 }}</td>
                             <td>{{collab.paternalSurname}}</td>
                             <td>{{collab.maternalSurname}}</td>
                             <td>{{collab.names}}</td>
