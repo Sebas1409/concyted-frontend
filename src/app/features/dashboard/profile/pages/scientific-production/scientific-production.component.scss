@@ -365,6 +365,8 @@
             top: 50%;
             transform: translateY(-50%);
             color: #9CA3AF;
+            display: flex;
+            align-items: center;
         }
 
         input {
@@ -429,6 +431,13 @@
     .chk-col {
         width: 40px;
         text-align: center;
+
+        input[type="checkbox"] {
+            accent-color: #065F46;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
     }
 
     .link {
@@ -503,9 +512,9 @@
                 cursor: pointer;
 
                 &.active {
-                    background-color: #DBEAFE;
-                    border-color: #BFDBFE;
-                    color: #1E40AF;
+                    background-color: #D1FAE5;
+                    border-color: #065F46;
+                    color: #065F46;
                     font-weight: bold;
                 }
             }
@@ -520,7 +529,38 @@
     padding-top: 1rem;
     border-top: 1px solid #E5E7EB;
 
+    .btn-confirm-import {
+        background-color: #004E5A;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
 
+        &:hover {
+            background-color: #003b44;
+        }
+
+        &:disabled {
+            background-color: #9CA3AF;
+            cursor: not-allowed;
+        }
+    }
+
+    .btn-cancel-import {
+        background-color: white;
+        color: #374151;
+        border: 1px solid #D1D5DB;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+
+        &:hover {
+            background-color: #F9FAFB;
+        }
+    }
 }
 
 /* ADD PUBLICATION MODAL STYLES */
@@ -754,5 +794,32 @@
         &:hover {
             background: #003b44;
         }
+
+        &:disabled {
+            background-color: #9CA3AF;
+            cursor: not-allowed;
+        }
+    }
+}
+
+.loader-inline {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary-600);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
     }
 }

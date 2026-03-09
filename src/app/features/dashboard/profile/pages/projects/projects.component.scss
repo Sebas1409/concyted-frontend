@@ -551,6 +551,29 @@
     .modal-header {
         margin-bottom: 1.5rem;
     }
+
+    .modal-form-header-section {
+        margin-bottom: 1.5rem;
+
+        .form-group {
+            margin-bottom: 1rem;
+
+            label {
+                font-weight: 600;
+                color: #374151;
+            }
+        }
+    }
+
+    .form-section-subtitle {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #005f73;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.25rem;
+        border-bottom: 1px solid #E5E7EB;
+    }
 }
 
 @keyframes fadeInScale {
@@ -603,4 +626,36 @@
     border-top: 1px solid #E5E7EB;
     margin-top: auto;
     /* Push to bottom if flex column */
+}
+
+/* Collaborators Summary in Main Form */
+.collaborators-summary {
+    .summary-chip-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .summary-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background-color: #F3F4F6;
+        color: #374151;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        border: 1px solid #E5E7EB;
+
+        i {
+            color: #9CA3AF;
+            cursor: pointer;
+            font-size: 0.75rem;
+
+            &:hover {
+                color: #EF4444;
+            }
+        }
+    }
 }

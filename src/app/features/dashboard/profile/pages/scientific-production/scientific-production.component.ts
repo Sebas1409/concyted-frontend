@@ -1,11 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { map, catchError, finalize } from 'rxjs/operators';
+import { Router } from '@angular/router';
 import { ActionButtonsComponent } from '../../../../../shared/components/action-buttons/action-buttons.component';
 import { IntroCardComponent } from '../../../../../shared/components/intro-card/intro-card.component';
 import { FileUploaderComponent } from '../../../../../shared/components/file-uploader/file-uploader.component';
 import { CatalogService, CatalogItem } from '../../../../../core/services/catalog.service';
 import { UbigeoService } from '../../../../../core/services/ubigeo.service';
+import { AuthService } from '../../../../../core/services/auth.service';
+import { ScientificProductionService, AliciaRequest } from '../../../../../core/services/scientific-production.service';
 
 @Component({
     selector: 'app-scientific-production',
@@ -22,6 +26,7 @@ export class ScientificProductionComponent implements OnInit {
     congressFiles: any[] = [];
     otherFiles: any[] = [];
     hasUploadError = false;
+    currentUserDni = '';
 
     // Import Modal State
     showImportModal = false;
@@ -36,12 +41,15 @@ export class ScientificProductionComponent implements OnInit {
 
     // Search & Results
     searchQuery = '';
-    searchResults: any[] = [];
-    selectedItems: Set<number> = new Set();
+    rawAliciaResults: any[] = [];
+    filteredResults: any[] = [];
+    pagedResults: any[] = [];
+    selectedItems: Set<any> = new Set();
 
-    // Pagination Mock
-    currentPage = 1;
-    totalPages = 5;
+    // Pagination Alicia
+    currentPageAlicia = 1;
+    itemsPerPageAlicia = 10;
+    isLoadingAlicia = false;
 
     // Mock data for Imported Productions
     importedProductions = [
@@ -94,7 +102,10 @@ export class ScientificProductionComponent implements OnInit {
     constructor(
         private fb: FormBuilder,
         private catalogService: CatalogService,
-        private ubigeoService: UbigeoService
+        private ubigeoService: UbigeoService,
+        private authService: AuthService,
+        private spService: ScientificProductionService,
+        private cdr: ChangeDetectorRef
     ) {
         this.publicationForm = this.fb.group({
             indexedIn: [''],
@@ -145,6 +156,15 @@ export class ScientificProductionComponent implements OnInit {
 
     ngOnInit() {
         this.loadCatalogs();
+        this.updateUserDni();
+    }
+
+    private updateUserDni() {
+        const user = this.authService.getCurrentUser();
+        if (user) {
+            // Try numDoc first, then dni (if it exists on any variant), then username as fallback
+            this.currentUserDni = user.numDoc || (user as any).dni || user.username || 'N/A';
+        }
     }
 
     private loadCatalogs() {
@@ -241,6 +261,7 @@ export class ScientificProductionComponent implements OnInit {
     // Import Modal Actions
     openImportModal() {
         this.showImportModal = true;
+        this.updateUserDni();
         this.resetImportState();
     }
 
@@ -250,14 +271,16 @@ export class ScientificProductionComponent implements OnInit {
 
     resetImportState() {
         this.searchQuery = '';
-        this.searchResults = [];
+        this.rawAliciaResults = [];
         this.selectedItems.clear();
         this.activeImportTab = 'international';
     }
 
     setImportTab(tab: 'international' | 'alicia') {
         this.activeImportTab = tab;
-        this.searchResults = []; // Clear previous results
+        this.rawAliciaResults = [];
+        this.filteredResults = [];
+        this.pagedResults = [];
         this.selectedItems.clear();
 
         if (tab === 'alicia') {
@@ -274,7 +297,7 @@ export class ScientificProductionComponent implements OnInit {
         if (!this.searchQuery.trim()) return;
 
         // Mock Search Results for International
-        this.searchResults = [
+        this.rawAliciaResults = [
             {
                 id: 101,
                 title: 'Univ. César Vallejo',
@@ -285,37 +308,136 @@ export class ScientificProductionComponent implements OnInit {
                 journal: 'Bachiller en Ingeniería de Sistemas',
                 apiSource: 'Scopus',
                 alreadyImported: false
-            },
-            {
-                id: 102,
-                title: 'Univ. César Vallejo - Research',
-                date: '15/05/2021',
-                url: '#',
-                type: 'Tesis',
-                source: 'SUNEDU',
-                journal: 'Bachiller en Ingeniería de Sistemas',
-                apiSource: 'WOS',
-                alreadyImported: true // Mock disabled row
             }
         ];
+        this.applyAliciaFilters();
     }
 
     searchAlicia() {
-        // Mock Automatic Search for Alicia
-        this.searchResults = [
-            {
-                id: 201,
-                title: 'Análisis diferenciado de la gestión de incidentes en áreas con tecnologías de la información de la Municipalidad Provincial de Sullana, 2023',
-                date: '2023',
-                author: 'Macalupu Herrera, Enzo Francisco',
-                institution: 'UCV',
-                url: '#',
-                type: 'bachelorThesis',
-                source: 'ALICIA',
-                apiSource: 'Tesis',
-                alreadyImported: false
+        const user = this.authService.getCurrentUser();
+        if (!user) {
+            console.warn('[Alicia] No user found for search');
+            return;
+        }
+
+        const nombresArr = (user.nombres || '').trim().split(' ');
+        const request: AliciaRequest = {
+            primerNombre: nombresArr[0] || '',
+            segundoNombre: nombresArr.slice(1).join(' ') || '',
+            apellidoPaterno: user.apellidoPaterno || '',
+            apellidoMaterno: user.apellidoMaterno || ''
+        };
+
+        console.log('[Alicia] Submitting request:', request);
+        this.isLoadingAlicia = true;
+        this.rawAliciaResults = [];
+        this.filteredResults = [];
+        this.pagedResults = [];
+
+        this.spService.searchAlicia(request).pipe(
+            finalize(() => {
+                this.isLoadingAlicia = false;
+                this.cdr.detectChanges();
+            })
+        ).subscribe({
+            next: (data) => {
+                console.log('[Alicia] Received data:', data);
+                try {
+                    if (data && Array.isArray(data)) {
+                        this.rawAliciaResults = data.map(item => ({
+                            id: item.id || Math.random().toString(36).substr(2, 9),
+                            title: item.titulo || 'Sin título',
+                            date: this.formatAliciaDate(item.fechaPublicacion),
+                            author: item.autor || 'N/A',
+                            institution: item.institucion || 'N/A',
+                            url: item.url || '#',
+                            type: item.tipo || 'N/A',
+                            coauthor: item.coautor || '',
+                            source: 'ALICIA',
+                            apiSource: 'Alicia',
+                            alreadyImported: this.importedProductions.some(p => {
+                                const pTitle = (p.title || '').toString().toLowerCase().trim();
+                                const itemTitle = (item.titulo || '').toString().toLowerCase().trim();
+                                return pTitle !== '' && pTitle === itemTitle;
+                            })
+                        }));
+                        this.applyAliciaFilters();
+                    }
+                } catch (e) {
+                    console.error('[Alicia] Error processing results:', e);
+                }
+            },
+            error: (err) => {
+                console.error('[Alicia] Error searching in Alicia:', err);
+                this.rawAliciaResults = [];
+                this.applyAliciaFilters();
             }
-        ];
+        });
+    }
+
+    private formatAliciaDate(dateStr: string): string {
+        if (!dateStr || dateStr === 'N/A') return 'N/A';
+        // Alicia returns YYYY-MM-DD
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+        return dateStr;
+    }
+
+    applyAliciaFilters() {
+        const query = (this.searchQuery || '').toLowerCase().trim();
+        this.filteredResults = this.rawAliciaResults.filter(item =>
+            !query ||
+            item.title?.toLowerCase().includes(query) ||
+            item.author?.toLowerCase().includes(query) ||
+            item.id?.toString().toLowerCase().includes(query) ||
+            item.institution?.toLowerCase().includes(query) ||
+            item.date?.toLowerCase().includes(query)
+        );
+        this.currentPageAlicia = 1;
+        this.updatePagedResults();
+    }
+
+    updatePagedResults() {
+        const start = (this.currentPageAlicia - 1) * this.itemsPerPageAlicia;
+        const end = start + this.itemsPerPageAlicia;
+        this.pagedResults = this.filteredResults.slice(start, end);
+        this.cdr.detectChanges();
+    }
+
+    setPageAlicia(page: number) {
+        this.currentPageAlicia = page;
+        this.updatePagedResults();
+    }
+
+    nextPageAlicia() {
+        if (this.currentPageAlicia < this.totalAliciaPages) {
+            this.currentPageAlicia++;
+            this.updatePagedResults();
+        }
+    }
+
+    prevPageAlicia() {
+        if (this.currentPageAlicia > 1) {
+            this.currentPageAlicia--;
+            this.updatePagedResults();
+        }
+    }
+
+    get totalAliciaPages(): number {
+        return Math.ceil(this.filteredResults.length / this.itemsPerPageAlicia);
+    }
+
+    getAliciaPagesArray(): number[] {
+        const total = this.totalAliciaPages;
+        if (total <= 5) {
+            return Array.from({ length: total }, (_, i) => i + 1);
+        }
+        // Basic pagination logic if more than 5 pages
+        if (this.currentPageAlicia <= 3) return [1, 2, 3, 4, 5];
+        if (this.currentPageAlicia >= total - 2) return [total - 4, total - 3, total - 2, total - 1, total];
+        return [this.currentPageAlicia - 2, this.currentPageAlicia - 1, this.currentPageAlicia, this.currentPageAlicia + 1, this.currentPageAlicia + 2];
     }
 
     toggleSelection(item: any) {
@@ -328,13 +450,44 @@ export class ScientificProductionComponent implements OnInit {
         }
     }
 
+    toggleAllAlicia() {
+        const selectables = this.filteredResults.filter(item => !item.alreadyImported);
+        if (this.isAllAliciaSelected()) {
+            selectables.forEach(item => this.selectedItems.delete(item.id));
+        } else {
+            selectables.forEach(item => this.selectedItems.add(item.id));
+        }
+    }
+
+    isAllAliciaSelected(): boolean {
+        const selectables = this.filteredResults.filter(item => !item.alreadyImported);
+        if (selectables.length === 0) return false;
+        return selectables.every(item => this.selectedItems.has(item.id));
+    }
+
     isSelected(item: any): boolean {
         return this.selectedItems.has(item.id);
     }
 
     importSelected() {
-        console.log('Importing IDs:', Array.from(this.selectedItems));
-        // Add logic to save to main list
+        const selectedResults = this.rawAliciaResults.filter(item => this.selectedItems.has(item.id));
+
+        selectedResults.forEach(item => {
+            if (!this.importedProductions.some(p => p.title === item.title)) {
+                this.importedProductions.push({
+                    id: this.importedProductions.length + 1,
+                    type: item.type,
+                    title: item.title,
+                    author: item.author || item.coauthor,
+                    year: item.date,
+                    doi: '', // Alicia doesn't always provide DOI in this format
+                    journal: item.institution,
+                    source: item.source,
+                    quartile: 'N/A'
+                });
+            }
+        });
+
         this.closeImportModal();
     }
 

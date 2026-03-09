@@ -68,7 +68,7 @@
                             <th class="w-10">Institución</th>
                             <th class="w-10">Fecha Inicio</th>
                             <th class="w-10">Fecha Fin</th>
-                            <!-- <th class="w-10">Adjuntos</th> -->
+                            <th class="w-10">Adjuntos</th>
                             <th class="w-5 text-center">Acciones</th>
                         </tr>
                     </thead>
@@ -81,9 +81,9 @@
                             <td>{{ project.institution }}</td>
                             <td>{{ project.startDate | date:'dd/MM/yyyy' }}</td>
                             <td>{{ project.endDate | date:'dd/MM/yyyy' }}</td>
-                            <!-- <td>
-                                <span class="link-action">Ver archivos</span>
-                            </td> -->
+                            <td>
+                                <span class="link-action" (click)="viewFiles(project)">Ver archivos</span>
+                            </td>
                             <td class="actions">
                                 <app-action-buttons (edit)="editProject(project.id)"
                                     (delete)="deleteProject(project.id)"></app-action-buttons>
@@ -269,8 +269,21 @@
                     <div class="input-group">
                         <input type="text" formControlName="principalInvestigator" class="form-input"
                             placeholder="Nombre completo del responsable del proyecto">
-                        <button type="button" class="btn-secondary" (click)="openCollaboratorModal()">Agregar
-                            Colaborador</button>
+                        <button *ngIf="modalType === 'research'" type="button" class="btn-secondary"
+                            (click)="openCollaboratorModal()">Agregar
+                            Equipo</button>
+                    </div>
+
+                    <!-- Collaborators Summary List in Main Form (Only for Research projects) -->
+                    <div class="collaborators-summary mt-2"
+                        *ngIf="modalType === 'research' && collaborators.length > 0">
+                        <p class="text-xs font-semibold text-gray-600 mb-1">Equipo de trabajo:</p>
+                        <div class="summary-chip-container">
+                            <span class="summary-chip" *ngFor="let c of collaborators">
+                                {{c.names}} {{c.paternalSurname}}
+                                <i class="fas fa-times" (click)="removeCollaborator(c.id)"></i>
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -396,10 +409,15 @@
                     </div>
                 </div>
 
+                <div class="mb-4">
+                    <app-file-uploader [(files)]="projectFiles"
+                        (errorChange)="onUploadError($event)"></app-file-uploader>
+                </div>
+
                 <!-- Actions -->
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
-                    <button type="button" class="btn-save" (click)="saveProject()">Guardar
+                    <button type="button" class="btn-save" (click)="saveProject()" [disabled]="hasUploadError">Guardar
                         Proyecto</button>
                 </div>
             </div>
@@ -407,12 +425,24 @@
     </div>
 </div>
 
+<app-file-viewer-modal *ngIf="showFileViewer" [files]="viewerFiles" (close)="closeFileViewer()">
+</app-file-viewer-modal>
+
 <!-- COLLABORATORS MODAL -->
 <div class="modal-overlay-nested" *ngIf="showCollaboratorModal" (click)="closeCollaboratorModal()">
     <div class="modal-container-centered" (click)="$event.stopPropagation()">
         <div class="modal-header">
             <h2>Equipo de Colaboradores</h2>
             <p>Registra los datos de los integrantes que participaron en el proyecto para añadirlos a tu lista.</p>
+        </div>
+
+        <div class="modal-form-header-section">
+            <div class="form-group mb-4">
+                <label>Responsable</label>
+                <input type="text" [value]="currentUserFullName" class="form-input" disabled
+                    style="background-color: #f9fafb; font-weight: 600;">
+            </div>
+            <h3 class="form-section-subtitle">Colaboradores</h3>
         </div>
 
         <form [formGroup]="collaboratorForm" class="modal-form">
@@ -484,7 +514,7 @@
         <!-- Footer Actions -->
         <div class="modal-footer">
             <button type="button" class="btn-cancel" (click)="closeCollaboratorModal()">Cancelar</button>
-            <button type="button" class="btn-save" (click)="closeCollaboratorModal()">Guardar colaborador</button>
+            <button type="button" class="btn-save" (click)="confirmCollaborators()">Aceptar equipo</button>
         </div>
     </div>
 </div>

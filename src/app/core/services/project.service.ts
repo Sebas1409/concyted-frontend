@@ -37,6 +37,7 @@ export interface ProjectPayload {
     tematicaAmbientalId: string;
     tipoProyectoId: string;
     vinculacionAcademicaId: string;
+    tokens?: string[];
 }
 
 @Injectable({
@@ -49,6 +50,12 @@ export class ProjectService {
 
     getProjectsByInvestigator(investigatorId: number, isInvestigacionDesarrollo: boolean): Observable<any[]> {
         return this.http.get<any[]>(`${this.apiUrl}/proyecto-idi/investigador/${investigatorId}`, {
+            params: { isInvestigacionDesarrollo: isInvestigacionDesarrollo.toString() }
+        });
+    }
+
+    getProjectsWithCollaborators(investigatorId: number, isInvestigacionDesarrollo: boolean): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/proyecto-idi/investigador/${investigatorId}/con-colaboradores`, {
             params: { isInvestigacionDesarrollo: isInvestigacionDesarrollo.toString() }
         });
     }

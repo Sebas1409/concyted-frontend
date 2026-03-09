@@ -8,8 +8,11 @@ import { AuthService } from '../../../../../core/services/auth.service';
 import { AlertService } from '../../../../../core/services/alert.service';
 import { CatalogService } from '../../../../../core/services/catalog.service';
 import { UbigeoService } from '../../../../../core/services/ubigeo.service';
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { FileService } from '../../../../../core/services/file.service';
+import { FileUploaderComponent } from '../../../../../shared/components/file-uploader/file-uploader.component';
+import { FileViewerModalComponent, ViewerFile } from '../../../../../shared/components/file-viewer-modal/file-viewer-modal.component';
+import { forkJoin, of, from, Observable } from 'rxjs';
+import { catchError, concatMap, toArray, map } from 'rxjs/operators';
 
 interface Project {
     id: number;
@@ -47,7 +50,7 @@ interface Collaborator {
 @Component({
     selector: 'app-projects',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, ActionButtonsComponent, IntroCardComponent],
+    imports: [CommonModule, ReactiveFormsModule, ActionButtonsComponent, IntroCardComponent, FileUploaderComponent, FileViewerModalComponent],
     templateUrl: './projects.component.html',
     styleUrls: ['./projects.component.scss']
 })
@@ -74,6 +77,13 @@ export class ProjectsComponent implements OnInit {
 
     isTableMaximized = false;
     currentProjectId: number | null = null;
+    projectFiles: any[] = [];
+    hasUploadError = false;
+
+    // File Viewer
+    showFileViewer = false;
+    viewerFiles: ViewerFile[] = [];
+    currentUserFullName: string = '';
 
     toggleMaximize() {
         this.isTableMaximized = !this.isTableMaximized;
@@ -93,6 +103,7 @@ export class ProjectsComponent implements OnInit {
         private authService: AuthService,
         private alertService: AlertService,
         private ubigeoService: UbigeoService,
+        private fileService: FileService,
         private cdr: ChangeDetectorRef
     ) {
         this.projectForm = this.fb.group({
@@ -134,6 +145,14 @@ export class ProjectsComponent implements OnInit {
         this.loadProjectTypes();
         this.loadAcademicContexts();
         this.loadProjectRoles();
+        this.setCurrentUserFullName();
+    }
+
+    setCurrentUserFullName() {
+        const user = this.authService.getCurrentUser();
+        if (user) {
+            this.currentUserFullName = `${user.nombres} ${user.apellidoPaterno} ${user.apellidoMaterno}`;
+        }
     }
 
     loadProjectRoles() {
@@ -184,8 +203,8 @@ export class ProjectsComponent implements OnInit {
         const currentUser = this.authService.getCurrentUser();
         if (currentUser && currentUser.id) {
             forkJoin([
-                this.projectService.getProjectsByInvestigator(currentUser.id, true).pipe(catchError(() => of([]))),
-                this.projectService.getProjectsByInvestigator(currentUser.id, false).pipe(catchError(() => of([])))
+                this.projectService.getProjectsWithCollaborators(currentUser.id, true).pipe(catchError(() => of([]))),
+                this.projectService.getProjectsWithCollaborators(currentUser.id, false).pipe(catchError(() => of([])))
             ]).subscribe({
                 next: ([researchProjects, innovationProjects]) => {
                     console.log('Raw Research Projects:', researchProjects);
@@ -295,6 +314,8 @@ export class ProjectsComponent implements OnInit {
         this.currentProjectId = null;
         this.projectForm.reset();
         this.collaborators = []; // Clear collaborators for new project
+        this.projectFiles = []; // Clear files for new project
+        this.hasUploadError = false;
 
         // Handle dynamic validators
         const collabInstControl = this.projectForm.get('collaboratingInstitution');
@@ -406,31 +427,98 @@ export class ProjectsComponent implements OnInit {
             colaboradores: colaboradoresPayload
         };
 
-        if (this.currentProjectId) {
-            this.projectService.updateProject(this.currentProjectId, payload).subscribe({
-                next: (resp) => {
-                    this.alertService.success('Éxito', 'Proyecto actualizado correctamente.');
-                    this.closeModal();
-                    this.loadProjects();
-                },
-                error: (err) => {
-                    console.error('Error updating project:', err);
-                    this.alertService.error('Error', 'No se pudo actualizar el proyecto.');
+        // Sequential process: Upload files, get tokens, then save project (like WorkExperience)
+        this.uploadFilesBeforeSave(this.projectFiles).subscribe({
+            next: (uploadedTokens: string[]) => {
+                payload.tokens = uploadedTokens;
+                if (this.currentProjectId) {
+                    this.projectService.updateProject(this.currentProjectId, payload).subscribe({
+                        next: () => this.handleProjectSaveSuccess(true),
+                        error: (err: any) => this.handleProjectSaveError(err)
+                    });
+                } else {
+                    this.projectService.createProject(payload).subscribe({
+                        next: () => this.handleProjectSaveSuccess(false),
+                        error: (err: any) => this.handleProjectSaveError(err)
+                    });
+                }
+            },
+            error: (err: any) => {
+                console.error('File upload failed during project save', err);
+                this.alertService.error('Error', 'No se pudieron subir los archivos.');
+            }
+        });
+    }
+
+    private uploadFilesBeforeSave(files: any[]): Observable<string[]> {
+        if (!files || files.length === 0) return of([]);
+
+        const module = 'INVESTIGATOR';
+        const category = 'PROYID';
+        const section = 'PROY01';
+
+        const observables = files.map(fileObj => {
+            if (fileObj.file instanceof File) {
+                return this.fileService.uploadFile(fileObj.file, module, 'DOCUMENT', category, section, false).pipe(
+                    map((resp: any) => resp.token || resp.data?.token || ''),
+                    catchError(() => of(''))
+                );
+            } else {
+                return of(fileObj.token || '');
+            }
+        });
+
+        return forkJoin(observables).pipe(
+            map((tokens: string[]) => tokens.filter((t: string) => t !== ''))
+        );
+    }
+
+    private handleProjectSaveSuccess(isUpdate: boolean) {
+        this.alertService.success('Éxito', isUpdate ? 'Proyecto actualizado correctamente.' : 'Proyecto registrado correctamente.');
+        this.closeModal();
+        this.loadProjects();
+    }
+
+    private handleProjectSaveError(err: any) {
+        console.error('Error saving project:', err);
+        this.alertService.error('Error', 'No se pudo guardar el proyecto.');
+    }
+
+    private loadExistingFiles(parentId: number) {
+        // "Module": INVESTIGATOR, "Category": PROYID, "Section": PROY01
+        this.fileService.listFilesMetadata('INVESTIGATOR', 'PROYID', 'PROY01', parentId).subscribe({
+            next: (files) => {
+                this.projectFiles = (files || []).map((f: any, index: number) => ({
+                    code: (index + 1).toString().padStart(2, '0'),
+                    name: f.nombre || f.fileName || f.name || 'Archivo',
+                    token: f.token,
+                    file: null
+                }));
+                this.cdr.detectChanges();
+            },
+            error: (err) => console.error('Error loading project files', err)
+        });
+    }
+
+    onUploadError(error: boolean) {
+        this.hasUploadError = error;
+    }
+
+    viewFiles(item: any) {
+        if (!item || !item.id) return;
+        this.fileService.fetchFilesForViewer('INVESTIGATOR', 'PROYID', 'PROY01', Number(item.id))
+            .subscribe(files => {
+                if (files.length > 0) {
+                    this.viewerFiles = files;
+                    this.showFileViewer = true;
+                    this.cdr.detectChanges();
                 }
             });
-        } else {
-            this.projectService.createProject(payload).subscribe({
-                next: (resp) => {
-                    this.alertService.success('Éxito', 'Proyecto registrado correctamente.');
-                    this.closeModal();
-                    this.loadProjects();
-                },
-                error: (err) => {
-                    console.error('Error saving project:', err);
-                    this.alertService.error('Error', 'No se pudo guardar el proyecto.');
-                }
-            });
-        }
+    }
+
+    closeFileViewer() {
+        this.showFileViewer = false;
+        this.viewerFiles = [];
     }
 
     openCollaboratorModal() {
@@ -440,6 +528,15 @@ export class ProjectsComponent implements OnInit {
     closeCollaboratorModal() {
         this.showCollaboratorModal = false;
         this.collaboratorForm.reset();
+        this.cdr.detectChanges();
+    }
+
+    confirmCollaborators() {
+        // If the form has data and is valid, add it before closing
+        if (this.collaboratorForm.valid && this.collaboratorForm.dirty) {
+            this.addCollaboratorToList();
+        }
+        this.closeCollaboratorModal();
     }
 
     addCollaboratorToList() {
@@ -448,13 +545,17 @@ export class ProjectsComponent implements OnInit {
                 id: Date.now(), // Use a temporary large ID for frontend-only
                 ...this.collaboratorForm.value
             };
-            this.collaborators.push(newCollab);
+            this.collaborators = [...this.collaborators, newCollab];
             this.collaboratorForm.reset();
+            this.cdr.detectChanges();
+        } else {
+            this.collaboratorForm.markAllAsTouched();
         }
     }
 
     removeCollaborator(id: number) {
         this.collaborators = this.collaborators.filter(c => c.id !== id);
+        this.cdr.detectChanges();
     }
 
     editProject(id: number) {
@@ -488,6 +589,7 @@ export class ProjectsComponent implements OnInit {
             });
 
             if (project.colaboradores && Array.isArray(project.colaboradores)) {
+                console.log('Project Collaborators Found:', project.colaboradores);
                 this.collaborators = project.colaboradores.map((c: any) => ({
                     id: c.id,
                     paternalSurname: c.apellidoPaterno,
@@ -496,14 +598,24 @@ export class ProjectsComponent implements OnInit {
                     email: c.correoContacto
                 }));
             } else {
+                console.log('No collaborators found in project data');
                 this.collaborators = [];
             }
+
+            // Principal investigator is usually disabled in edit mode if it's the current user
+            this.projectForm.get('principalInvestigator')?.disable();
+
+            this.cdr.detectChanges();
 
             if (project.areaId) {
                 this.catalogService.getSubAreas(project.areaId).subscribe(data => this.subAreas = data);
             }
             if (project.subareaId) {
                 this.catalogService.getDisciplines(project.subareaId).subscribe(data => this.disciplines = data);
+            }
+
+            if (this.currentProjectId) {
+                this.loadExistingFiles(this.currentProjectId);
             }
         }
     }
