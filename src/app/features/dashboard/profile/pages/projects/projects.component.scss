@@ -659,3 +659,51 @@
         }
     }
 }
+
+/* Checkbox Group for Research Types (TPRIDI) */
+.checkbox-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    user-select: none;
+
+    input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: #005f73;
+        cursor: pointer;
+        margin: 0;
+    }
+
+    .checkbox-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #374151 !important;
+    }
+
+    svg {
+        flex-shrink: 0;
+    }
+
+    &:hover .checkbox-label {
+        color: #005f73 !important;
+    }
+
+    &.selected {
+        background-color: #E0F2F1;
+        border-radius: 6px;
+        padding: 0.35rem 0.75rem;
+
+        .checkbox-label {
+            color: #005f73 !important;
+            font-weight: 600;
+        }
+    }
+}

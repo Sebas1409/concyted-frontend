@@ -8,6 +8,7 @@ export interface ReniecValidationRequest {
     nombres: string;
     apellido_paterno: string;
     apellido_materno: string;
+    recaptcha_token?: string;
 }
 
 export interface ReniecValidationResponse {
@@ -31,10 +32,17 @@ export interface ReniecValidationResponse {
 })
 export class ReniecService {
     private apiUrl = environment.reniecApiUrl;
+    private privateApiUrl = environment.reniecPrivateApiUrl;
 
     constructor(private http: HttpClient) { }
 
+    /** Public endpoint - for registration (no auth token needed, uses recaptcha) */
     validate(data: ReniecValidationRequest): Observable<ReniecValidationResponse> {
         return this.http.post<ReniecValidationResponse>(this.apiUrl, data);
+    }
+
+    /** Private endpoint - for dashboard identity validation (requires auth token) */
+    validatePrivate(data: ReniecValidationRequest): Observable<ReniecValidationResponse> {
+        return this.http.post<ReniecValidationResponse>(this.privateApiUrl, data);
     }
 }

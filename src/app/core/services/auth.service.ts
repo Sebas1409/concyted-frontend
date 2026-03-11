@@ -56,7 +56,9 @@ export class AuthService {
     }
 
     registerResearcher(researcherData: any): Observable<any> {
-        return this.http.post(`${environment.userServiceUrl}/v2/investigadores`, researcherData);
+        // Use the public API for registration
+        const publicUrl = environment.userServiceUrl.replace('/api', '/public/api');
+        return this.http.post(`${publicUrl}/v2/investigadores`, researcherData);
     }
 
     getResearcherVisibility(userId: number): Observable<any[]> {

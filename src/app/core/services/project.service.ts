@@ -7,7 +7,7 @@ export interface CollaboratorPayload {
     apellidoMaterno: string;
     apellidoPaterno: string;
     correoContacto: string;
-    id: number;
+    id: number | null;
     nombres: string;
 }
 
@@ -38,6 +38,8 @@ export interface ProjectPayload {
     tipoProyectoId: string;
     vinculacionAcademicaId: string;
     tokens?: string[];
+    tipoProyectoIdiIds?: number[];
+    gradoTesisId?: string | null;
 }
 
 @Injectable({

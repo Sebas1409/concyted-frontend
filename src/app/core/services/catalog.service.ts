@@ -17,6 +17,7 @@ export interface CatalogItem {
 })
 export class CatalogService {
     private apiUrl = environment.catalogServiceUrl;
+    private publicApiUrl = environment.catalogServiceUrl.replace('/api', '/public/api');
 
     constructor(private http: HttpClient) { }
 
@@ -26,6 +27,11 @@ export class CatalogService {
 
     getMasterDetailsByCode(code: string): Observable<CatalogItem[]> {
         return this.http.get<CatalogItem[]>(`${this.apiUrl}/catalogos/maestros/codigo/${code}/detalles`);
+    }
+
+    // Public API for catalogs (used during registration)
+    getPublicMasterDetailsByCode(code: string): Observable<CatalogItem[]> {
+        return this.http.get<CatalogItem[]>(`${this.publicApiUrl}/catalogos/maestros/codigo/${code}/detalles`);
     }
 
     searchMasterDetails(code: string, term: string): Observable<CatalogItem[]> {

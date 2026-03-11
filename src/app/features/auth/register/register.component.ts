@@ -114,10 +114,11 @@ export class RegisterComponent implements OnInit {
     // ...
 
     loadGenders() {
-        this.catalogService.getMasterDetails(2).subscribe({
+        // Master Code 'CATSEX'
+        this.catalogService.getPublicMasterDetailsByCode('CATSEX').subscribe({
             next: (data) => {
                 this.sexOptions = data;
-                console.log('Genders Loaded:', data);
+                console.log('Genders Loaded (Public):', data);
                 this.cdr.detectChanges();
             },
             error: (err) => console.error('Failed to load genders', err)
@@ -168,15 +169,15 @@ export class RegisterComponent implements OnInit {
     }
 
     loadDocumentTypes() {
-        // Master ID 1 as requested
-        this.catalogService.getMasterDetails(1).subscribe({
+        // Master Code 'CATDOC'
+        this.catalogService.getPublicMasterDetailsByCode('CATDOC').subscribe({
             next: (data) => {
                 const desiredCodes = ['DOC001', 'DOC002', 'DOC003', 'DOC004'];
                 this.documentTypes = data
                     .filter(d => desiredCodes.includes(d.codigo))
                     .sort((a, b) => desiredCodes.indexOf(a.codigo) - desiredCodes.indexOf(b.codigo));
 
-                console.log('Document Types Sorted:', this.documentTypes);
+                console.log('Document Types Sorted (Public):', this.documentTypes);
                 this.cdr.detectChanges();
             },
             error: (err) => console.error('Failed to load document types', err)
@@ -184,7 +185,7 @@ export class RegisterComponent implements OnInit {
     }
 
     loadCountries() {
-        this.ubigeoService.getCountries().subscribe(data => {
+        this.ubigeoService.getPublicCountries().subscribe(data => {
             this.countries = data;
         });
     }
@@ -262,7 +263,7 @@ export class RegisterComponent implements OnInit {
 
             if (countryId) {
                 // Solo cargar departamentos si es necesario (generalmente para Perú o si el backend lo soporta)
-                this.ubigeoService.getDepartments(countryId).subscribe(data => this.departments = data);
+                this.ubigeoService.getPublicDepartments(countryId).subscribe(data => this.departments = data);
             }
 
             // Actualizar validadores inmediatamente
@@ -279,7 +280,7 @@ export class RegisterComponent implements OnInit {
             this.step1Form.patchValue({ province: '', district: '' }, { emitEvent: false });
 
             if (deptId) {
-                this.ubigeoService.getProvinces(deptId).subscribe(data => this.provinces = data);
+                this.ubigeoService.getPublicProvinces(deptId).subscribe(data => this.provinces = data);
             }
         });
 
@@ -292,7 +293,7 @@ export class RegisterComponent implements OnInit {
             this.step1Form.patchValue({ district: '' }, { emitEvent: false });
 
             if (provId) {
-                this.ubigeoService.getDistricts(provId).subscribe(data => this.districts = data);
+                this.ubigeoService.getPublicDistricts(provId).subscribe(data => this.districts = data);
             }
         });
     }
@@ -470,9 +471,20 @@ export class RegisterComponent implements OnInit {
             apellido_materno: this.step0Form.get('maternalSurname')?.value
         };
 
-        this.reniecService.validate(reniecData).subscribe({
-            next: (response) => this.handleReniecResponse(response),
-            error: (error) => this.handleReniecError(error)
+        // Obtenemos el token de Recaptcha antes de la validación
+        this.recaptchaService.execute('reniec_validation').subscribe({
+            next: (token) => {
+                this.reniecService.validate({ ...reniecData, recaptcha_token: token }).subscribe({
+                    next: (response) => this.handleReniecResponse(response),
+                    error: (error) => this.handleReniecError(error)
+                });
+            },
+            error: (err) => {
+                console.error('Error al obtener token de Recaptcha para RENIEC:', err);
+                this.reniecValidating = false;
+                this.reniecError = 'No se pudo verificar el captcha. Por favor, intente de nuevo.';
+                this.cdr.detectChanges();
+            }
         });
     }
 
@@ -527,7 +539,7 @@ export class RegisterComponent implements OnInit {
         activeRequests++;
         console.log(`Fetching departments for Country ID: ${countryId}`);
 
-        this.ubigeoService.getDepartments(countryId).subscribe({
+        this.ubigeoService.getPublicDepartments(countryId).subscribe({
             next: (data) => this.ngZone.run(() => {
                 this.departments = [...data];
                 if (deptId) {
@@ -551,7 +563,7 @@ export class RegisterComponent implements OnInit {
             this.provinces = [{ id: -1, nombre: 'Cargando...' }];
             console.log(`Fetching provinces for Dept ID: ${deptId}`);
             activeRequests++;
-            this.ubigeoService.getProvinces(deptId).subscribe({
+            this.ubigeoService.getPublicProvinces(deptId).subscribe({
                 next: (data) => this.ngZone.run(() => {
                     this.provinces = [...data];
                     if (provId) {
@@ -576,7 +588,7 @@ export class RegisterComponent implements OnInit {
             this.districts = [{ id: -1, nombre: 'Cargando...' }];
             console.log(`Fetching districts for Prov ID: ${provId}`);
             activeRequests++;
-            this.ubigeoService.getDistricts(provId).subscribe({
+            this.ubigeoService.getPublicDistricts(provId).subscribe({
                 next: (data) => this.ngZone.run(() => {
                     this.districts = [...data];
                     if (distId) {
@@ -696,8 +708,8 @@ export class RegisterComponent implements OnInit {
 
             // 3. Autocompletar Ubigeo si es posible
             if (ubicacionPayload) {
-                console.log('Intentando resolver Ubigeo:', ubicacionPayload);
-                this.ubigeoService.getIdsByNames(ubicacionPayload).subscribe({
+                console.log('Intentando resolver Ubigeo Público:', ubicacionPayload);
+                this.ubigeoService.getPublicIdsByNames(ubicacionPayload).subscribe({
                     next: (ids) => {
                         try {
                             this.autoFillUbigeo(ids);
@@ -707,7 +719,7 @@ export class RegisterComponent implements OnInit {
                         finish();
                     },
                     error: (err) => {
-                        console.error('Error obteniendo IDs de ubigeo', err);
+                        console.error('Error obteniendo IDs de ubigeo público', err);
                         finish();
                     }
                 });
@@ -824,7 +836,7 @@ export class RegisterComponent implements OnInit {
         if (peru) {
             this.step1Form.patchValue({ country: peru.id });
             // Trigger the cascade to load departments
-            this.ubigeoService.getDepartments(peru.id).subscribe(data => {
+            this.ubigeoService.getPublicDepartments(peru.id).subscribe(data => {
                 this.departments = data;
             });
         }
@@ -859,21 +871,21 @@ export class RegisterComponent implements OnInit {
             this.isUploadingFile = true;
             this.docToken = null; // Clear previous token if any
 
-            this.fileService.uploadFile(file, FileModule.INVESTIGATOR, FileType.DOCUMENT).subscribe({
+            this.fileService.uploadPublicFile(file, FileModule.INVESTIGATOR, FileType.DOCUMENT).subscribe({
                 next: (res) => {
                     this.isUploadingFile = false;
                     const token = res.token || res.data?.token;
                     if (token) {
                         this.docToken = token;
-                        console.log('File uploaded successfully, token captured:', token);
+                        console.log('Public file uploaded successfully, token captured:', token);
                     } else {
-                        console.warn('File upload successful but no token received', res);
+                        console.warn('Public file upload successful but no token received', res);
                     }
                     this.cdr.detectChanges();
                 },
                 error: (err) => {
                     this.isUploadingFile = false;
-                    console.error('File upload failed', err);
+                    console.error('Public file upload failed', err);
                     this.alertService.error('Error', 'No se pudo subir el archivo del documento. Intente nuevamente.');
                     this.step1Form.patchValue({ dniFile: null }); // Reset form if failed
                     this.cdr.detectChanges();

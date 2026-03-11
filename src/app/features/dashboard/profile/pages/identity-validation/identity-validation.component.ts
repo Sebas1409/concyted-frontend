@@ -203,7 +203,7 @@ export class IdentityValidationComponent implements OnInit {
 
         console.log('Validating with Reniec:', request);
 
-        this.reniecService.validate(request).subscribe({
+        this.reniecService.validatePrivate(request).subscribe({
             next: (response) => {
                 console.log('Reniec Response:', response);
                 this.isValidatingReniec = false;

@@ -11,6 +11,7 @@ import { ViewerFile, ViewerFileType } from '../../shared/components/file-viewer-
 })
 export class FileService {
     private apiUrl = `${environment.fileServiceUrl}/files`;
+    private publicApiUrl = environment.fileServiceUrl.replace('/api', '/public/api') + '/files';
 
     constructor(
         private http: HttpClient,
@@ -57,6 +58,20 @@ export class FileService {
             .set('isPublic', isPublic.toString());
 
         return this.http.post<any>(`${this.apiUrl}/upload`, formData, { params });
+    }
+
+    uploadPublicFile(file: File, module: string, type: string, category: string = '', section: string = ''): Observable<any> {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        let params = new HttpParams()
+            .set('module', module)
+            .set('type', type)
+            .set('category', category)
+            .set('section', section)
+            .set('isPublic', 'true');
+
+        return this.http.post<any>(`${this.publicApiUrl}/upload`, formData, { params });
     }
 
     getFileUrl(token: string, isPublic: boolean = false): string {

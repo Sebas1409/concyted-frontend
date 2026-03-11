@@ -69,6 +69,9 @@ export class ProjectsComponent implements OnInit {
     projectTypes: any[] = [];
     academicContexts: any[] = [];
     projectRoles: any[] = [];
+    researchTypes: any[] = []; // TPRIDI catalog
+    selectedResearchTypeIds: number[] = [];
+    thesisDegrees: any[] = []; // GRADOS catalog for thesis degree
 
     // Collaborators
     showCollaboratorModal = false;
@@ -126,7 +129,8 @@ export class ProjectsComponent implements OnInit {
             oecdArea: ['', Validators.required],
             oecdSubArea: ['', Validators.required],
             oecdDiscipline: ['', Validators.required],
-            environmentalTheme: [''] // Optional
+            environmentalTheme: [''], // Optional
+            thesisDegreeId: [''] // Grado de Tesis (visible when Doctorado selected)
         });
 
         this.collaboratorForm = this.fb.group({
@@ -145,6 +149,8 @@ export class ProjectsComponent implements OnInit {
         this.loadProjectTypes();
         this.loadAcademicContexts();
         this.loadProjectRoles();
+        this.loadResearchTypes();
+        this.loadThesisDegrees();
         this.setCurrentUserFullName();
     }
 
@@ -162,6 +168,75 @@ export class ProjectsComponent implements OnInit {
             },
             error: (err) => console.error('Failed to load project roles', err)
         });
+    }
+
+    loadResearchTypes() {
+        this.catalogService.getMasterDetailsByCode('TPRIDI').subscribe({
+            next: (data) => {
+                this.researchTypes = data;
+                console.log('Research Types (TPRIDI) loaded:', data);
+            },
+            error: (err) => console.error('Failed to load research types (TPRIDI)', err)
+        });
+    }
+
+    loadThesisDegrees() {
+        this.catalogService.getMasterDetailsByCode('GRADOS').subscribe({
+            next: (data) => {
+                this.thesisDegrees = data;
+            },
+            error: (err) => console.error('Failed to load thesis degrees (GRADOS)', err)
+        });
+    }
+
+    toggleResearchType(typeId: number) {
+        const index = this.selectedResearchTypeIds.indexOf(typeId);
+
+        if (index > -1) {
+            // Deselecting
+            this.selectedResearchTypeIds = this.selectedResearchTypeIds.filter(id => id !== typeId);
+        } else {
+            // Selecting - check mutual exclusivity between Doctorado and Post-Doctorado
+            const selectedType = this.researchTypes.find(t => t.id === typeId);
+            const selectedName = selectedType?.nombre?.toUpperCase() || '';
+
+            const isSelectingPostDoc = selectedName.includes('POST');
+            const isSelectingDoc = selectedName.includes('DOCTORADO') && !isSelectingPostDoc;
+
+            if (isSelectingDoc || isSelectingPostDoc) {
+                // Remove the other one (Doctorado <-> Post-Doctorado)
+                this.selectedResearchTypeIds = this.selectedResearchTypeIds.filter(id => {
+                    const t = this.researchTypes.find(rt => rt.id === id);
+                    const name = t?.nombre?.toUpperCase() || '';
+                    if (isSelectingDoc) {
+                        return !name.includes('POST'); // Remove Post-Doctorado
+                    } else {
+                        return !(name.includes('DOCTORADO') && !name.includes('POST')); // Remove Doctorado
+                    }
+                });
+            }
+
+            this.selectedResearchTypeIds = [...this.selectedResearchTypeIds, typeId];
+        }
+    }
+
+    isResearchTypeSelected(typeId: number): boolean {
+        return this.selectedResearchTypeIds.includes(typeId);
+    }
+
+    get isPostDoctoradoSelected(): boolean {
+        return this.researchTypes.some(t =>
+            this.selectedResearchTypeIds.includes(t.id) &&
+            t.nombre?.toUpperCase().includes('POST')
+        );
+    }
+
+    get isDoctoradoSelected(): boolean {
+        return this.researchTypes.some(t =>
+            this.selectedResearchTypeIds.includes(t.id) &&
+            t.nombre?.toUpperCase().includes('DOCTORADO') &&
+            !t.nombre?.toUpperCase().includes('POST')
+        );
     }
 
     loadAcademicContexts() {
@@ -312,9 +387,10 @@ export class ProjectsComponent implements OnInit {
         this.modalType = type;
         this.showModal = true;
         this.currentProjectId = null;
-        this.projectForm.reset();
+        this.resetProjectForm(); // Helper to reliably clear to empty strings
         this.collaborators = []; // Clear collaborators for new project
         this.projectFiles = []; // Clear files for new project
+        this.selectedResearchTypeIds = []; // Clear research type checkboxes
         this.hasUploadError = false;
 
         // Handle dynamic validators
@@ -360,23 +436,35 @@ export class ProjectsComponent implements OnInit {
     closeModal() {
         this.showModal = false;
         this.currentProjectId = null;
+        this.resetProjectForm();
+        this.subAreas = [];
+        this.disciplines = [];
+        this.selectedResearchTypeIds = [];
+    }
+
+    private resetProjectForm() {
         this.projectForm.reset({
+            projectName: '',
+            description: '',
+            keywords: '',
+            projectType: '',
+            executionRegion: '',
+            startDate: '',
+            endDate: '',
+            academicContext: '',
+            role: '',
+            mainInstitution: '',
+            collaboratingInstitution: '',
+            fundedBy: '',
+            grantContest: '',
+            contractNumber: '',
             financedAmount: '0.00',
             oecdArea: '',
             oecdSubArea: '',
             oecdDiscipline: '',
             environmentalTheme: '',
-            academicContext: '',
-            role: '',
-            projectType: '',
-            executionRegion: '',
-            mainInstitution: '',
-            collaboratingInstitution: '',
-            fundedBy: '',
-            grantContest: ''
+            thesisDegreeId: ''
         });
-        this.subAreas = [];
-        this.disciplines = [];
     }
 
     saveProject() {
@@ -390,7 +478,7 @@ export class ProjectsComponent implements OnInit {
         const formVal = this.projectForm.getRawValue();
 
         const colaboradoresPayload: CollaboratorPayload[] = this.collaborators.map(c => ({
-            id: c.id > 1000000 ? 0 : c.id, // If ID is large (temp), send 0 for creation; else send existing ID
+            id: c.id > 1000000 ? null : c.id, // If ID is large (temp), send null for creation; else send existing ID
             nombres: c.names,
             apellidoPaterno: c.paternalSurname,
             apellidoMaterno: c.maternalSurname,
@@ -424,7 +512,9 @@ export class ProjectsComponent implements OnInit {
             investigadorPrincipal: formVal.principalInvestigator,
             institucionPrincipalId: formVal.mainInstitution,
             institucionColaboradoraId: formVal.collaboratingInstitution,
-            colaboradores: colaboradoresPayload
+            colaboradores: colaboradoresPayload,
+            tipoProyectoIdiIds: this.selectedResearchTypeIds,
+            gradoTesisId: formVal.thesisDegreeId || null
         };
 
         // Sequential process: Upload files, get tokens, then save project (like WorkExperience)
@@ -585,8 +675,16 @@ export class ProjectsComponent implements OnInit {
                 oecdArea: project.areaId ? project.areaId.toString() : '',
                 oecdSubArea: project.subareaId ? project.subareaId.toString() : '',
                 oecdDiscipline: project.disciplinaId ? project.disciplinaId.toString() : '',
-                environmentalTheme: project.tematicaAmbientalId ? project.tematicaAmbientalId.toString() : ''
+                environmentalTheme: project.tematicaAmbientalId ? project.tematicaAmbientalId.toString() : '',
+                thesisDegreeId: project.gradoTesisId ? project.gradoTesisId.toString() : ''
             });
+
+            // Restore research type checkboxes
+            if (project.tipoProyectoIdiIds && Array.isArray(project.tipoProyectoIdiIds)) {
+                this.selectedResearchTypeIds = [...project.tipoProyectoIdiIds];
+            } else {
+                this.selectedResearchTypeIds = [];
+            }
 
             if (project.colaboradores && Array.isArray(project.colaboradores)) {
                 console.log('Project Collaborators Found:', project.colaboradores);
