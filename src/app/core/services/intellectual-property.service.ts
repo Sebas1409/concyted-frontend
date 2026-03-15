@@ -31,11 +31,16 @@ export interface IntellectualProperty {
 })
 export class IntellectualPropertyService {
     private apiUrl = environment.userServiceUrl + '/propiedad-intelectual';
+    private publicApiUrl = environment.userServiceUrl.replace('/api', '/public/api') + '/propiedad-intelectual';
 
     constructor(private http: HttpClient) { }
 
     getIntellectualPropertiesByInvestigator(investigatorId: number): Observable<any[]> {
         return this.http.get<any[]>(`${this.apiUrl}/investigador/${investigatorId}`);
+    }
+
+    getPublicIntellectualPropertiesByInvestigator(investigatorId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.publicApiUrl}/investigador/${investigatorId}`);
     }
 
     // Placeholders for Create/Update/Delete (will implement later if needed or now for completeness)

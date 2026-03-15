@@ -357,6 +357,22 @@
         }
     }
 
+    .researcher-photo-mini {
+        width: 48px;
+        height: 60px;
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 0 auto;
+        border: 2px solid #E2E8F0;
+        background-color: #F8FAFC;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
     .researcher-info {
         display: flex;
         flex-direction: column;

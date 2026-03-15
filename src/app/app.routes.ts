@@ -44,6 +44,10 @@ export const routes: Routes = [
                 path: 'recover-password',
                 loadComponent: () => import('./features/auth/recover-password/recover-password.component').then(m => m.RecoverPasswordComponent)
             },
+            {
+                path: 'orcid-callback',
+                loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
+            },
             { path: '', redirectTo: 'login', pathMatch: 'full' }
         ]
     },

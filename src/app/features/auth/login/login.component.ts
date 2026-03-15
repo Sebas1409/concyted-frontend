@@ -6,6 +6,7 @@ import { AuthBrandingComponent } from '../../../shared/components/auth-branding/
 import { AuthService } from '../../../core/services/auth.service';
 import { RecaptchaService } from '../../../core/services/recaptcha.service';
 import { ROLES } from '../../../core/constants/roles.constants';
+import { OrcidService } from '../../../core/services/orcid.service';
 
 @Component({
     selector: 'app-login',
@@ -21,6 +22,7 @@ export class LoginComponent implements OnInit {
     private router = inject(Router);
     private route = inject(ActivatedRoute);
     private cdr = inject(ChangeDetectorRef);
+    private orcidService = inject(OrcidService);
 
     successMessage: string | null = null;
     loginError: string | null = null;
@@ -30,9 +32,11 @@ export class LoginComponent implements OnInit {
             if (params['resetSuccess']) {
                 this.successMessage = 'Tu contraseña ha sido restablecida correctamente.';
             }
+
+            if (params['code']) {
+                this.handleOrcidCallback(params['code']);
+            }
         });
-
-
     }
 
     loginForm: FormGroup = this.fb.group({
@@ -59,7 +63,6 @@ export class LoginComponent implements OnInit {
                     const { dni, password } = this.loginForm.value;
 
                     const credentials = {
-                        //dni: Number(dni),
                         username: dni,
                         password: password,
                         recaptcha_token: token
@@ -134,6 +137,54 @@ export class LoginComponent implements OnInit {
                 this.loginError = error.error?.message || error.message || 'Error al iniciar sesión. Verifique sus credenciales.';
                 this.isLoading = false;
                 this.loginForm.enable();
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
+    onOrcidLogin() {
+        this.orcidService.loginWithOrcid();
+    }
+
+    private handleOrcidCallback(code: string) {
+        this.isLoading = true;
+        this.loginError = null;
+        console.log('--- Iniciando procesamiento de callback ORCID ---');
+        console.log('Código de autorización:', code);
+
+        // En un escenario real, aquí se llamaría al backend para intercambiar el código.
+        // Simulamos el ID obtenido del token que devolvería el backend:
+        const researcherOrcidId = '0009-0004-1341-9270'; 
+
+        console.log('Obteniendo perfil público para ORCID:', researcherOrcidId);
+
+        this.orcidService.getPublicProfile(researcherOrcidId).subscribe({
+            next: (profileData) => {
+                console.log('Datos de perfil recibidos:', profileData);
+
+                // Mapeamos los datos de ORCID al modelo AuthResponse que usa la app
+                const authUser = this.orcidService.mapOrcidToAuthResponse(profileData);
+                
+                // 1. Primero generamos y guardamos el token
+                const simulatedToken = this.orcidService.generateSimulatedToken(authUser.roles || []);
+                localStorage.setItem('accessToken', simulatedToken);
+                console.log('Token de sesión guardado');
+                
+                // 2. Luego establecemos el usuario (esto activará los timers de sesión)
+                this.authService.setCurrentUser(authUser);
+                console.log('Usuario establecido en la sesión:', authUser.nombres);
+
+                setTimeout(() => {
+                    console.log('Redirigiendo al dashboard...');
+                    this.isLoading = false;
+                    this.router.navigate(['/app/profile']);
+                    this.cdr.detectChanges();
+                }, 1500);
+            },
+            error: (err) => {
+                console.error('Error crítico al procesar ORCID:', err);
+                this.isLoading = false;
+                this.loginError = 'No se pudo obtener la información de su perfil ORCID. Verifique su conexión.';
                 this.cdr.detectChanges();
             }
         });

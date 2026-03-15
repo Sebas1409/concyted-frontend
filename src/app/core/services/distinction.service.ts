@@ -28,11 +28,16 @@ export interface Distinction {
 })
 export class DistinctionService {
     private apiUrl = `${environment.userServiceUrl}/distinciones-premios`;
+    private publicApiUrl = `${environment.userServiceUrl.replace('/api', '/public/api')}/distinciones-premios`;
 
     constructor(private http: HttpClient) { }
 
     getDistinctions(investigatorId: number): Observable<Distinction[]> {
         return this.http.get<Distinction[]>(`${this.apiUrl}/investigador/${investigatorId}`);
+    }
+
+    getPublicDistinctions(investigatorId: number): Observable<Distinction[]> {
+        return this.http.get<Distinction[]>(`${this.publicApiUrl}/investigador/${investigatorId}`);
     }
 
     getDistinctionById(id: number): Observable<Distinction> {

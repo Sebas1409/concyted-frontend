@@ -22,13 +22,13 @@
             <!-- Meta Stats (Right Aligned) -->
             <div class="user-meta-grid">
                 <div class="meta-item">
-                    <label>Ficha Pública CTI
-                        <app-qualification-badge type="renacyt"
-                            style="transform: scale(0.65); display: inline-flex; vertical-align: middle;"></app-qualification-badge>
+                    <label>
+                        <svg class="label-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        Ficha Pública CTI
                     </label>
                     <!-- fichaCti no longer in response, using codigoUnico if available or placeholder -->
                     <a [href]="getPublicProfileUrl(user)" target="_blank" class="link-external"
-                        *ngIf="user.codigoUnico; else noFicha">
+                        *ngIf="user.id || user.usuarioId; else noFicha">
                         <span class="icon">🔗</span> Ver ficha pública <span class="copy-icon"
                             title="Copiar enlace">❐</span>
                     </a>
@@ -37,9 +37,9 @@
                     </ng-template>
                 </div>
                 <div class="meta-item">
-                    <label>Ubicación
-                        <app-qualification-badge type="vinculate"
-                            style="transform: scale(0.65); display: inline-flex; vertical-align: middle;"></app-qualification-badge>
+                    <label>
+                        <svg class="label-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        Ubicación
                     </label>
                     <div class="value">{{ fullLocation$ | async }}</div>
                 </div>

@@ -39,6 +39,7 @@ export interface AuthResponse {
     // Optional fields for compatibility if needed (though not in JSON)
     username?: string;
     recaptchaStatus?: boolean;
+    roles?: string[]; // Para compatibilidad con ORCID y otros logins
 }
 
 export interface LoginRequest {

@@ -17,12 +17,16 @@ export interface CatalogItem {
 })
 export class CatalogService {
     private apiUrl = environment.catalogServiceUrl;
-    private publicApiUrl = environment.catalogServiceUrl.replace('/api', '/public/api');
+    private publicApiUrl = (environment as any).catalogPublicServiceUrl || environment.catalogServiceUrl.replace('/api', '/public/api');
 
     constructor(private http: HttpClient) { }
 
     getMasterDetails(maestroId: number): Observable<CatalogItem[]> {
         return this.http.get<CatalogItem[]>(`${this.apiUrl}/catalogos/maestros/${maestroId}/detalles`);
+    }
+
+    getPublicMasterDetails(maestroId: number): Observable<CatalogItem[]> {
+        return this.http.get<CatalogItem[]>(`${this.publicApiUrl}/catalogos/maestros/${maestroId}/detalles`);
     }
 
     getMasterDetailsByCode(code: string): Observable<CatalogItem[]> {
@@ -44,11 +48,19 @@ export class CatalogService {
         return this.http.get<any[]>(`${this.apiUrl}/areas`);
     }
 
+    getPublicAreas(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.publicApiUrl}/areas`);
+    }
+
     getSubAreas(areaId: number): Observable<any[]> {
         return this.http.get<any[]>(`${this.apiUrl}/areas/${areaId}/sub-areas`);
     }
 
     getDisciplines(subAreaId: number): Observable<any[]> {
         return this.http.get<any[]>(`${this.apiUrl}/areas/${subAreaId}/disciplinas`);
+    }
+
+    getMasterSubDetails(masterCode: string, detailCode: string): Observable<CatalogItem[]> {
+        return this.http.get<CatalogItem[]>(`${this.apiUrl}/catalogos/maestros/codigo/${masterCode}/detalles/codigo/${detailCode}/subdetalles`);
     }
 }

@@ -9,7 +9,27 @@ export const environment = {
     reniecPrivateApiUrl: '/cti-interop-service/api/reniec/validar',
     suneduApiUrl: '/cti-interop-service/api/sunedu/grados-titulos',
     interopServiceUrl: '/cti-interop-service/api',
+    catalogPublicServiceUrl: '/cti-catalog-service/public/api',
     landingPublicUrl: '/cti-management-service/public/api',
     baseHref: '/', // En desarrollo, sin contexto
-    recaptchaKey: '6LdoGmgsAAAAAP18jOTutHjDI0FflD90lhV_lA0K'
+    recaptchaKey: '6LdoGmgsAAAAAP18jOTutHjDI0FflD90lhV_lA0K',
+    
+    // External Providers Configuration
+    externalProviders: {
+        orcid: {
+            clientId: 'APP-GPZ2EDGR6EBFFZRS',
+            redirectUri: 'http://127.0.0.1:4200/auth/orcid-callback',
+            apiUrl: 'https://pub.orcid.org/v3.0',
+            authUrl: 'https://orcid.org/oauth/authorize'
+        },
+        scopus: {
+            apiKey: 'YOUR_SCOPUS_API_KEY',
+            apiUrl: 'https://api.elsevier.com/content',
+            insttoken: 'YOUR_INSTITUTION_TOKEN'
+        },
+        wos: {
+            apiKey: 'YOUR_WOS_API_KEY',
+            apiUrl: 'https://api.clarivate.com/api/wos'
+        }
+    }
 };

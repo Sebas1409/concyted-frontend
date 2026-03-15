@@ -14,16 +14,18 @@ export interface CollaboratorPayload {
 export interface ProjectPayload {
     id?: number;
     active: boolean;
-    areaId: number;
+    areaId: string;
     colaboradores: CollaboratorPayload[];
-    concursoSubvencionId: number;
+    concursoSubvencionId: string;
     descripcion: string;
-    disciplinaId: number;
+    disciplinaId: string;
     fechaFin: string; // YYYY-MM-DD
     fechaInicio: string; // YYYY-MM-DD
-    financiadoraId: number;
+    financiadoraId: string;
     institucionColaboradoraId: string;
+    institucionColaboradoraNombre?: string;
     institucionPrincipalId: string;
+    institucionPrincipalNombre?: string;
     investigadorId: number;
     investigadorPrincipal: string;
     isInvestigacionDesarrollo: boolean;
@@ -33,13 +35,13 @@ export interface ProjectPayload {
     palabrasClave: string;
     regionId: number;
     rolDesempenadoId: string;
-    subareaId: number;
+    subareaId: string;
     tematicaAmbientalId: string;
     tipoProyectoId: string;
     vinculacionAcademicaId: string;
     tokens?: string[];
     tipoProyectoIdiIds?: number[];
-    gradoTesisId?: string | null;
+    gradoTesis?: string | null;
 }
 
 @Injectable({
@@ -56,10 +58,8 @@ export class ProjectService {
         });
     }
 
-    getProjectsWithCollaborators(investigatorId: number, isInvestigacionDesarrollo: boolean): Observable<any[]> {
-        return this.http.get<any[]>(`${this.apiUrl}/proyecto-idi/investigador/${investigatorId}/con-colaboradores`, {
-            params: { isInvestigacionDesarrollo: isInvestigacionDesarrollo.toString() }
-        });
+    getProjectsWithCollaborators(investigatorId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/proyecto-idi/investigador/${investigatorId}/con-colaboradores`);
     }
 
     createProject(project: ProjectPayload): Observable<any> {

@@ -12,6 +12,7 @@ export class EducationService {
     private technicalUrl = environment.userServiceUrl + '/formacion-tecnica';
     private inProgressUrl = environment.userServiceUrl + '/formacion-academica';
     private complementaryUrl = environment.userServiceUrl + '/formacion-complementaria';
+    private publicBaseUrl = environment.userServiceUrl.replace('/api', '/public/api');
     private suneduUrl = environment.suneduApiUrl;
 
     constructor(private http: HttpClient) { }
@@ -24,6 +25,10 @@ export class EducationService {
     // --- Formación Académica ---
     getAcademicByInvestigator(investigatorId: number): Observable<any[]> {
         return this.http.get<any[]>(`${this.academicUrl}/investigador/${investigatorId}`);
+    }
+
+    getPublicAcademicByInvestigator(investigatorId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.publicBaseUrl}/formacion-academica/investigador/${investigatorId}`);
     }
 
     createAcademic(payload: any): Observable<any> {
@@ -49,6 +54,14 @@ export class EducationService {
             params.enCurso = enCurso;
         }
         return this.http.get<any[]>(`${this.technicalUrl}/investigador/${investigatorId}`, { params });
+    }
+
+    getPublicTechnicalByInvestigator(investigatorId: number, enCurso?: boolean): Observable<any[]> {
+        let params: any = {};
+        if (enCurso !== undefined) {
+            params.enCurso = enCurso;
+        }
+        return this.http.get<any[]>(`${this.publicBaseUrl}/formacion-tecnica/investigador/${investigatorId}`, { params });
     }
 
     createTechnical(payload: any): Observable<any> {

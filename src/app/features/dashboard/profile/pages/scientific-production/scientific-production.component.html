@@ -19,13 +19,13 @@
     <!-- Tabs -->
     <div class="tabs-container">
         <button class="tab-btn" [class.active]="activeTab === 'all'" (click)="setActiveTab('all')">
-            Todas las producciones <span class="badge">02</span>
+            Todas las producciones <span class="badge">{{ manualList.length + importedList.length }}</span>
         </button>
         <button class="tab-btn" [class.active]="activeTab === 'imported'" (click)="setActiveTab('imported')">
-            Producción Importada <span class="badge">02</span>
+            Producción Importada <span class="badge">{{ importedList.length }}</span>
         </button>
         <button class="tab-btn" [class.active]="activeTab === 'manual'" (click)="setActiveTab('manual')">
-            Registros Manuales <span class="badge">02</span>
+            Registros Manuales <span class="badge">{{ manualList.length }}</span>
         </button>
     </div>
 
@@ -57,25 +57,24 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let item of importedProductions; let i = index">
-                            <td>00{{ i + 1 }}</td>
-                            <td>{{ item.type }}</td>
-                            <td>{{ item.title }}</td>
-                            <td>{{ item.author }}</td>
-                            <td>{{ item.year }}</td>
+                        <tr *ngFor="let item of importedList; let i = index">
+                            <td>{{ i + 1 }}</td>
+                            <td>{{ item.tipoObra }}</td>
+                            <td>{{ item.titulo }}</td>
+                            <td>{{ item.autorPrincipal || 'N/A' }}</td>
+                            <td>{{ item.fechaPublicacion | date:'yyyy' }}</td>
                             <td>{{ item.doi }}</td>
-                            <td>{{ item.journal }}</td>
+                            <td>{{ item.revista }}</td>
                             <td>
-                                <span class="source-badge">{{ item.source }}</span>
+                                <span class="source-badge">{{ item.fuente }}</span>
                             </td>
-                            <td>{{ item.quartile }}</td>
-                            <td class="actions">
+                            <td>N/A</td>
                             <td class="actions">
                                 <app-action-buttons [canEdit]="false"
                                     (delete)="deleteImportedProduction(i)"></app-action-buttons>
                             </td>
                         </tr>
-                        <tr *ngIf="importedProductions.length === 0">
+                        <tr *ngIf="importedList.length === 0">
                             <td colspan="10" class="text-center p-4 text-gray-500">No hay producciones importadas.</td>
                         </tr>
                     </tbody>
@@ -108,21 +107,20 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let item of manualProductions; let i = index">
+                        <tr *ngFor="let item of manualList; let i = index">
                             <td>{{ i + 1 }}</td>
-                            <td>{{ item.type }}</td>
-                            <td>{{ item.title }}</td>
-                            <td>{{ item.date }}</td>
+                            <td>{{ item.tipoObra }}</td>
+                            <td>{{ item.titulo }}</td>
+                            <td>{{ item.fechaPublicacion | date:'dd/MM/yyyy' }}</td>
                             <td>
-                                <span class="link-action">{{ item.attachments }}</span>
+                                <span class="link-action" (click)="viewAttachments(item)">Ver archivos</span>
                             </td>
-                            <td class="actions">
                             <td class="actions">
                                 <app-action-buttons (edit)="editManualProduction(item)"
                                     (delete)="deleteManualProduction(item)"></app-action-buttons>
                             </td>
                         </tr>
-                        <tr *ngIf="manualProductions.length === 0">
+                        <tr *ngIf="manualList.length === 0">
                             <td colspan="6" class="text-center p-4 text-gray-500">No hay registros manuales.</td>
                         </tr>
                     </tbody>
@@ -331,7 +329,7 @@
         </div>
 
         <div class="modal-body-scroll" [formGroup]="publicationForm">
-            <!-- Row 1: Indexado y DOI -->
+            <!-- Row 1: Indexado y Tipo Identificación -->
             <div class="form-row two-col">
                 <div class="form-group">
                     <label>Indexado en</label>
@@ -341,16 +339,25 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>DOI (Digital Object Identifier):</label>
-                    <div class="input-with-button">
-                        <input type="text" formControlName="doi" class="form-input" placeholder="Ej. 001584-2023/DIN">
-                        <button class="btn-validate">Validar DOI</button>
-                    </div>
+                    <label>Tipo de Identificación</label>
+                    <select formControlName="identificationType" class="form-select">
+                        <option value="" disabled selected>Seleccione tipo...</option>
+                        <option *ngFor="let opt of identificationTypeOptions" [value]="opt.codigo">{{ opt.nombre }}</option>
+                    </select>
                 </div>
             </div>
 
-            <!-- Row 2: Categoria y Tipo -->
+            <!-- Row 2: Identificador y Categoria -->
             <div class="form-row two-col">
+                <div class="form-group">
+                    <label>Identificador (DOI, ISBN, etc):</label>
+                    <div class="input-with-button">
+                        <input type="text" formControlName="doi" class="form-input" placeholder="Ej. 001584-2023/DIN">
+                        <button class="btn-validate" type="button" (click)="onValidateDoi()" [disabled]="isValidatingDoi">
+                            {{ isValidatingDoi ? 'Validando...' : 'Validar' }}
+                        </button>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label>Categoría de Trabajo *</label>
                     <select formControlName="category" class="form-select">
@@ -358,37 +365,54 @@
                         <option *ngFor="let opt of workCategoryOptions" [value]="opt.codigo">{{ opt.nombre }}</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Tipo de Obra *</label>
-                    <select formControlName="workType" class="form-select">
-                        <option value="" disabled selected>Seleccione tipo de obra...</option>
-                        <option *ngFor="let opt of workTypeOptions" [value]="opt.codigo">{{ opt.nombre }}</option>
-                    </select>
-                </div>
             </div>
 
-            <!-- Row 3: Titulo -->
+            <!-- Row 3: Tipo Obra -->
             <div class="form-group">
-                <label>Título de la Publicación</label>
+                <label>Tipo de Obra *</label>
+                <select formControlName="workType" class="form-select">
+                    <option value="" disabled selected>Seleccione tipo de obra...</option>
+                    <option *ngFor="let opt of workTypeOptions" [value]="opt.codigo">{{ opt.nombre }}</option>
+                </select>
+            </div>
+
+            <!-- Row 4: Titulo -->
+            <div class="form-group">
+                <label>Título de la Publicación *</label>
                 <input type="text" formControlName="title" class="form-input" placeholder="Ej. Métodos de proteínas">
             </div>
 
-            <!-- Row 4: URL y Revista -->
+            <!-- Row 5: Subtitulo -->
+            <div class="form-group">
+                <label>Subtítulo</label>
+                <textarea formControlName="subtitle" class="form-input" rows="2" placeholder="Subtítulo de la publicación..."></textarea>
+            </div>
+
+            <!-- Row 5.5: Descripción -->
+            <div class="form-group">
+                <label>Descripción</label>
+                <textarea formControlName="description" class="form-input" rows="3" placeholder="Descripción de la publicación..."></textarea>
+            </div>
+
+            <!-- Row 6: Nombre de la Revista -->
+            <div class="form-group">
+                <label>Nombre de la Revista / Editorial</label>
+                <textarea formControlName="journal" class="form-input" rows="2" placeholder="Ej. Revista de Investigaciones..."></textarea>
+            </div>
+
+            <!-- Row 7: URL y Editorial -->
             <div class="form-row two-col">
                 <div class="form-group">
                     <label>URL de la Publicación:</label>
                     <input type="text" formControlName="url" class="form-input" placeholder="https://">
                 </div>
                 <div class="form-group">
-                    <label>Nombre de la Revista / Editorial</label>
-                    <select formControlName="journal" class="form-select">
-                        <option value="" disabled selected>Seleccione revista / editorial...</option>
-                        <option *ngFor="let opt of journalOptions" [value]="opt">{{ opt }}</option>
-                    </select>
+                    <label>Editorial:</label>
+                    <input type="text" formControlName="publisher" class="form-input" placeholder="Nombre de la editorial...">
                 </div>
             </div>
 
-            <!-- Row 5: Pais y Fecha -->
+            <!-- Row 8: Pais y Fecha -->
             <div class="form-row two-col">
                 <div class="form-group">
                     <label>País de Publicación</label>
@@ -398,12 +422,12 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Fecha de Publicación</label>
+                    <label>Fecha de Publicación *</label>
                     <input type="date" formControlName="date" class="form-input">
                 </div>
             </div>
 
-            <!-- Row 6: Volumen, Issue, Paginas -->
+            <!-- Row 9: Volumen, Issue, Paginas -->
             <div class="form-row three-col">
                 <div class="form-group">
                     <label>Volumen</label>
@@ -419,28 +443,46 @@
                 </div>
             </div>
 
-            <!-- Row 7: Rol y Orden -->
-            <div class="form-row two-col">
-                <div class="form-group">
-                    <label>Rol en la Publicación</label>
-                    <select formControlName="role" class="form-select">
-                        <option value="" disabled selected>Seleccione el rol...</option>
-                        <option *ngFor="let opt of roleOptions" [value]="opt">{{ opt }}</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Orden de Autoría *</label>
-                    <select formControlName="authorshipOrder" class="form-select">
-                        <option value="" disabled selected>Seleccione orden...</option>
-                        <option *ngFor="let opt of authorshipOrderOptions" [value]="opt.codigo">{{ opt.nombre }}
-                        </option>
-                    </select>
+            <!-- Row 10: Orden de Autoría -->
+            <div class="form-group">
+                <label>Orden de Autoría *</label>
+                <select formControlName="authorshipOrder" class="form-select">
+                    <option value="" disabled selected>Seleccione orden...</option>
+                    <option *ngFor="let opt of authorshipOrderOptions" [value]="opt.codigo">{{ opt.nombre }}
+                    </option>
+                </select>
+
+                <!-- Authors Summary List -->
+                <div class="authors-summary" *ngIf="authorsList.length > 0">
+                    <p class="text-xs font-semibold text-gray-600 mb-1">Equipo de autores:</p>
+                    <div class="summary-chip-container">
+                        <span class="summary-chip" *ngFor="let a of authorsList">
+                            {{a.names}} {{a.paternalSurname}}
+                            <span class="btn-remove-chip" (click)="removeAuthor(a.id)">×</span>
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Attachment Section -->
+            <!-- Row 11: Autor Principal -->
+            <div class="form-group">
+                <label>Autor Principal:</label>
+                <div class="input-group">
+                    <input type="text" formControlName="mainAuthor" class="form-input" placeholder="Nombre completo del autor principal...">
+                    <button type="button" class="btn-add-secondary" (click)="openAuthorsModal()">Agregar Autores</button>
+                </div>
+            </div>
+
+            <!-- Attachment Sections -->
             <div class="mb-4">
+                <label class="form-section-subtitle-small">Archivos de la Publicación</label>
                 <app-file-uploader [(files)]="publicationFiles"
+                    (errorChange)="onUploadError($event)"></app-file-uploader>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-section-subtitle-small">Sustento de Publicación</label>
+                <app-file-uploader [(files)]="publicationSustentoFiles"
                     (errorChange)="onUploadError($event)"></app-file-uploader>
             </div>
         </div>
@@ -465,10 +507,19 @@
         </div>
 
         <div class="modal-body-scroll" [formGroup]="otherProductionForm">
+            <!-- Row 0: Indexado -->
+            <div class="form-group mb-4">
+                <label>Indexado en</label>
+                <select formControlName="indexedIn" class="form-select">
+                    <option value="" disabled selected>Seleccione indexado...</option>
+                    <option *ngFor="let opt of indexedInOtherOptions" [value]="opt.codigo">{{ opt.nombre }}</option>
+                </select>
+            </div>
+
             <!-- Row 1: Tipo y Pais -->
             <div class="form-row two-col">
                 <div class="form-group">
-                    <label>Tipo de Obra</label>
+                    <label>Tipo de Obra *</label>
                     <select formControlName="workType" class="form-select">
                         <option value="" disabled selected>Seleccione tipo de obra...</option>
                         <option *ngFor="let opt of workTypeOptions" [value]="opt.codigo">{{ opt.nombre }}</option>
@@ -485,27 +536,27 @@
 
             <!-- Row 2: Titulo -->
             <div class="form-group">
-                <label>Título</label>
-                <input type="text" formControlName="title" class="form-input" placeholder="Ej. Métodos de proteínas">
+                <label>Título de la Producción *</label>
+                <input type="text" formControlName="title" class="form-input" placeholder="Ej. Informe técnico final">
             </div>
 
-            <!-- Row 3: Sub-titulo -->
+            <!-- Row 2.5: Sub-título -->
             <div class="form-group">
                 <label>Sub-título</label>
-                <input type="text" formControlName="subtitle" class="form-input" placeholder="Ej. alimentos...">
+                <textarea formControlName="subtitle" class="form-input" rows="2" placeholder="Sub-título de la producción..."></textarea>
             </div>
 
-            <!-- Row 4: Resumen -->
+            <!-- Row 3: Resumen -->
             <div class="form-group">
                 <label>Resumen / Descripción</label>
                 <textarea formControlName="summary" class="form-input" rows="3"
                     placeholder="Breve descripción de los objetivos y resultados esperados..."></textarea>
             </div>
 
-            <!-- Row 5: Fechas -->
+            <!-- Row 4: Fechas -->
             <div class="form-row two-col">
                 <div class="form-group">
-                    <label>Fecha de Publicación</label>
+                    <label>Fecha de Publicación *</label>
                     <input type="date" formControlName="date" class="form-input">
                 </div>
                 <div class="form-group">
@@ -514,7 +565,7 @@
                 </div>
             </div>
 
-            <!-- Row 6: Institucion y DOI -->
+            <!-- Row 5: Institucion y DOI -->
             <div class="form-row two-col">
                 <div class="form-group">
                     <label>Institución / Entidad Editora</label>
@@ -523,42 +574,70 @@
                 </div>
                 <div class="form-group">
                     <label>DOI / Handle</label>
-                    <input type="text" formControlName="doi" class="form-input"
-                        placeholder="Seleccionar tipo de obra...">
-                </div>
-            </div>
-
-            <!-- Row 7: URL -->
-            <div class="form-group">
-                <label>URL de las Memorias / Certificado</label>
-                <input type="text" formControlName="url" class="form-input" placeholder="URL...">
-            </div>
-
-            <!-- Row 8: Rol y Orden -->
-            <div class="form-row two-col">
-                <div class="form-group">
-                    <label>Función / Rol *</label>
-                    <select formControlName="role" class="form-select">
-                        <option value="" disabled selected>Seleccione rol...</option>
-                        <option *ngFor="let opt of roleOptions" [value]="opt">{{ opt }}</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Orden de Autoría *</label>
                     <div class="input-with-button">
-                        <select formControlName="authorshipOrder" class="form-select">
-                            <option value="" disabled selected>Seleccione orden...</option>
-                            <option *ngFor="let opt of authorshipOrderOptions" [value]="opt.codigo">{{ opt.nombre }}
-                            </option>
-                        </select>
-                        <button class="btn-validate">Agregar Colaborador</button>
+                        <input type="text" formControlName="doi" class="form-input"
+                            placeholder="Ej. 10.1234/rpc.2026.001">
+                        <button class="btn-validate" type="button" (click)="onValidateDoi('other')" [disabled]="isValidatingDoi">
+                            {{ isValidatingDoi ? '...' : 'Validar' }}
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Attachment Section -->
+            <!-- Row 6: Journal, URL, Editorial -->
+            <div class="form-group">
+                <label>Nombre de la Revista / Editorial</label>
+                <input type="text" formControlName="journal" class="form-input" placeholder="Nombre de la revista...">
+            </div>
+
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>URL:</label>
+                    <input type="text" formControlName="url" class="form-input" placeholder="https://">
+                </div>
+                <div class="form-group">
+                    <label>Editorial:</label>
+                    <input type="text" formControlName="editorial" class="form-input" placeholder="Nombre de la editorial...">
+                </div>
+            </div>
+
+            <!-- Row 8: Orden de Autoría -->
+            <div class="form-group">
+                <label>Orden de Autoría *</label>
+                <select formControlName="authorshipOrder" class="form-select">
+                    <option value="" disabled selected>Seleccione orden...</option>
+                    <option *ngFor="let opt of authorshipOrderOptions" [value]="opt.codigo">{{ opt.nombre }}</option>
+                </select>
+
+                <!-- Authors Summary List -->
+                <div class="authors-summary" *ngIf="authorsList.length > 0">
+                    <p class="text-xs font-semibold text-gray-600 mb-1">Equipo de autores:</p>
+                    <div class="summary-chip-container">
+                        <span class="summary-chip" *ngFor="let a of authorsList">
+                            {{a.names}} {{a.paternalSurname}}
+                            <span class="btn-remove-chip" (click)="removeAuthor(a.id)">×</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Autor Principal:</label>
+                <div class="input-group">
+                    <input type="text" formControlName="mainAuthor" class="form-input" placeholder="Nombre completo del autor principal...">
+                    <button type="button" class="btn-add-secondary" (click)="openAuthorsModal()">Agregar Autores</button>
+                </div>
+            </div>
+
+            <!-- Attachment Sections -->
             <div class="mb-4">
+                <label class="form-section-subtitle-small">Archivos de la Producción</label>
                 <app-file-uploader [(files)]="otherFiles" (errorChange)="onUploadError($event)"></app-file-uploader>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-section-subtitle-small">Sustento de Producción</label>
+                <app-file-uploader [(files)]="otherSustentoFiles" (errorChange)="onUploadError($event)"></app-file-uploader>
             </div>
 
         </div>
@@ -608,7 +687,7 @@
 
             <!-- Row 2: Fecha Presentacion -->
             <div class="form-group">
-                <label>Fecha de Presentación</label>
+                <label>Fecha de Presentación *</label>
                 <input type="date" formControlName="presentationDate" class="form-input">
             </div>
 
@@ -620,8 +699,8 @@
 
             <!-- Row 4: Sub-titulo -->
             <div class="form-group">
-                <label>Sub-título *</label>
-                <input type="text" formControlName="subtitle" class="form-input" placeholder="https://">
+                <label>Sub-título</label>
+                <textarea formControlName="subtitle" class="form-input" rows="2" placeholder="Sub-título del trabajo..."></textarea>
             </div>
 
             <!-- Row 5: Resumen -->
@@ -634,7 +713,7 @@
             <!-- Row 6: Tipo Obra/Pres y DOI -->
             <div class="form-row two-col">
                 <div class="form-group">
-                    <label>Tipo de Obra / Presentación*</label>
+                    <label>Tipo de Obra / Presentación *</label>
                     <select formControlName="presentationType" class="form-select">
                         <option value="" disabled selected>Seleccione la presentación...</option>
                         <!-- Reusing workTypeOptions as placeholder, or define logic for this specific dropdown if needed -->
@@ -643,7 +722,12 @@
                 </div>
                 <div class="form-group">
                     <label>DOI (Si aplica)</label>
-                    <input type="text" formControlName="doi" class="form-input" placeholder="DOI...">
+                    <div class="input-with-button">
+                        <input type="text" formControlName="doi" class="form-input" placeholder="Ej. 10.1234/rpc.2026.001">
+                        <button class="btn-validate" type="button" (click)="onValidateDoi('congress')" [disabled]="isValidatingDoi">
+                            {{ isValidatingDoi ? '...' : 'Validar' }}
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -653,31 +737,49 @@
                 <input type="text" formControlName="certificateUrl" class="form-input" placeholder="https://">
             </div>
 
-            <!-- Row 8: Rol y Orden -->
-            <div class="form-row two-col">
-                <div class="form-group">
-                    <label>Función / Rol *</label>
-                    <select formControlName="role" class="form-select">
-                        <option value="" disabled selected>Seleccione rol...</option>
-                        <option *ngFor="let opt of roleOptions" [value]="opt">{{ opt }}</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Orden de Autoría *</label>
-                    <div class="input-with-button">
-                        <select formControlName="authorshipOrder" class="form-select">
-                            <option value="" disabled selected>Seleccione orden...</option>
-                            <option *ngFor="let opt of authorshipOrderOptions" [value]="opt.codigo">{{ opt.nombre }}
-                            </option>
-                        </select>
-                        <button class="btn-validate">Agregar Colaborador</button>
+            <!-- Row 8: Orden de Autoría -->
+            <div class="form-group">
+                <label>Orden de Autoría *</label>
+                <select formControlName="authorshipOrder" class="form-select">
+                    <option value="" disabled selected>Seleccione orden...</option>
+                    <option *ngFor="let opt of authorshipOrderOptions" [value]="opt.codigo">{{ opt.nombre }}</option>
+                </select>
+
+                <!-- Authors Summary List -->
+                <div class="authors-summary" *ngIf="authorsList.length > 0">
+                    <p class="text-xs font-semibold text-gray-600 mb-1">Equipo de autores:</p>
+                    <div class="summary-chip-container">
+                        <span class="summary-chip" *ngFor="let a of authorsList">
+                            {{a.names}} {{a.paternalSurname}}
+                            <span class="btn-remove-chip" (click)="removeAuthor(a.id)">×</span>
+                        </span>
                     </div>
                 </div>
             </div>
 
-            <!-- Attachment Section -->
+            <div class="form-group">
+                <label>Autor Principal:</label>
+                <div class="input-group">
+                    <input type="text" formControlName="mainAuthor" class="form-input" placeholder="Nombre completo del autor principal...">
+                    <button type="button" class="btn-add-secondary" (click)="openAuthorsModal()">Agregar Autores</button>
+                </div>
+            </div>
+
+            <!-- Row 9: URL -->
+            <div class="form-group">
+                <label>URL de las Memorias / Certificado</label>
+                <input type="text" formControlName="url" class="form-input" placeholder="https://">
+            </div>
+
+            <!-- Attachment Sections -->
             <div class="mb-4">
+                <label class="form-section-subtitle-small">Archivos del Congreso</label>
                 <app-file-uploader [(files)]="congressFiles" (errorChange)="onUploadError($event)"></app-file-uploader>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-section-subtitle-small">Sustento de Congreso</label>
+                <app-file-uploader [(files)]="congressSustentoFiles" (errorChange)="onUploadError($event)"></app-file-uploader>
             </div>
 
         </div>
@@ -685,6 +787,98 @@
         <div class="modal-footer-simple">
             <button class="btn-cancel" (click)="closeAddCongressModal()">Cancelar</button>
             <button class="btn-save" (click)="saveCongress()" [disabled]="hasUploadError">Guardar Registro</button>
+        </div>
+    </div>
+</div>
+
+<!-- AUTHORS TEAM MODAL (Based on user image) -->
+<div class="modal-overlay-nested" *ngIf="showAuthorsModal" (click)="closeAuthorsModal()">
+    <div class="modal-container-centered" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>Equipo de Autores</h2>
+            <p>Registra los datos de los integrantes que participaron en la obra para añadirlos a tu lista.</p>
+        </div>
+
+        <div class="modal-content-scrollable">
+            <div class="modal-form-header-section">
+                <div class="form-group mb-4">
+                    <label>Responsable</label>
+                    <input type="text" [value]="currentUserFullName" class="form-input" disabled
+                        style="background-color: #f9fafb; font-weight: 600;">
+                </div>
+                <h3 class="form-section-subtitle">Autores</h3>
+            </div>
+
+            <form [formGroup]="authorsForm" class="modal-form">
+
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label>Apellido Paterno <span>*</span></label>
+                        <input type="text" formControlName="paternalSurname" class="form-input" placeholder="Ej. Flores">
+                    </div>
+                    <div class="form-group">
+                        <label>Apellido Materno <span>*</span></label>
+                        <input type="text" formControlName="maternalSurname" class="form-input" placeholder="Ej. Sánchez">
+                    </div>
+                </div>
+
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label>Nombres <span>*</span></label>
+                        <input type="text" formControlName="names" class="form-input" placeholder="Ej. Juan Carlos">
+                    </div>
+                    <div class="form-group">
+                        <label>Correo Electrónico de Contacto <span>*</span></label>
+                        <input type="email" formControlName="email" class="form-input"
+                            placeholder="Ej. jflores@institucion.edu.pe">
+                    </div>
+                </div>
+
+                <button type="button" class="btn-add-list" (click)="addAuthorToList()"
+                    [disabled]="authorsForm.invalid">
+                    Agregar a la lista
+                </button>
+            </form>
+
+            <!-- Authors List Table -->
+            <div class="collaborator-table-container">
+                <div class="table-responsive">
+                    <table class="custom-table" style="font-size: 0.85rem;">
+                        <thead>
+                            <tr>
+                                <th>N°</th>
+                                <th>Apellido Paterno</th>
+                                <th>Apellido Materno</th>
+                                <th>Nombres</th>
+                                <th>Correo Electrónico</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let auth of authorsList; let i = index">
+                                <td>{{ i + 1 }}</td>
+                                <td>{{auth.paternalSurname}}</td>
+                                <td>{{auth.maternalSurname}}</td>
+                                <td>{{auth.names}}</td>
+                                <td>{{auth.email}}</td>
+                                <td class="actions">
+                                    <app-action-buttons [canEdit]="false"
+                                        (delete)="removeAuthor(auth.id)"></app-action-buttons>
+                                </td>
+                            </tr>
+                            <tr *ngIf="authorsList.length === 0">
+                                <td colspan="6" class="text-center p-4 text-gray-500">Agrega autores para verlos aquí.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="closeAuthorsModal()">Cancelar</button>
+            <button type="button" class="btn-save" (click)="confirmAuthors()">Aceptar equipo</button>
         </div>
     </div>
 </div>

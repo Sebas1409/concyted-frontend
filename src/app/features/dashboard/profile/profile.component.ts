@@ -8,12 +8,12 @@ import { take, switchMap, map } from 'rxjs/operators';
 import { CvExportService } from '../../../core/services/cv-export.service';
 import { AlertService } from '../../../core/services/alert.service';
 import { UbigeoService } from '../../../core/services/ubigeo.service';
-import { QualificationBadgeComponent } from '../../../shared/components/qualification-badge/qualification-badge.component';
+import { environment } from '../../../../environments/environment';
 
 @Component({
     selector: 'app-profile-layout',
     standalone: true,
-    imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, QualificationBadgeComponent],
+    imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
     templateUrl: './profile.component.html',
     styleUrl: './profile.component.scss'
 })
@@ -69,7 +69,12 @@ export class ProfileLayoutComponent implements OnInit {
 
     getPublicProfileUrl(user: any): string {
         const id = user.researcherId || user.idInvestigador || user.id;
-        return `/ctivitae/search/researcher/${id}`;
+        const url = `/search/researcher/${id}`;
+
+        // In production, we need the /ctivitae context if it's not already handled by the server
+        // environment.baseHref is used to handle this dynamically
+        const base = environment.baseHref === '/' ? '' : environment.baseHref.replace(/\/$/, '');
+        return `${base}${url}`;
     }
 
     getInitials(user: AuthResponse | null): string {

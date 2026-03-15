@@ -9,6 +9,7 @@ import { LanguageItem, LanguagePayload } from '../models/language.models';
 })
 export class LanguageService {
     private apiUrl = `${environment.userServiceUrl}/idioma`;
+    private publicApiUrl = `${environment.userServiceUrl.replace('/api', '/public/api')}/idioma`;
 
     constructor(private http: HttpClient) { }
 
@@ -18,6 +19,10 @@ export class LanguageService {
 
     getLanguagesByInvestigator(investigatorId: number): Observable<LanguageItem[]> {
         return this.http.get<LanguageItem[]>(`${this.apiUrl}/investigador/${investigatorId}`);
+    }
+
+    getPublicLanguagesByInvestigator(investigatorId: number): Observable<LanguageItem[]> {
+        return this.http.get<LanguageItem[]>(`${this.publicApiUrl}/investigador/${investigatorId}`);
     }
 
     createLanguage(payload: LanguagePayload): Observable<any> {

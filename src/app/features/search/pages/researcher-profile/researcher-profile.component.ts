@@ -75,30 +75,30 @@ export class ResearcherPublicProfileComponent implements OnInit {
     }
 
     private loadCatalogs() {
-        this.catalogService.getMasterDetailsByCode('TIPEXP').subscribe(data => this.projectRoles = data);
-        this.catalogService.getMasterDetailsByCode('TIPPRO').subscribe(data => this.projectTypes = data);
-        this.catalogService.getMasterDetailsByCode('TIPINS').subscribe(data => this.institutionTypes = data);
-        this.catalogService.getMasterDetailsByCode('TIPDOC').subscribe(data => this.docentTypes = data);
+        this.catalogService.getPublicMasterDetailsByCode('TIPEXP').subscribe(data => this.projectRoles = data);
+        this.catalogService.getPublicMasterDetailsByCode('TIPPRO').subscribe(data => this.projectTypes = data);
+        this.catalogService.getPublicMasterDetailsByCode('TIPINS').subscribe(data => this.institutionTypes = data);
+        this.catalogService.getPublicMasterDetailsByCode('TIPDOC').subscribe(data => this.docentTypes = data);
     }
 
     loadResearcherData(investigatorId: number) {
         this.isLoading = true;
-        this.authService.getInvestigatorByUserId(investigatorId).subscribe({
+        this.authService.getPublicInvestigatorById(investigatorId).subscribe({
             next: (data) => {
                 const res = data.data || data;
                 console.log('Researcher Profile Loaded:', res);
-                const investigatorId = res.id;
+                const actualInvId = res.id;
 
                 // 1. Basic Researcher Header
                 this.researcher = {
                     name: `${res.nombres || ''} ${res.apellidoPaterno || ''} ${res.apellidoMaterno || ''}`.trim().toUpperCase() || 'INVESTIGADOR',
                     bio: res.resumenEjecutivo || 'Sin resumen profesional registrado.',
-                    photo: res.fotoToken ? this.fileService.getFileUrl(res.fotoToken) : null,
+                    photo: res.fotoToken ? this.fileService.getFileUrl(res.fotoToken, true) : null,
                     renacytCode: res.codigoUnico || '---',
                     scopusId: res.scopusAuthorId || '---',
                     orcidId: res.orcid || '---',
                     conductDate: res.fechaValidacion || '---',
-                    lastUpdate: res.updatedAt ? new Date(res.updatedAt).toLocaleDateString() : '---'
+                    lastUpdate: res.fechaActualizacion ? new Date(res.fechaActualizacion).toLocaleDateString() : (res.updatedAt ? new Date(res.updatedAt).toLocaleDateString() : '---')
                 };
 
                 // 2. Personal Table Data
@@ -114,8 +114,8 @@ export class ResearcherPublicProfileComponent implements OnInit {
                 this.loadMappedNames(res);
 
                 // 4. Load All Sections
-                if (investigatorId) {
-                    this.loadAllSections(investigatorId);
+                if (actualInvId) {
+                    this.loadAllSections(actualInvId);
                 } else {
                     this.isLoading = false;
                 }
@@ -130,7 +130,7 @@ export class ResearcherPublicProfileComponent implements OnInit {
 
     private loadMappedNames(res: any) {
         if (res.sexo) {
-            this.catalogService.getMasterDetails(2).subscribe(genders => {
+            this.catalogService.getPublicMasterDetailsByCode('CATSEX').subscribe(genders => {
                 const gender = genders.find(g => g.codigo === res.sexo || g.id === Number(res.sexo));
                 if (gender) this.generalData.gender = gender.nombre;
             });
@@ -139,17 +139,17 @@ export class ResearcherPublicProfileComponent implements OnInit {
         const countryId = res.paisResidenciaId || res.paisId;
 
         if (countryId) {
-            this.ubigeoService.getCountries().subscribe(countries => {
+            this.ubigeoService.getPublicCountries().subscribe(countries => {
                 const country = countries.find(c => Number(c.id) === Number(countryId));
                 if (country) {
                     let residence = country.nombre;
                     if (res.departamentoId) {
-                        this.ubigeoService.getDepartments(Number(countryId)).subscribe(depts => {
+                        this.ubigeoService.getPublicDepartments(Number(countryId)).subscribe(depts => {
                             const dept = depts.find(d => Number(d.id) === Number(res.departamentoId));
                             if (dept) {
                                 residence += ` / ${dept.nombre}`;
                                 if (res.provinciaId) {
-                                    this.ubigeoService.getDistricts(Number(res.provinciaId)).subscribe(districts => {
+                                    this.ubigeoService.getPublicDistricts(Number(res.provinciaId)).subscribe(districts => {
                                         const dist = districts.find(d => Number(d.id) === Number(res.distritoId));
                                         if (dist) {
                                             residence += ` / ${dist.nombre}`;
@@ -181,15 +181,15 @@ export class ResearcherPublicProfileComponent implements OnInit {
 
     private loadAllSections(investigatorId: number) {
         const sections$ = {
-            academic: this.educationService.getAcademicByInvestigator(investigatorId).pipe(catchError(() => of([]))),
-            technical: this.educationService.getTechnicalByInvestigator(investigatorId, false).pipe(catchError(() => of([]))),
-            work: this.workExperienceService.getWorkExperiences(investigatorId).pipe(catchError(() => of([]))),
-            docente: this.workExperienceService.getDocentExperiences(investigatorId).pipe(catchError(() => of([]))),
-            languages: this.languageService.getLanguagesByInvestigator(investigatorId).pipe(catchError(() => of([]))),
-            projects: this.workExperienceService.getProjects(investigatorId).pipe(catchError(() => of([]))),
-            thesis: this.workExperienceService.getThesisAdvisors(investigatorId).pipe(catchError(() => of([]))),
-            ip: this.ipService.getIntellectualPropertiesByInvestigator(investigatorId).pipe(catchError(() => of([]))),
-            distinctions: this.distinctionService.getDistinctions(investigatorId).pipe(catchError(() => of([])))
+            academic: this.educationService.getPublicAcademicByInvestigator(investigatorId).pipe(catchError(() => of([]))),
+            technical: this.educationService.getPublicTechnicalByInvestigator(investigatorId, false).pipe(catchError(() => of([]))),
+            work: this.workExperienceService.getPublicWorkExperiences(investigatorId).pipe(catchError(() => of([]))),
+            docente: this.workExperienceService.getPublicDocentExperiences(investigatorId).pipe(catchError(() => of([]))),
+            languages: this.languageService.getPublicLanguagesByInvestigator(investigatorId).pipe(catchError(() => of([]))),
+            projects: this.workExperienceService.getPublicProjects(investigatorId).pipe(catchError(() => of([]))),
+            thesis: this.workExperienceService.getPublicThesisAdvisors(investigatorId).pipe(catchError(() => of([]))),
+            ip: this.ipService.getPublicIntellectualPropertiesByInvestigator(investigatorId).pipe(catchError(() => of([]))),
+            distinctions: this.distinctionService.getPublicDistinctions(investigatorId).pipe(catchError(() => of([])))
         };
 
         forkJoin(sections$).pipe(

@@ -22,11 +22,16 @@ export interface WorkExperienceResponse {
 })
 export class WorkExperienceService {
     private apiUrl = `${environment.userServiceUrl}/experiencia`;
+    private publicApiUrl = `${environment.userServiceUrl.replace('/api', '/public/api')}/experiencia`;
 
     constructor(private http: HttpClient) { }
 
     getWorkExperiences(investigadorId: number): Observable<WorkExperienceResponse[]> {
         return this.http.get<WorkExperienceResponse[]>(`${this.apiUrl}/laboral/investigador/${investigadorId}`);
+    }
+
+    getPublicWorkExperiences(investigadorId: number): Observable<WorkExperienceResponse[]> {
+        return this.http.get<WorkExperienceResponse[]>(`${this.publicApiUrl}/laboral/investigador/${investigadorId}`);
     }
 
     createWorkExperience(data: any): Observable<any> {
@@ -47,6 +52,10 @@ export class WorkExperienceService {
         return this.http.get<any[]>(`${this.apiUrl}/docente/investigador/${investigadorId}`);
     }
 
+    getPublicDocentExperiences(investigadorId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.publicApiUrl}/docente/investigador/${investigadorId}`);
+    }
+
     createDocentExperience(data: any): Observable<any> {
         return this.http.post(`${this.apiUrl}/docente`, data);
     }
@@ -62,6 +71,10 @@ export class WorkExperienceService {
 
     getThesisAdvisors(investigadorId: number): Observable<any[]> {
         return this.http.get<any[]>(`${this.apiUrl}/asesor/investigador/${investigadorId}`);
+    }
+
+    getPublicThesisAdvisors(investigadorId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.publicApiUrl}/asesor/investigador/${investigadorId}`);
     }
 
     createThesisAdvisor(data: any): Observable<any> {
@@ -80,6 +93,10 @@ export class WorkExperienceService {
 
     getProjects(investigadorId: number): Observable<any[]> {
         return this.http.get<any[]>(`${this.apiUrl}/proyecto-idi/investigador/${investigadorId}`);
+    }
+
+    getPublicProjects(investigadorId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.publicApiUrl}/proyecto-idi/investigador/${investigadorId}`);
     }
 
     createProject(data: any): Observable<any> {

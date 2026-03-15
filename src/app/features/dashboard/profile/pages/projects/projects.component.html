@@ -29,32 +29,12 @@
     <div *ngIf="activeTab === 'all' || activeTab === 'manual'">
         <div class="table-card" [class.fullscreen-mode]="isTableMaximized">
             <div class="table-header-bar">
-                <h3>Proyectos</h3>
-                <div class="icons">
-                    <!-- Clipboard Icon -->
-                    <button class="icon-btn" title="Opciones">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                            <path fill-rule="evenodd"
-                                d="M12 2.25c.621 0 1.125.504 1.125 1.125v1.875h-2.25V3.375c0-.621.504-1.125 1.125-1.125ZM16.5 6.75v-2.25a2.625 2.625 0 0 0-5.25 0v2.25H5.25v13.5h13.5v-13.5H16.5Z"
-                                clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                    <!-- Maximize/Minimize Toggle -->
-                    <button class="icon-btn" (click)="toggleMaximize()"
-                        [title]="isTableMaximized ? 'Restaurar' : 'Maximizar'">
-                        <svg *ngIf="!isTableMaximized" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                            fill="currentColor" class="w-6 h-6">
-                            <path fill-rule="evenodd"
-                                d="M15 3.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0V5.56l-3.97 3.97a.75.75 0 1 1-1.06-1.06l3.97-3.97h-2.69a.75.75 0 0 1-.75-.75Zm-12 0A.75.75 0 0 1 3.75 3h4.5a.75.75 0 0 1 0 1.5H5.56l3.97 3.97a.75.75 0 0 1-1.06 1.06L4.5 5.56v2.69a.75.75 0 0 1-1.5 0v-4.5ZM3.75 15a.75.75 0 0 1 .75.75v2.69l3.97-3.97a.75.75 0 0 1 1.06 1.06l-3.97 3.97h2.69a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 1 .75-.75Zm10.5 0a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-2.69l-3.97 3.97a.75.75 0 1 1-1.06-1.06l3.97-3.97v2.69a.75.75 0 0 1-1.5 0v-4.5Z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <svg *ngIf="isTableMaximized" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                            fill="currentColor" class="w-6 h-6">
-                            <path fill-rule="evenodd"
-                                d="M3.75 6.75a.75.75 0 0 0 0 1.5h2.69l-3.97 3.97a.75.75 0 0 0 1.06 1.06l3.97-3.97v2.69a.75.75 0 0 0 1.5 0v-4.5a.75.75 0 0 0-.75-.75h-4.5Zm16.5 0a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-2.69l-3.97 3.97a.75.75 0 1 1-1.06-1.06l3.97-3.97h2.69a.75.75 0 0 1 .75-.75h4.5ZM6.75 15a.75.75 0 0 1 .75.75v2.69l3.97-3.97a.75.75 0 1 1 1.06 1.06l-3.97 3.97h2.69a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75v-4.5Zm9.75 0a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-2.69l-3.97 3.97a.75.75 0 0 1-1.06-1.06l3.97-3.97h2.69a.75.75 0 0 1-.75-.75Z"
-                                clip-rule="evenodd" />
-                        </svg>
-                    </button>
+                <div class="title-with-badges">
+                    <h3>Proyectos</h3>
+                    <div class="header-badges">
+                        <app-qualification-badge type="renacyt"></app-qualification-badge>
+                        <app-qualification-badge type="vinculate"></app-qualification-badge>
+                    </div>
                 </div>
             </div>
             <div class="table-responsive">
@@ -62,25 +42,23 @@
                     <thead>
                         <tr>
                             <th class="w-5">N°</th>
-                            <th class="w-15">Tipo proyecto</th>
-                            <th class="w-15">Título</th>
-                            <th class="w-20">Descripción</th>
-                            <th class="w-10">Institución</th>
+                            <th class="w-12">Tipo proyecto</th>
+                            <th class="w-22">Título</th>
+                            <th class="w-22">Institución</th>
                             <th class="w-10">Fecha Inicio</th>
                             <th class="w-10">Fecha Fin</th>
                             <th class="w-10">Adjuntos</th>
-                            <th class="w-5 text-center">Acciones</th>
+                            <th class="w-9 text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr *ngFor="let project of manualProjects; let i = index">
                             <td>{{ i + 1 }}</td>
                             <td>{{ project.projectType }}</td>
-                            <td>{{ project.title }}</td>
-                            <td>{{ project.description }}</td>
-                            <td>{{ project.institution }}</td>
-                            <td>{{ project.startDate | date:'dd/MM/yyyy' }}</td>
-                            <td>{{ project.endDate | date:'dd/MM/yyyy' }}</td>
+                            <td class="w-22 text-wrap">{{ project.title }}</td>
+                            <td class="w-22 text-wrap">{{ project.institution }}</td>
+                            <td class="w-10">{{ project.startDate | dateDisplay }}</td>
+                            <td class="w-10">{{ project.endDate | dateDisplay }}</td>
                             <td>
                                 <span class="link-action" (click)="viewFiles(project)">Ver archivos</span>
                             </td>
@@ -111,25 +89,23 @@
                     <thead>
                         <tr>
                             <th class="w-5">N°</th>
-                            <th class="w-10">Tipo financiamiento</th>
-                            <th class="w-15">Título</th>
-                            <th class="w-20">Descripción</th>
-                            <th class="w-10">Institución</th>
+                            <th class="w-12">Tipo financiamiento</th>
+                            <th class="w-22">Título</th>
+                            <th class="w-22">Institución</th>
                             <th class="w-10">Fecha inicio</th>
                             <th class="w-10">Fecha fin</th>
                             <th class="w-10 text-center">Fuente</th>
-                            <th class="w-10 text-center">Acción</th>
+                            <th class="w-9 text-center">Acción</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr *ngFor="let project of orcidProjects; let i = index">
                             <td>{{ i + 1 }}</td>
                             <td>{{ project.fundingType }}</td>
-                            <td>{{ project.title }}</td>
-                            <td>{{ project.description }}</td>
-                            <td>{{ project.institution }}</td>
-                            <td>{{ project.startDate }}</td>
-                            <td>{{ project.endDate }}</td>
+                            <td class="w-22 text-wrap">{{ project.title }}</td>
+                            <td class="w-22 text-wrap">{{ project.institution }}</td>
+                            <td class="w-10">{{ project.startDate | dateDisplay }}</td>
+                            <td class="w-10">{{ project.endDate | dateDisplay }}</td>
                             <td>
                                 <div class="source-badge">
                                     <span *ngIf="project.source !== 'SUNEDU'">S</span>
@@ -165,40 +141,6 @@
 
         <form [formGroup]="projectForm" class="modal-form">
             <div class="form-card">
-                <!-- Research Type Checkboxes (TPRIDI) -->
-                <div class="form-group" *ngIf="researchTypes.length > 0">
-                    <label>Tipo de Proyecto I+D+i <span>*</span></label>
-                    <div class="checkbox-group">
-                        <label class="checkbox-item" *ngFor="let type of researchTypes"
-                            [class.selected]="isResearchTypeSelected(type.id)">
-                            <span class="checkbox-label">{{ type.nombre }}:</span>
-                            <input type="checkbox" [checked]="isResearchTypeSelected(type.id)"
-                                (change)="toggleResearchType(type.id)">
-                            <!-- RENACYT Icon -->
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path d="M5 6V19.5C5 20.3284 5.67157 21 6.5 21H16.5C17.3284 21 18 20.3284 18 19.5V6H5Z"
-                                    fill="#A4C639" />
-                                <path d="M5 4.5V6H18V4.5C18 3.67157 17.3284 3 16.5 3H6.5C5.67157 3 5 3.67157 5 4.5Z"
-                                    fill="#2C5E7A" />
-                                <rect x="7" y="3" width="9" height="1.5" rx="0.75" fill="#5D99BB" />
-                                <path d="M8.5 13.5L10.5 15.5L14.5 11" stroke="white" stroke-width="2.5"
-                                    stroke-linecap="round" stroke-linejoin="round" />
-                                <path d="M20.5 7V17L21.5 20L22.5 17V7H20.5Z" fill="#5D99BB" />
-                                <path d="M20.5 7H22.5V6H20.5V7Z" fill="#2C5E7A" />
-                            </svg>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Thesis Degree (only when Doctorado is selected) -->
-                <div class="form-group" *ngIf="isDoctoradoSelected">
-                    <label>Grado de Tesis <span>*</span></label>
-                    <select formControlName="thesisDegreeId" class="form-select">
-                        <option value="" disabled selected>Seleccionar grado...</option>
-                        <option *ngFor="let degree of thesisDegrees" [value]="degree.id">{{ degree.nombre }}</option>
-                    </select>
-                </div>
 
                 <!-- Project Name -->
                 <div class="form-group">
@@ -236,7 +178,7 @@
                         <select formControlName="projectType" class="form-select"
                             [class.is-invalid]="projectForm.get('projectType')?.invalid && projectForm.get('projectType')?.touched">
                             <option value="" disabled selected>Seleccionar tipo...</option>
-                            <option *ngFor="let type of projectTypes" [value]="type.id">{{ type.nombre }}</option>
+                            <option *ngFor="let type of projectTypes" [value]="type.codigo">{{ type.nombre }}</option>
                         </select>
                         <span class="error-text"
                             *ngIf="projectForm.get('projectType')?.invalid && projectForm.get('projectType')?.touched">Selecciona
@@ -261,6 +203,9 @@
                         <label>Fecha de Inicio <span>*</span></label>
                         <input type="date" formControlName="startDate" class="form-input"
                             [class.is-invalid]="projectForm.get('startDate')?.invalid && projectForm.get('startDate')?.touched">
+                        <div class="date-input-footer" *ngIf="projectForm.get('startDate')?.value">
+                            {{ projectForm.get('startDate')?.value | dateDisplay }}
+                        </div>
                         <span class="error-text"
                             *ngIf="projectForm.get('startDate')?.invalid && projectForm.get('startDate')?.touched">Requerido</span>
                     </div>
@@ -268,6 +213,9 @@
                         <label>Fecha de fin <span>*</span></label>
                         <input type="date" formControlName="endDate" class="form-input"
                             [class.is-invalid]="projectForm.get('endDate')?.invalid && projectForm.get('endDate')?.touched">
+                        <div class="date-input-footer" *ngIf="projectForm.get('endDate')?.value">
+                            {{ projectForm.get('endDate')?.value | dateDisplay }}
+                        </div>
                         <span class="error-text"
                             *ngIf="projectForm.get('endDate')?.invalid && projectForm.get('endDate')?.touched">Requerido</span>
                     </div>
@@ -280,7 +228,7 @@
                         <select formControlName="academicContext" class="form-select"
                             [class.is-invalid]="projectForm.get('academicContext')?.invalid && projectForm.get('academicContext')?.touched">
                             <option value="" disabled selected>Seleccionar contexto...</option>
-                            <option *ngFor="let context of academicContexts" [value]="context.id">{{ context.nombre }}
+                            <option *ngFor="let context of academicContexts" [value]="context.codigo">{{ context.nombre }}
                             </option>
                         </select>
                         <span class="error-text"
@@ -291,11 +239,20 @@
                         <select formControlName="role" class="form-select"
                             [class.is-invalid]="projectForm.get('role')?.invalid && projectForm.get('role')?.touched">
                             <option value="" disabled selected>Seleccionar rol...</option>
-                            <option *ngFor="let role of projectRoles" [value]="role.id">{{ role.nombre }}</option>
+                            <option *ngFor="let role of projectRoles" [value]="role.codigo">{{ role.nombre }}</option>
                         </select>
                         <span class="error-text"
                             *ngIf="projectForm.get('role')?.invalid && projectForm.get('role')?.touched">Requerido</span>
                     </div>
+                </div>
+
+                <!-- Thesis Degree (only when Tesis/Doctorado is selected) -->
+                <div class="form-group" *ngIf="isThesisDegreeVisible">
+                    <label>Grado de Tesis <span>*</span></label>
+                    <select formControlName="thesisDegreeId" class="form-select">
+                        <option value="" disabled selected>Seleccionar grado...</option>
+                        <option *ngFor="let degree of thesisDegrees" [value]="degree.codigo">{{ degree.nombre }}</option>
+                    </select>
                 </div>
 
                 <!-- Principal Investigator -->
@@ -327,26 +284,15 @@
 
                 <!-- Main Institution & Collaborating Institution -->
                 <div class="form-row two-col">
-                    <div class="form-group">
-                        <label>Institución Principal <span>*</span></label>
-                        <select formControlName="mainInstitution" class="form-select"
-                            [class.is-invalid]="projectForm.get('mainInstitution')?.invalid && projectForm.get('mainInstitution')?.touched">
-                            <option value="" disabled selected>Buscar institución...</option>
-                            <option value="Concytec">Concytec</option>
-                            <option value="UPC">UPC</option>
-                            <option value="PUCP">PUCP</option>
-                        </select>
-                        <span class="error-text"
-                            *ngIf="projectForm.get('mainInstitution')?.invalid && projectForm.get('mainInstitution')?.touched">Requerido</span>
-                    </div>
-                    <div class="form-group">
-                        <label>Institución Colaboradora <span>*</span></label>
-                        <select formControlName="collaboratingInstitution" class="form-select">
-                            <option value="" disabled selected>Buscar institución...</option>
-                            <option value="None">Ninguna</option>
-                            <option value="UPC">UPC</option>
-                        </select>
-                    </div>
+                    <app-institution-select [control]="$any(projectForm.get('mainInstitution'))"
+                        label="Institución Principal *" placeholder="Buscar institución principal..."
+                        (selectionChange)="onMainInstitutionSelect($event)">
+                    </app-institution-select>
+
+                    <app-institution-select [control]="$any(projectForm.get('collaboratingInstitution'))"
+                        label="Institución Colaboradora *" placeholder="Buscar institución colaboradora..."
+                        (selectionChange)="onCollaboratingInstitutionSelect($event)">
+                    </app-institution-select>
                 </div>
 
                 <!-- Funding -->
@@ -354,11 +300,10 @@
                     <div class="form-group">
                         <label>Subvencionado Por (Financiadora) <span>*</span></label>
                         <select formControlName="fundedBy" class="form-select"
+                            (change)="onFundingAgencyChange()"
                             [class.is-invalid]="projectForm.get('fundedBy')?.invalid && projectForm.get('fundedBy')?.touched">
                             <option value="" disabled selected>Buscar institución...</option>
-                            <option value="ProCiencia">ProCiencia</option>
-                            <option value="Concytec">Concytec</option>
-                            <option value="Privado">Sector Privado</option>
+                            <option *ngFor="let agency of fundingAgencies" [value]="agency.codigo">{{ agency.nombre }}</option>
                         </select>
                         <span class="error-text"
                             *ngIf="projectForm.get('fundedBy')?.invalid && projectForm.get('fundedBy')?.touched">Requerido</span>
@@ -368,8 +313,7 @@
                         <select formControlName="grantContest" class="form-select"
                             [class.is-invalid]="projectForm.get('grantContest')?.invalid && projectForm.get('grantContest')?.touched">
                             <option value="" disabled selected>Seleccionar concurso / subvención...</option>
-                            <option value="Semilla2023">Proyectos Semilla 2023</option>
-                            <option value="Basica2023">Proyectos Investigación Básica 2023</option>
+                            <option *ngFor="let contest of grantContests" [value]="contest.codigo">{{ contest.nombre }}</option>
                         </select>
                         <span class="error-text"
                             *ngIf="projectForm.get('grantContest')?.invalid && projectForm.get('grantContest')?.touched">Requerido</span>
@@ -403,7 +347,7 @@
                 <div class="form-row two-col">
                     <div class="form-group">
                         <label>Área OCDE <span>*</span></label>
-                        <select formControlName="oecdArea" class="form-select" (change)="onAreaChange($event)"
+                        <select formControlName="oecdArea" class="form-select"
                             [class.is-invalid]="projectForm.get('oecdArea')?.invalid && projectForm.get('oecdArea')?.touched">
                             <option value="" disabled selected>Seleccionar área...</option>
                             <option *ngFor="let area of areas" [value]="area.idArea">{{ area.descripcion }}</option>
@@ -413,7 +357,7 @@
                     </div>
                     <div class="form-group">
                         <label>Sub-área OCDE <span>*</span></label>
-                        <select formControlName="oecdSubArea" class="form-select" (change)="onSubAreaChange($event)"
+                        <select formControlName="oecdSubArea" class="form-select"
                             [class.is-invalid]="projectForm.get('oecdSubArea')?.invalid && projectForm.get('oecdSubArea')?.touched">
                             <option value="" disabled selected>Seleccionar sub-area...</option>
                             <option *ngFor="let sub of subAreas" [value]="sub.id">{{ sub.descripcion }}</option>
@@ -438,16 +382,18 @@
                         <label>Temática Ambiental <span>*</span></label>
                         <select formControlName="environmentalTheme" class="form-select">
                             <option value="" disabled selected>Seleccionar temática...</option>
-                            <option *ngFor="let theme of environmentalThemes" [value]="theme.id">{{ theme.nombre }}
+                            <option *ngFor="let theme of environmentalThemes" [value]="theme.codigo">{{ theme.nombre }}
                             </option>
                         </select>
                     </div>
                 </div>
 
-                <div class="mb-4" *ngIf="isPostDoctoradoSelected">
+                <!-- File Uploader -->
+                <div class="mb-4">
                     <app-file-uploader [(files)]="projectFiles"
                         (errorChange)="onUploadError($event)"></app-file-uploader>
                 </div>
+
 
                 <!-- Actions -->
                 <div class="modal-actions">
@@ -460,7 +406,7 @@
     </div>
 </div>
 
-<app-file-viewer-modal *ngIf="showFileViewer" [files]="viewerFiles" (close)="closeFileViewer()">
+<app-file-viewer-modal *ngIf="showFileViewer" [isOpen]="showFileViewer" [files]="viewerFiles" (onClose)="closeFileViewer()">
 </app-file-viewer-modal>
 
 <!-- COLLABORATORS MODAL -->
@@ -471,78 +417,94 @@
             <p>Registra los datos de los integrantes que participaron en el proyecto para añadirlos a tu lista.</p>
         </div>
 
-        <div class="modal-form-header-section">
-            <div class="form-group mb-4">
-                <label>Responsable</label>
-                <input type="text" [value]="currentUserFullName" class="form-input" disabled
-                    style="background-color: #f9fafb; font-weight: 600;">
-            </div>
-            <h3 class="form-section-subtitle">Colaboradores</h3>
-        </div>
-
-        <form [formGroup]="collaboratorForm" class="modal-form">
-
-            <div class="form-row two-col">
-                <div class="form-group">
-                    <label>Apellido Paterno <span>*</span></label>
-                    <input type="text" formControlName="paternalSurname" class="form-input" placeholder="Ej. Flores">
+        <div class="modal-content-scrollable">
+            <div class="modal-form-header-section">
+                <div class="form-group mb-4">
+                    <label>Responsable</label>
+                    <input type="text" [value]="currentUserFullName" class="form-input" disabled
+                        style="background-color: #f9fafb; font-weight: 600;">
                 </div>
-                <div class="form-group">
-                    <label>Apellido Materno <span>*</span></label>
-                    <input type="text" formControlName="maternalSurname" class="form-input" placeholder="Ej. Sánchez">
-                </div>
+                <h3 class="form-section-subtitle">Colaboradores</h3>
             </div>
 
-            <div class="form-row two-col">
-                <div class="form-group">
-                    <label>Nombres <span>*</span></label>
-                    <input type="text" formControlName="names" class="form-input" placeholder="Ej. Juan Carlos">
-                </div>
-                <div class="form-group">
-                    <label>Correo Electrónico de Contacto <span>*</span></label>
-                    <input type="email" formControlName="email" class="form-input"
-                        placeholder="Ej. jflores@institucion.edu.pe">
-                </div>
-            </div>
+            <form [formGroup]="collaboratorForm" class="modal-form">
 
-            <button type="button" class="btn-add-list" (click)="addCollaboratorToList()"
-                [disabled]="collaboratorForm.invalid">
-                Agregar a la lista
-            </button>
-        </form>
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label>Apellido Paterno <span>*</span></label>
+                        <input type="text" formControlName="paternalSurname" class="form-input" placeholder="Ej. Flores"
+                            [class.is-invalid]="collaboratorForm.get('paternalSurname')?.invalid && collaboratorForm.get('paternalSurname')?.touched">
+                        <span class="error-text"
+                            *ngIf="collaboratorForm.get('paternalSurname')?.invalid && collaboratorForm.get('paternalSurname')?.touched">Requerido</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Apellido Materno <span>*</span></label>
+                        <input type="text" formControlName="maternalSurname" class="form-input" placeholder="Ej. Sánchez"
+                            [class.is-invalid]="collaboratorForm.get('maternalSurname')?.invalid && collaboratorForm.get('maternalSurname')?.touched">
+                        <span class="error-text"
+                            *ngIf="collaboratorForm.get('maternalSurname')?.invalid && collaboratorForm.get('maternalSurname')?.touched">Requerido</span>
+                    </div>
+                </div>
 
-        <!-- Collaborators List Table -->
-        <div class="collaborator-table-container">
-            <div class="table-responsive">
-                <table class="custom-table" style="font-size: 0.85rem;">
-                    <thead>
-                        <tr>
-                            <th>N°</th>
-                            <th>Apellido Paterno</th>
-                            <th>Apellido Materno</th>
-                            <th>Nombres</th>
-                            <th>Correo Electrónico</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let collab of collaborators; let i = index">
-                            <td>{{ i + 1 }}</td>
-                            <td>{{collab.paternalSurname}}</td>
-                            <td>{{collab.maternalSurname}}</td>
-                            <td>{{collab.names}}</td>
-                            <td>{{collab.email}}</td>
-                            <td class="actions">
-                                <app-action-buttons [canEdit]="false"
-                                    (delete)="removeCollaborator(collab.id)"></app-action-buttons>
-                            </td>
-                        </tr>
-                        <tr *ngIf="collaborators.length === 0">
-                            <td colspan="6" class="text-center p-4 text-gray-500">Agrega colaboradores para verlos aquí.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label>Nombres <span>*</span></label>
+                        <input type="text" formControlName="names" class="form-input" placeholder="Ej. Juan Carlos"
+                            [class.is-invalid]="collaboratorForm.get('names')?.invalid && collaboratorForm.get('names')?.touched">
+                        <span class="error-text"
+                            *ngIf="collaboratorForm.get('names')?.invalid && collaboratorForm.get('names')?.touched">Requerido</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Correo Electrónico de Contacto <span>*</span></label>
+                        <input type="email" formControlName="email" class="form-input"
+                            placeholder="Ej. jflores@institucion.edu.pe"
+                            [class.is-invalid]="collaboratorForm.get('email')?.invalid && collaboratorForm.get('email')?.touched">
+                        <span class="error-text"
+                            *ngIf="collaboratorForm.get('email')?.invalid && collaboratorForm.get('email')?.touched">Email
+                            inválido</span>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-add-list" (click)="addCollaboratorToList()"
+                    [disabled]="collaboratorForm.invalid">
+                    Agregar a la lista
+                </button>
+            </form>
+
+            <!-- Collaborators List Table -->
+            <div class="collaborator-table-container">
+                <div class="table-responsive">
+                    <table class="custom-table" style="font-size: 0.85rem;">
+                        <thead>
+                            <tr>
+                                <th>N°</th>
+                                <th>Apellido Paterno</th>
+                                <th>Apellido Materno</th>
+                                <th>Nombres</th>
+                                <th>Correo Electrónico</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let collab of collaborators; let i = index">
+                                <td>{{ i + 1 }}</td>
+                                <td>{{collab.paternalSurname}}</td>
+                                <td>{{collab.maternalSurname}}</td>
+                                <td>{{collab.names}}</td>
+                                <td>{{collab.email}}</td>
+                                <td class="actions">
+                                    <app-action-buttons [canEdit]="false"
+                                        (delete)="removeCollaborator(collab.id)"></app-action-buttons>
+                                </td>
+                            </tr>
+                            <tr *ngIf="collaborators.length === 0">
+                                <td colspan="6" class="text-center p-4 text-gray-500">Agrega colaboradores para verlos
+                                    aquí.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 

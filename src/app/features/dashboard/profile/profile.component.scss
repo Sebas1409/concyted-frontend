@@ -94,6 +94,14 @@
     letter-spacing: 0.08em;
     color: var(--g-500);
     font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    .label-icon {
+        color: var(--primary-600);
+        flex-shrink: 0;
+    }
 }
 
 .meta-item .value {

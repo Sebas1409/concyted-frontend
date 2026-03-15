@@ -8,6 +8,7 @@ import { UbigeoService } from '../../../../core/services/ubigeo.service';
 import { CatalogService } from '../../../../core/services/catalog.service';
 import { RecaptchaService } from '../../../../core/services/recaptcha.service';
 import { ResearcherService, PublicResearcher } from '../../../../core/services/researcher.service';
+import { FileService } from '../../../../core/services/file.service';
 import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
@@ -47,6 +48,7 @@ export class AdvancedSearchComponent implements OnInit {
         private catalogService: CatalogService,
         private recaptchaService: RecaptchaService,
         private researcherService: ResearcherService,
+        private fileService: FileService,
         private cdr: ChangeDetectorRef,
         private route: ActivatedRoute
     ) {
@@ -78,24 +80,24 @@ export class AdvancedSearchComponent implements OnInit {
 
     loadCatalogData() {
         // Load Areas
-        this.catalogService.getAreas().subscribe({
+        this.catalogService.getPublicAreas().subscribe({
             next: (data) => this.areas = data,
             error: (err) => console.error('Error loading areas', err)
         });
 
         // Load Genders
-        this.catalogService.getMasterDetails(2).subscribe({
+        this.catalogService.getPublicMasterDetailsByCode('CATSEX').subscribe({
             next: (data) => this.genders = data,
             error: (err) => console.error('Error loading genders', err)
         });
 
         // Load Departments (Peru)
-        this.ubigeoService.getCountries().subscribe({
+        this.ubigeoService.getPublicCountries().subscribe({
             next: (countries) => {
                 this.countries = countries;
                 const peru = countries.find(c => c.nombre.toUpperCase() === 'PERÚ' || c.nombre.toUpperCase() === 'PERU');
                 if (peru) {
-                    this.ubigeoService.getDepartments(peru.id).subscribe({
+                    this.ubigeoService.getPublicDepartments(peru.id).subscribe({
                         next: (deps) => this.departments = deps,
                         error: (err) => console.error('Error loading departments', err)
                     });
@@ -195,7 +197,8 @@ export class AdvancedSearchComponent implements OnInit {
             gender: genderMapped,
             sexName: sexName,
             degree: item.estadoRenacyt,
-            usuarioId: item.usuarioId
+            usuarioId: item.usuarioId,
+            fotoUrl: item.fotoToken ? this.fileService.getFileUrl(item.fotoToken, true) : null
         };
     }
 

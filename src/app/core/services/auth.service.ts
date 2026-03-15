@@ -73,6 +73,16 @@ export class AuthService {
         return this.http.get(`${environment.userServiceUrl}/v2/investigadores/${investigatorId}`);
     }
 
+    getPublicInvestigatorById(investigatorId: number): Observable<any> {
+        const publicUrl = environment.userServiceUrl.replace('/api', '/public/api');
+        return this.http.get(`${publicUrl}/v2/investigadores/${investigatorId}`);
+    }
+
+    getPublicInvestigatorByUserId(investigatorId: number): Observable<any> {
+        const publicUrl = environment.userServiceUrl.replace('/api', '/public/api');
+        return this.http.get(`${publicUrl}/v2/investigadores/usuario/${investigatorId}`);
+    }
+
     updateResearcher(investigatorId: number, researcherData: any): Observable<any> {
         return this.http.put(`${environment.userServiceUrl}/v2/investigadores/${investigatorId}`, researcherData);
     }

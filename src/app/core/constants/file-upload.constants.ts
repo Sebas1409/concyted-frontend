@@ -10,3 +10,14 @@ export enum FileType {
     DOCUMENT = 'DOCUMENT',
     PDF = 'PDF'
 }
+
+export enum FileCategory {
+    PROCIE = 'PROCIE',
+    PROYID = 'PROYID'
+}
+
+export enum FileSection {
+    PROC01 = 'PROC01',
+    PROC02 = 'PROC02',
+    PROY01 = 'PROY01'
+}

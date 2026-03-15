@@ -662,6 +662,17 @@
         color: #374151;
     }
 
+    .form-section-subtitle-small {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #4B5563;
+        display: block;
+        margin-bottom: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px dashed #E5E7EB;
+        margin-top: 1rem;
+    }
+
     input,
     select,
     textarea {
@@ -704,6 +715,36 @@
 
             &:hover {
                 background-color: #003b44;
+            }
+        }
+    }
+
+    .input-group {
+        display: flex;
+        gap: 0.5rem;
+
+        input {
+            flex: 1;
+        }
+
+        .btn-add-secondary {
+            background-color: #004E5A;
+            color: white;
+            border: none;
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background-color 0.2s;
+
+            &:hover {
+                background-color: #003b44;
+            }
+
+            &:active {
+                background-color: #002a31;
             }
         }
     }

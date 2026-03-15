@@ -11,6 +11,9 @@ import { UbigeoService } from '../../../../../core/services/ubigeo.service';
 import { FileService } from '../../../../../core/services/file.service';
 import { FileUploaderComponent } from '../../../../../shared/components/file-uploader/file-uploader.component';
 import { FileViewerModalComponent, ViewerFile } from '../../../../../shared/components/file-viewer-modal/file-viewer-modal.component';
+import { InstitutionSelectComponent } from '../../../../../shared/components/institution-select/institution-select.component';
+import { QualificationBadgeComponent } from '../../../../../shared/components/qualification-badge/qualification-badge.component';
+import { DateDisplayPipe } from '../../../../../shared/pipes/date-display.pipe';
 import { forkJoin, of, from, Observable } from 'rxjs';
 import { catchError, concatMap, toArray, map } from 'rxjs/operators';
 
@@ -50,7 +53,7 @@ interface Collaborator {
 @Component({
     selector: 'app-projects',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, ActionButtonsComponent, IntroCardComponent, FileUploaderComponent, FileViewerModalComponent],
+    imports: [CommonModule, ReactiveFormsModule, ActionButtonsComponent, IntroCardComponent, FileUploaderComponent, FileViewerModalComponent, InstitutionSelectComponent, QualificationBadgeComponent, DateDisplayPipe],
     templateUrl: './projects.component.html',
     styleUrls: ['./projects.component.scss']
 })
@@ -69,9 +72,9 @@ export class ProjectsComponent implements OnInit {
     projectTypes: any[] = [];
     academicContexts: any[] = [];
     projectRoles: any[] = [];
-    researchTypes: any[] = []; // TPRIDI catalog
-    selectedResearchTypeIds: number[] = [];
     thesisDegrees: any[] = []; // GRADOS catalog for thesis degree
+    fundingAgencies: any[] = []; // SUBVEN catalog
+    grantContests: any[] = []; // Dependent sub-details
 
     // Collaborators
     showCollaboratorModal = false;
@@ -99,6 +102,22 @@ export class ProjectsComponent implements OnInit {
     // Mock Data for "Proyectos Importados ORCID"
     orcidProjects: OrcidProject[] = [];
 
+    // Institutions
+    selectedMainInstitutionCode: string = '';
+    selectedMainInstitutionName: string = '';
+    selectedCollaboratingInstitutionCode: string = '';
+    selectedCollaboratingInstitutionName: string = '';
+
+    onMainInstitutionSelect(item: any) {
+        this.selectedMainInstitutionCode = item.codigo || '';
+        this.selectedMainInstitutionName = item.nombre || '';
+    }
+
+    onCollaboratingInstitutionSelect(item: any) {
+        this.selectedCollaboratingInstitutionCode = item.codigo || '';
+        this.selectedCollaboratingInstitutionName = item.nombre || '';
+    }
+
     constructor(
         private fb: FormBuilder,
         private catalogService: CatalogService,
@@ -125,12 +144,21 @@ export class ProjectsComponent implements OnInit {
             fundedBy: ['', Validators.required], // financiadoraId
             grantContest: ['', Validators.required], // concursoSubvencionId
             contractNumber: ['', Validators.required],
-            financedAmount: [0, Validators.required],
             oecdArea: ['', Validators.required],
             oecdSubArea: ['', Validators.required],
             oecdDiscipline: ['', Validators.required],
             environmentalTheme: [''], // Optional
-            thesisDegreeId: [''] // Grado de Tesis (visible when Doctorado selected)
+            thesisDegreeId: [''], // Grado de Tesis (visible when Tesis selected)
+            financedAmount: ['', Validators.required] 
+        });
+
+        // OECD Cascade Subscriptions
+        this.projectForm.get('oecdArea')?.valueChanges.subscribe(code => {
+            this.handleAreaChange(code);
+        });
+
+        this.projectForm.get('oecdSubArea')?.valueChanges.subscribe(code => {
+            this.handleSubAreaChange(code);
         });
 
         this.collaboratorForm = this.fb.group({
@@ -149,8 +177,8 @@ export class ProjectsComponent implements OnInit {
         this.loadProjectTypes();
         this.loadAcademicContexts();
         this.loadProjectRoles();
-        this.loadResearchTypes();
         this.loadThesisDegrees();
+        this.loadFundingAgencies();
         this.setCurrentUserFullName();
     }
 
@@ -170,14 +198,31 @@ export class ProjectsComponent implements OnInit {
         });
     }
 
-    loadResearchTypes() {
-        this.catalogService.getMasterDetailsByCode('TPRIDI').subscribe({
+    loadFundingAgencies() {
+        this.catalogService.getMasterDetailsByCode('SUBVEN').subscribe({
             next: (data) => {
-                this.researchTypes = data;
-                console.log('Research Types (TPRIDI) loaded:', data);
+                this.fundingAgencies = data;
             },
-            error: (err) => console.error('Failed to load research types (TPRIDI)', err)
+            error: (err) => console.error('Failed to load funding agencies (SUBVEN)', err)
         });
+    }
+
+    onFundingAgencyChange() {
+        const agencyCode = this.projectForm.get('fundedBy')?.value;
+        if (agencyCode) {
+            this.catalogService.getMasterSubDetails('SUBVEN', agencyCode).subscribe({
+                next: (data) => {
+                    this.grantContests = data;
+                },
+                error: (err) => {
+                    console.error('Failed to load grant contests', err);
+                    this.grantContests = [];
+                }
+            });
+        } else {
+            this.grantContests = [];
+        }
+        this.projectForm.get('grantContest')?.setValue('');
     }
 
     loadThesisDegrees() {
@@ -189,55 +234,17 @@ export class ProjectsComponent implements OnInit {
         });
     }
 
-    toggleResearchType(typeId: number) {
-        const index = this.selectedResearchTypeIds.indexOf(typeId);
-
-        if (index > -1) {
-            // Deselecting
-            this.selectedResearchTypeIds = this.selectedResearchTypeIds.filter(id => id !== typeId);
-        } else {
-            // Selecting - check mutual exclusivity between Doctorado and Post-Doctorado
-            const selectedType = this.researchTypes.find(t => t.id === typeId);
-            const selectedName = selectedType?.nombre?.toUpperCase() || '';
-
-            const isSelectingPostDoc = selectedName.includes('POST');
-            const isSelectingDoc = selectedName.includes('DOCTORADO') && !isSelectingPostDoc;
-
-            if (isSelectingDoc || isSelectingPostDoc) {
-                // Remove the other one (Doctorado <-> Post-Doctorado)
-                this.selectedResearchTypeIds = this.selectedResearchTypeIds.filter(id => {
-                    const t = this.researchTypes.find(rt => rt.id === id);
-                    const name = t?.nombre?.toUpperCase() || '';
-                    if (isSelectingDoc) {
-                        return !name.includes('POST'); // Remove Post-Doctorado
-                    } else {
-                        return !(name.includes('DOCTORADO') && !name.includes('POST')); // Remove Doctorado
-                    }
-                });
-            }
-
-            this.selectedResearchTypeIds = [...this.selectedResearchTypeIds, typeId];
-        }
+    get isThesisDegreeVisible(): boolean {
+        const val = this.projectForm.get('academicContext')?.value;
+        if (!val) return false;
+        const selected = this.academicContexts.find(c => c.codigo === val);
+        const name = selected?.nombre?.toUpperCase() || '';
+        // Only Doctorado (excluding Post-Doctorado)
+        return name.includes('DOCTORADO') && !name.includes('POST');
     }
 
-    isResearchTypeSelected(typeId: number): boolean {
-        return this.selectedResearchTypeIds.includes(typeId);
-    }
 
-    get isPostDoctoradoSelected(): boolean {
-        return this.researchTypes.some(t =>
-            this.selectedResearchTypeIds.includes(t.id) &&
-            t.nombre?.toUpperCase().includes('POST')
-        );
-    }
 
-    get isDoctoradoSelected(): boolean {
-        return this.researchTypes.some(t =>
-            this.selectedResearchTypeIds.includes(t.id) &&
-            t.nombre?.toUpperCase().includes('DOCTORADO') &&
-            !t.nombre?.toUpperCase().includes('POST')
-        );
-    }
 
     loadAcademicContexts() {
         this.catalogService.getMasterDetailsByCode('VINACP').subscribe({
@@ -277,13 +284,9 @@ export class ProjectsComponent implements OnInit {
     loadProjects() {
         const currentUser = this.authService.getCurrentUser();
         if (currentUser && currentUser.id) {
-            forkJoin([
-                this.projectService.getProjectsWithCollaborators(currentUser.id, true).pipe(catchError(() => of([]))),
-                this.projectService.getProjectsWithCollaborators(currentUser.id, false).pipe(catchError(() => of([])))
-            ]).subscribe({
-                next: ([researchProjects, innovationProjects]) => {
-                    console.log('Raw Research Projects:', researchProjects);
-                    console.log('Raw Innovation Projects (mapped to ORCID for now):', innovationProjects);
+            this.projectService.getProjectsWithCollaborators(currentUser.id).subscribe({
+                next: (items) => {
+                    console.log('Projects loaded:', items);
 
                     const normalize = (data: any) => {
                         if (!data) return [];
@@ -292,47 +295,40 @@ export class ProjectsComponent implements OnInit {
                         return [];
                     };
 
-                    const rProjs = normalize(researchProjects);
-                    const iProjs = normalize(innovationProjects);
+                    const projs = normalize(items);
+                    this.rawProjects = projs;
 
-                    this.rawProjects = [...rProjs, ...iProjs];
-
-                    // Map Research Projects to "Proyectos" (Manual)
-                    this.manualProjects = rProjs.map((p: any) => ({
+                    // Map to "Proyectos" (Manual)
+                    this.manualProjects = projs.map((p: any) => ({
                         id: p.id,
                         code: p.id ? p.id.toString().padStart(3, '0') : '000',
-                        projectType: 'Investigación y Desarrollo',
+                        projectType: p.isInvestigacionDesarrollo ? 'Proyectos de investigación' : 'Proyectos de innovación',
                         title: p.nombreProyecto,
                         description: p.descripcion || '',
-                        institution: p.institucionPrincipalId,
+                        institution: p.institucionPrincipalNombre || (p.institucionPrincipalId ? `Institución (RUC: ${p.institucionPrincipalId})` : 'No registrada'),
                         startDate: p.fechaInicio ? p.fechaInicio.split('T')[0] : '',
                         endDate: p.fechaFin ? p.fechaFin.split('T')[0] : ''
                     }));
 
-                    // Map Innovation Projects to "Proyectos importados de ORCID" (as requested)
-                    this.orcidProjects = iProjs.map((p: any) => ({
-                        id: p.id,
-                        code: p.id ? p.id.toString().padStart(3, '0') : '000',
-                        fundingType: 'Innovación', // Mapped from project type
-                        title: p.nombreProyecto,
-                        description: p.descripcion || '',
-                        institution: p.institucionPrincipalId,
-                        startDate: p.fechaInicio ? p.fechaInicio.split('T')[0] : '',
-                        endDate: p.fechaFin ? p.fechaFin.split('T')[0] : '',
-                        source: 'ORCID' // Static or derived
-                    }));
+                    // Leave orcidProjects empty for now
+                    this.orcidProjects = [];
 
                     this.cdr.detectChanges();
                 },
-                error: (err) => console.error('Error loading projects', err)
+                error: (err) => {
+                    console.error('Error loading projects', err);
+                    this.manualProjects = [];
+                    this.orcidProjects = [];
+                    this.cdr.detectChanges();
+                }
             });
         }
     }
 
     loadAreas() {
         this.catalogService.getAreas().subscribe({
-            next: (data) => {
-                this.areas = data;
+            next: (data: any) => {
+                this.areas = Array.isArray(data) ? data : (data?.data || []);
             },
             error: (err) => console.error('Failed to load areas', err)
         });
@@ -340,43 +336,49 @@ export class ProjectsComponent implements OnInit {
 
     loadEnvironmentalThemes() {
         this.catalogService.getMasterDetails(7).subscribe({
-            next: (data) => {
-                this.environmentalThemes = data;
+            next: (data: any) => {
+                this.environmentalThemes = Array.isArray(data) ? data : (data?.data || []);
             },
             error: (err) => console.error('Failed to load environmental themes', err)
         });
     }
 
-    onAreaChange(event: any) {
-        const areaId = this.projectForm.get('oecdArea')?.value;
+    handleAreaChange(areaId: any) {
         this.subAreas = [];
         this.disciplines = [];
-        this.projectForm.get('oecdSubArea')?.reset('');
-        this.projectForm.get('oecdDiscipline')?.reset('');
 
         if (areaId) {
-            this.catalogService.getSubAreas(areaId).subscribe({
-                next: (data) => {
-                    this.subAreas = data;
+            this.catalogService.getSubAreas(Number(areaId)).subscribe({
+                next: (data: any) => {
+                    this.subAreas = Array.isArray(data) ? data : (data?.data || []);
                 },
                 error: (err) => console.error('Failed to load sub-areas', err)
             });
         }
     }
 
-    onSubAreaChange(event: any) {
-        const subAreaId = this.projectForm.get('oecdSubArea')?.value;
+    handleSubAreaChange(subAreaId: any) {
         this.disciplines = [];
-        this.projectForm.get('oecdDiscipline')?.reset('');
 
         if (subAreaId) {
-            this.catalogService.getDisciplines(subAreaId).subscribe({
-                next: (data) => {
-                    this.disciplines = data;
+            this.catalogService.getDisciplines(Number(subAreaId)).subscribe({
+                next: (data: any) => {
+                    this.disciplines = Array.isArray(data) ? data : (data?.data || []);
                 },
                 error: (err) => console.error('Failed to load disciplines', err)
             });
         }
+    }
+
+    onAreaChange(event?: any) {
+        // Handled by valueChanges, but keep for template compatibility if needed
+        this.projectForm.get('oecdSubArea')?.setValue('');
+        this.projectForm.get('oecdDiscipline')?.setValue('');
+    }
+
+    onSubAreaChange(event?: any) {
+        // Handled by valueChanges
+        this.projectForm.get('oecdDiscipline')?.setValue('');
     }
 
     setActiveTab(tab: 'all' | 'manual' | 'orcid') {
@@ -390,7 +392,6 @@ export class ProjectsComponent implements OnInit {
         this.resetProjectForm(); // Helper to reliably clear to empty strings
         this.collaborators = []; // Clear collaborators for new project
         this.projectFiles = []; // Clear files for new project
-        this.selectedResearchTypeIds = []; // Clear research type checkboxes
         this.hasUploadError = false;
 
         // Handle dynamic validators
@@ -427,6 +428,7 @@ export class ProjectsComponent implements OnInit {
             : 'Registra y actualiza proyectos orientados a la creación o mejora significativa de productos, procesos o servicios (I+D+i empresarial).';
     }
 
+
     get nameLabel(): string {
         return this.modalType === 'research'
             ? 'Proyecto de Investigación y Desarrollo'
@@ -439,7 +441,6 @@ export class ProjectsComponent implements OnInit {
         this.resetProjectForm();
         this.subAreas = [];
         this.disciplines = [];
-        this.selectedResearchTypeIds = [];
     }
 
     private resetProjectForm() {
@@ -458,13 +459,15 @@ export class ProjectsComponent implements OnInit {
             fundedBy: '',
             grantContest: '',
             contractNumber: '',
-            financedAmount: '0.00',
+            financedAmount: '',
             oecdArea: '',
             oecdSubArea: '',
             oecdDiscipline: '',
             environmentalTheme: '',
             thesisDegreeId: ''
         });
+        this.selectedMainInstitutionName = '';
+        this.selectedCollaboratingInstitutionName = '';
     }
 
     saveProject() {
@@ -486,35 +489,34 @@ export class ProjectsComponent implements OnInit {
         }));
         console.log('Sending Collaborators:', colaboradoresPayload);
 
-        const isInvDes = this.modalType === 'research';
-
         const payload: ProjectPayload = {
             active: true,
-            isInvestigacionDesarrollo: isInvDes,
-            nombreProyecto: formVal.projectName,
+            areaId: formVal.oecdArea,
+            colaboradores: colaboradoresPayload,
+            concursoSubvencionId: formVal.grantContest,
             descripcion: formVal.description,
+            disciplinaId: formVal.oecdDiscipline,
+            fechaFin: formVal.endDate,
+            fechaInicio: formVal.startDate,
+            financiadoraId: formVal.fundedBy,
+            institucionColaboradoraId: this.selectedCollaboratingInstitutionCode || formVal.collaboratingInstitution,
+            institucionColaboradoraNombre: this.selectedCollaboratingInstitutionName,
+            institucionPrincipalId: this.selectedMainInstitutionCode || formVal.mainInstitution,
+            institucionPrincipalNombre: this.selectedMainInstitutionName,
+            investigadorId: currentUser ? currentUser.id : 0,
+            investigadorPrincipal: formVal.principalInvestigator,
+            isInvestigacionDesarrollo: this.modalType === 'research',
+            montoFinanciado: formVal.financedAmount,
+            nombreProyecto: formVal.projectName,
+            numeroContrato: formVal.contractNumber,
             palabrasClave: formVal.keywords,
-            areaId: Number(formVal.oecdArea) || 0,
-            subareaId: Number(formVal.oecdSubArea) || 0,
-            disciplinaId: Number(formVal.oecdDiscipline) || 0,
+            regionId: formVal.executionRegion ? Number(formVal.executionRegion) : 0,
+            rolDesempenadoId: formVal.role,
+            subareaId: formVal.oecdSubArea,
             tematicaAmbientalId: formVal.environmentalTheme,
             tipoProyectoId: formVal.projectType,
-            regionId: Number(formVal.executionRegion) || 0,
-            fechaInicio: formVal.startDate,
-            fechaFin: formVal.endDate,
-            montoFinanciado: Number(formVal.financedAmount) || 0,
-            numeroContrato: formVal.contractNumber,
-            concursoSubvencionId: !isNaN(Number(formVal.grantContest)) ? Number(formVal.grantContest) : 0,
-            financiadoraId: !isNaN(Number(formVal.fundedBy)) ? Number(formVal.fundedBy) : 0,
             vinculacionAcademicaId: formVal.academicContext,
-            rolDesempenadoId: formVal.role,
-            investigadorId: investigatorId,
-            investigadorPrincipal: formVal.principalInvestigator,
-            institucionPrincipalId: formVal.mainInstitution,
-            institucionColaboradoraId: formVal.collaboratingInstitution,
-            colaboradores: colaboradoresPayload,
-            tipoProyectoIdiIds: this.selectedResearchTypeIds,
-            gradoTesisId: formVal.thesisDegreeId || null
+            gradoTesis: formVal.thesisDegreeId || null
         };
 
         // Sequential process: Upload files, get tokens, then save project (like WorkExperience)
@@ -596,12 +598,18 @@ export class ProjectsComponent implements OnInit {
 
     viewFiles(item: any) {
         if (!item || !item.id) return;
+
         this.fileService.fetchFilesForViewer('INVESTIGATOR', 'PROYID', 'PROY01', Number(item.id))
-            .subscribe(files => {
-                if (files.length > 0) {
-                    this.viewerFiles = files;
-                    this.showFileViewer = true;
-                    this.cdr.detectChanges();
+            .subscribe({
+                next: (files) => {
+                    if (files && files.length > 0) {
+                        this.viewerFiles = files;
+                        this.showFileViewer = true;
+                        this.cdr.detectChanges();
+                    }
+                },
+                error: (err) => {
+                    console.error('Error fetching files', err);
                 }
             });
     }
@@ -666,25 +674,47 @@ export class ProjectsComponent implements OnInit {
                 academicContext: project.vinculacionAcademicaId ? project.vinculacionAcademicaId.toString() : '',
                 role: project.rolDesempenadoId ? project.rolDesempenadoId.toString() : '',
                 principalInvestigator: project.investigadorPrincipal,
-                mainInstitution: project.institucionPrincipalId,
-                collaboratingInstitution: project.institucionColaboradoraId,
+                mainInstitution: project.institucionPrincipalNombre || '',
+                collaboratingInstitution: project.institucionColaboradoraNombre || '',
                 fundedBy: project.financiadoraId ? project.financiadoraId.toString() : '',
-                grantContest: project.concursoSubvencionId ? project.concursoSubvencionId.toString() : '',
                 contractNumber: project.numeroContrato,
                 financedAmount: project.montoFinanciado,
                 oecdArea: project.areaId ? project.areaId.toString() : '',
-                oecdSubArea: project.subareaId ? project.subareaId.toString() : '',
-                oecdDiscipline: project.disciplinaId ? project.disciplinaId.toString() : '',
                 environmentalTheme: project.tematicaAmbientalId ? project.tematicaAmbientalId.toString() : '',
-                thesisDegreeId: project.gradoTesisId ? project.gradoTesisId.toString() : ''
+                thesisDegreeId: (project.gradoTesis || project.gradoTesisId) ? (project.gradoTesis || project.gradoTesisId).toString() : ''
             });
 
-            // Restore research type checkboxes
-            if (project.tipoProyectoIdiIds && Array.isArray(project.tipoProyectoIdiIds)) {
-                this.selectedResearchTypeIds = [...project.tipoProyectoIdiIds];
-            } else {
-                this.selectedResearchTypeIds = [];
+            // Trigger cascading loads and re-patch dependent values
+            if (project.areaId) {
+                this.catalogService.getSubAreas(project.areaId).subscribe((data: any) => {
+                    this.subAreas = Array.isArray(data) ? data : (data?.data || []);
+                    if (project.subareaId) {
+                        this.projectForm.get('oecdSubArea')?.setValue(project.subareaId.toString(), { emitEvent: false });
+                        this.catalogService.getDisciplines(project.subareaId).subscribe((discData: any) => {
+                            this.disciplines = Array.isArray(discData) ? discData : (discData?.data || []);
+                            if (project.disciplinaId) {
+                                this.projectForm.get('oecdDiscipline')?.setValue(project.disciplinaId.toString(), { emitEvent: false });
+                            }
+                        });
+                    }
+                });
             }
+
+            if (project.financiadoraId) {
+                this.catalogService.getMasterSubDetails('SUBVEN', project.financiadoraId.toString()).subscribe({
+                    next: (data) => {
+                        this.grantContests = data;
+                        this.projectForm.patchValue({
+                            grantContest: project.concursoSubvencionId ? project.concursoSubvencionId.toString() : ''
+                        });
+                    }
+                });
+            }
+
+            this.selectedMainInstitutionCode = project.institucionPrincipalId || '';
+            this.selectedMainInstitutionName = project.institucionPrincipalNombre || '';
+            this.selectedCollaboratingInstitutionCode = project.institucionColaboradoraId || '';
+            this.selectedCollaboratingInstitutionName = project.institucionColaboradoraNombre || '';
 
             if (project.colaboradores && Array.isArray(project.colaboradores)) {
                 console.log('Project Collaborators Found:', project.colaboradores);
@@ -704,13 +734,6 @@ export class ProjectsComponent implements OnInit {
             this.projectForm.get('principalInvestigator')?.disable();
 
             this.cdr.detectChanges();
-
-            if (project.areaId) {
-                this.catalogService.getSubAreas(project.areaId).subscribe(data => this.subAreas = data);
-            }
-            if (project.subareaId) {
-                this.catalogService.getDisciplines(project.subareaId).subscribe(data => this.disciplines = data);
-            }
 
             if (this.currentProjectId) {
                 this.loadExistingFiles(this.currentProjectId);

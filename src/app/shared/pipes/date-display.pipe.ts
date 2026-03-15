@@ -28,8 +28,10 @@ export class DateDisplayPipe implements PipeTransform {
 
             const formatter = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' });
             const formatted = formatter.format(d);
-            // Capitalize first letter: "diciembre 2024" -> "Diciembre 2024"
-            return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+            
+            // Remove " de " to gef "MARZO 2026"
+            const clean = formatted.replace(/\sde\s/g, ' '); 
+            return clean.charAt(0).toUpperCase() + clean.slice(1);
         } catch (e) {
             return date;
         }

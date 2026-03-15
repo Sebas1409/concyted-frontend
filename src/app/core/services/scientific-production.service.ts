@@ -32,4 +32,26 @@ export class ScientificProductionService {
     searchAlicia(request: AliciaRequest): Observable<AliciaResponse[]> {
         return this.http.post<AliciaResponse[]>(this.aliciaUrl, request);
     }
+
+    validateDoi(doi: string): Observable<any> {
+        // According to image: POST /cti-interop-service/api/doi/validate?url=...
+        const url = `${environment.interopServiceUrl}/doi/validate?url=${encodeURIComponent(doi)}`;
+        return this.http.post<any>(url, {});
+    }
+
+    createPublication(payload: any): Observable<any> {
+        return this.http.post<any>(`${environment.userServiceUrl}/produccion-cientifica`, payload);
+    }
+
+    updatePublication(id: number, payload: any): Observable<any> {
+        return this.http.put<any>(`${environment.userServiceUrl}/produccion-cientifica/${id}`, payload);
+    }
+
+    deleteProduction(id: number): Observable<any> {
+        return this.http.delete<any>(`${environment.userServiceUrl}/produccion-cientifica/${id}`);
+    }
+
+    getProductionsByInvestigador(investigadorId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${environment.userServiceUrl}/produccion-cientifica/investigador/${investigadorId}`);
+    }
 }

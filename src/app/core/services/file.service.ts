@@ -75,10 +75,9 @@ export class FileService {
     }
 
     getFileUrl(token: string, isPublic: boolean = false): string {
-        if (isPublic) {
-            return `${this.apiUrl}/public/${token}`;
-        }
-        return `${this.apiUrl}/${token}`;
+        if (!token) return '';
+        const suffix = isPublic ? '/public' : '';
+        return `${environment.fileServiceUrl}/files${suffix}/${token}`;
     }
 
     downloadFile(token: string): Observable<Blob> {
