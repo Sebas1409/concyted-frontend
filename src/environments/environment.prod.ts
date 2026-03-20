@@ -1,6 +1,6 @@
 export const environment = {
     production: true,
-    apiUrl: 'http://176.52.137.31:8080/cti-auth-service/api',
+    apiUrl: '/cti-auth-service/api',
     userServiceUrl: '/cti-user-service/api',
     managementServiceUrl: '/cti-management-service/api',
     catalogServiceUrl: '/cti-catalog-service/api',
@@ -8,7 +8,7 @@ export const environment = {
     reniecApiUrl: '/cti-interop-service/public/api/reniec/validar',
     reniecPrivateApiUrl: '/cti-interop-service/api/reniec/validar',
     suneduApiUrl: '/cti-interop-service/api/sunedu/grados-titulos',
-    interopServiceUrl: 'http://176.52.137.31:8080/cti-interop-service/api',
+    interopServiceUrl: '/cti-interop-service/api',
     catalogPublicServiceUrl: '/cti-catalog-service/public/api',
     landingPublicUrl: '/cti-management-service/public/api',
     baseHref: '/ctivitae/', // En producción, con contexto ctivitae
@@ -20,7 +20,7 @@ export const environment = {
             apiUrl: 'https://pub.orcid.org/v3.0',
             redirectFix: {
                 search: '176.52.137.31',
-                replaceWith: '176.52.137.31:8080'
+                replaceWith: '176.52.137.31'
             }
         },
         scopus: {
