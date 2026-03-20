@@ -68,7 +68,7 @@ export class DistinctionsComponent implements OnInit {
         this.distinctionForm = this.fb.group({
             institution: ['', Validators.required],
             name: ['', Validators.required],
-            description: [''],
+            description: ['', Validators.maxLength(600)],
             country: ['', Validators.required],
             date: ['', Validators.required],
             url: ['']
@@ -222,15 +222,27 @@ export class DistinctionsComponent implements OnInit {
     openEditModal(distinction: Distinction) {
         this.currentDistinctionId = distinction.id;
         this.showAddModal = true;
+        this.cdr.detectChanges(); // First detect to show modal
 
-        // Find Country ID/Name match
-        const countryName = this.countries.find(c => c.id === distinction.paisId)?.nombre || '';
-
-
-        this.selectedInstitutionRuc = distinction.rucInstitucion || ''; // Restore RUC if available
-
-        // Fetch existing files from metadata API
+        // Reset and Prep
+        this.distinctionForm.reset();
+        this.uploaderFiles = [];
         this.existingFiles = [];
+
+        // 1. Populate values from input
+        const countryName = this.countries.find(c => c.id === distinction.paisId)?.nombre || '';
+        this.selectedInstitutionRuc = distinction.rucInstitucion || '';
+
+        this.distinctionForm.patchValue({
+            institution: distinction.nombreInstitucion,
+            name: distinction.nombre,
+            description: distinction.descripcion,
+            country: countryName,
+            date: distinction.fechaReconocimiento,
+            url: distinction.enlaceReferencia
+        });
+
+        // 2. Fetch files asynchronously
         if (distinction.id) {
             this.fileService.listFilesMetadata(FileModule.INVESTIGATOR, 'DISPRE', '', distinction.id).subscribe({
                 next: (files: any[]) => {
@@ -239,23 +251,16 @@ export class DistinctionsComponent implements OnInit {
                         nombre: f.nombre || f.fileName || f.name || 'Archivo',
                         token: f.token
                     }));
-                    this.cdr.detectChanges();
+                    this.cdr.detectChanges(); // Detect after files loaded
                 },
-                error: (err) => console.error('Error loading file metadata', err)
+                error: (err) => {
+                    console.error('Error loading file metadata', err);
+                    this.cdr.detectChanges();
+                }
             });
         }
 
-        this.distinctionForm.patchValue({
-            institution: distinction.nombreInstitucion,
-            name: distinction.nombre,
-            description: distinction.descripcion,
-            country: countryName, // Ideally we change form to use ID
-            date: distinction.fechaReconocimiento,
-            url: distinction.enlaceReferencia
-        });
-
-        // Handle File
-        // ... (Existing logic)
+        this.cdr.detectChanges(); // Final detect for sync changes
     }
 
     removeExistingFile(index: number) {

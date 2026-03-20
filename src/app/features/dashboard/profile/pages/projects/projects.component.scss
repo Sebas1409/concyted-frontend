@@ -767,3 +767,58 @@
         }
     }
 }
+
+.input-with-icon-group {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+
+    .form-input, .form-select {
+        padding-right: 85px !important; // Aumentado para dar espacio a ambos iconos
+    }
+
+    ::ng-deep app-institution-select .form-input {
+        padding-right: 45px !important;
+    }
+
+    &.h-auto {
+        height: auto;
+    }
+}
+
+.input-badges {
+    position: absolute;
+    right: 8px; // El icono de Renacyt al extremo derecho
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 0;
+    align-items: center;
+    pointer-events: none;
+    z-index: 999;
+
+    app-qualification-badge {
+        transform: scale(0.9);
+        pointer-events: auto;
+        display: flex;
+        align-items: center;
+        width: 22px;
+        height: 22px;
+    }
+
+    &.badge-select-adjust {
+        top: calc(1.25rem + 22px);
+    }
+}
+
+/* Ajuste agresivo para que el icono de calendario se mueva a la derecha del padding */
+input[type="date"].form-input {
+    &::-webkit-calendar-picker-indicator {
+        margin-right: -52px !important; // Lo movemos hacia el área de padding para acercarlo al badge
+        position: relative;
+        z-index: 10;
+        cursor: pointer;
+        transform: scale(1.1);
+    }
+}

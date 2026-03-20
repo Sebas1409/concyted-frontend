@@ -145,9 +145,14 @@
                 <!-- Project Name -->
                 <div class="form-group">
                     <label>{{ nameLabel }} <span>*</span></label>
-                    <input type="text" formControlName="projectName" class="form-input"
-                        [class.is-invalid]="projectForm.get('projectName')?.invalid && projectForm.get('projectName')?.touched"
-                        placeholder="Ingresa el nombre oficial del proyecto...">
+                    <div class="input-with-icon-group">
+                        <input type="text" formControlName="projectName" class="form-input"
+                            [class.is-invalid]="projectForm.get('projectName')?.invalid && projectForm.get('projectName')?.touched"
+                            placeholder="Ingresa el nombre oficial del proyecto...">
+                        <div class="input-badges">
+                            <app-qualification-badge type="renacyt"></app-qualification-badge>
+                        </div>
+                    </div>
                     <span class="error-text"
                         *ngIf="projectForm.get('projectName')?.invalid && projectForm.get('projectName')?.touched">El
                         nombre es requerido</span>
@@ -201,8 +206,13 @@
                 <div class="form-row two-col">
                     <div class="form-group">
                         <label>Fecha de Inicio <span>*</span></label>
-                        <input type="date" formControlName="startDate" class="form-input"
-                            [class.is-invalid]="projectForm.get('startDate')?.invalid && projectForm.get('startDate')?.touched">
+                        <div class="input-with-icon-group">
+                            <input type="date" formControlName="startDate" class="form-input"
+                                [class.is-invalid]="projectForm.get('startDate')?.invalid && projectForm.get('startDate')?.touched">
+                            <div class="input-badges">
+                                <app-qualification-badge type="renacyt"></app-qualification-badge>
+                            </div>
+                        </div>
                         <div class="date-input-footer" *ngIf="projectForm.get('startDate')?.value">
                             {{ projectForm.get('startDate')?.value | dateDisplay }}
                         </div>
@@ -211,8 +221,13 @@
                     </div>
                     <div class="form-group">
                         <label>Fecha de fin <span>*</span></label>
-                        <input type="date" formControlName="endDate" class="form-input"
-                            [class.is-invalid]="projectForm.get('endDate')?.invalid && projectForm.get('endDate')?.touched">
+                        <div class="input-with-icon-group">
+                            <input type="date" formControlName="endDate" class="form-input"
+                                [class.is-invalid]="projectForm.get('endDate')?.invalid && projectForm.get('endDate')?.touched">
+                            <div class="input-badges">
+                                <app-qualification-badge type="renacyt"></app-qualification-badge>
+                            </div>
+                        </div>
                         <div class="date-input-footer" *ngIf="projectForm.get('endDate')?.value">
                             {{ projectForm.get('endDate')?.value | dateDisplay }}
                         </div>
@@ -225,22 +240,32 @@
                 <div class="form-row two-col">
                     <div class="form-group">
                         <label>Vinculación Académica / Empresarial <span>*</span></label>
-                        <select formControlName="academicContext" class="form-select"
-                            [class.is-invalid]="projectForm.get('academicContext')?.invalid && projectForm.get('academicContext')?.touched">
-                            <option value="" disabled selected>Seleccionar contexto...</option>
-                            <option *ngFor="let context of academicContexts" [value]="context.codigo">{{ context.nombre }}
-                            </option>
-                        </select>
+                        <div class="input-with-icon-group">
+                            <select formControlName="academicContext" class="form-select"
+                                [class.is-invalid]="projectForm.get('academicContext')?.invalid && projectForm.get('academicContext')?.touched">
+                                <option value="" disabled selected>Seleccionar contexto...</option>
+                                <option *ngFor="let context of academicContexts" [value]="context.codigo">{{ context.nombre }}
+                                </option>
+                            </select>
+                            <div class="input-badges">
+                                <app-qualification-badge type="renacyt"></app-qualification-badge>
+                            </div>
+                        </div>
                         <span class="error-text"
                             *ngIf="projectForm.get('academicContext')?.invalid && projectForm.get('academicContext')?.touched">Requerido</span>
                     </div>
                     <div class="form-group">
                         <label>Rol Desempeñado <span>*</span></label>
-                        <select formControlName="role" class="form-select"
-                            [class.is-invalid]="projectForm.get('role')?.invalid && projectForm.get('role')?.touched">
-                            <option value="" disabled selected>Seleccionar rol...</option>
-                            <option *ngFor="let role of projectRoles" [value]="role.codigo">{{ role.nombre }}</option>
-                        </select>
+                        <div class="input-with-icon-group">
+                            <select formControlName="role" class="form-select"
+                                [class.is-invalid]="projectForm.get('role')?.invalid && projectForm.get('role')?.touched">
+                                <option value="" disabled selected>Seleccionar rol...</option>
+                                <option *ngFor="let role of projectRoles" [value]="role.codigo">{{ role.nombre }}</option>
+                            </select>
+                            <div class="input-badges">
+                                <app-qualification-badge type="renacyt"></app-qualification-badge>
+                            </div>
+                        </div>
                         <span class="error-text"
                             *ngIf="projectForm.get('role')?.invalid && projectForm.get('role')?.touched">Requerido</span>
                     </div>
@@ -284,10 +309,15 @@
 
                 <!-- Main Institution & Collaborating Institution -->
                 <div class="form-row two-col">
-                    <app-institution-select [control]="$any(projectForm.get('mainInstitution'))"
-                        label="Institución Principal *" placeholder="Buscar institución principal..."
-                        (selectionChange)="onMainInstitutionSelect($event)">
-                    </app-institution-select>
+                    <div class="input-with-icon-group h-auto">
+                        <app-institution-select [control]="$any(projectForm.get('mainInstitution'))"
+                            label="Institución Principal *" placeholder="Buscar institución principal..."
+                            (selectionChange)="onMainInstitutionSelect($event)">
+                        </app-institution-select>
+                        <div class="input-badges badge-select-adjust">
+                            <app-qualification-badge type="renacyt"></app-qualification-badge>
+                        </div>
+                    </div>
 
                     <app-institution-select [control]="$any(projectForm.get('collaboratingInstitution'))"
                         label="Institución Colaboradora *" placeholder="Buscar institución colaboradora..."
@@ -299,12 +329,17 @@
                 <div class="form-row two-col">
                     <div class="form-group">
                         <label>Subvencionado Por (Financiadora) <span>*</span></label>
-                        <select formControlName="fundedBy" class="form-select"
-                            (change)="onFundingAgencyChange()"
-                            [class.is-invalid]="projectForm.get('fundedBy')?.invalid && projectForm.get('fundedBy')?.touched">
-                            <option value="" disabled selected>Buscar institución...</option>
-                            <option *ngFor="let agency of fundingAgencies" [value]="agency.codigo">{{ agency.nombre }}</option>
-                        </select>
+                        <div class="input-with-icon-group">
+                            <select formControlName="fundedBy" class="form-select"
+                                (change)="onFundingAgencyChange()"
+                                [class.is-invalid]="projectForm.get('fundedBy')?.invalid && projectForm.get('fundedBy')?.touched">
+                                <option value="" disabled selected>Buscar institución...</option>
+                                <option *ngFor="let agency of fundingAgencies" [value]="agency.codigo">{{ agency.nombre }}</option>
+                            </select>
+                            <div class="input-badges">
+                                <app-qualification-badge type="renacyt"></app-qualification-badge>
+                            </div>
+                        </div>
                         <span class="error-text"
                             *ngIf="projectForm.get('fundedBy')?.invalid && projectForm.get('fundedBy')?.touched">Requerido</span>
                     </div>

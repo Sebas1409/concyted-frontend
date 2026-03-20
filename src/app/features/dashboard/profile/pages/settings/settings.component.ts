@@ -7,6 +7,8 @@ import { AlertService } from '../../../../../core/services/alert.service';
 import { CustomValidators } from '../../../../../shared/utils/validators';
 import { PasswordStrengthDirective } from '../../../../../shared/directives/password-strength.directive';
 
+import { CvExportService } from '../../../../../core/services/cv-export.service';
+
 @Component({
     selector: 'app-settings',
     standalone: true,
@@ -28,42 +30,42 @@ export class SettingsComponent implements OnInit {
         identity: {
             all: true,
             options: [
-                { label: 'Datos Personales', checked: true },
-                { label: 'Datos Actuales', checked: true },
-                { label: 'Otros Identificadores', checked: true }
+                { key: 'datper', label: 'Datos Personales', checked: true },
+                { key: 'datact', label: 'Datos Actuales', checked: true },
+                { key: 'otride', label: 'Otros Identificadores', checked: true }
             ]
         },
         trajectory: {
             all: true,
             options: [
-                { label: 'Experiencia Laboral General', checked: true },
-                { label: 'Experiencia Docente', checked: true },
-                { label: 'Experiencia como Asesor de Tesis', checked: true },
-                { label: 'Experiencia como Evaluador de Proyectos', checked: true }
+                { key: 'explab', label: 'Experiencia Laboral General', checked: true },
+                { key: 'expdoc', label: 'Experiencia Docente', checked: true },
+                { key: 'expase', label: 'Experiencia como Asesor de Tesis', checked: true },
+                { key: 'expeva', label: 'Experiencia como Evaluador de Proyectos', checked: true }
             ]
         },
         formation: {
             all: true,
             options: [
-                { label: 'Formación Académica (Fuente SUNEDU)', checked: true },
-                { label: 'Formación Académica (Fuente Manual)', checked: true },
-                { label: 'Estudios Técnicos', checked: true },
-                { label: 'Estudios Académicos y/o Técnicos Superiores en curso', checked: true },
-                { label: 'Formación Complementaria', checked: true },
-                { label: 'Conocimiento de Idiomas', checked: true }
+                { key: 'forsun', label: 'Formación Académica (Fuente SUNEDU)', checked: true },
+                { key: 'forman', label: 'Formación Académica (Fuente Manual)', checked: true },
+                { key: 'esttec', label: 'Estudios Técnicos', checked: true },
+                { key: 'estcur', label: 'Estudios Académicos y/o Técnicos Superiores en curso', checked: true },
+                { key: 'forcom', label: 'Formación Complementaria', checked: true },
+                { key: 'conidi', label: 'Conocimiento de Idiomas', checked: true }
             ]
         },
         production: {
             all: true,
             options: [
-                { label: 'Línea de Investigación', checked: true },
-                { label: 'Proyectos', checked: true },
-                { label: 'Proyectos Importados de ORCID', checked: true },
-                { label: 'Derechos de Propiedad Intelectual', checked: true },
-                { label: 'Productos de Desarrollo Industrial', checked: true },
-                { label: 'Producción Científica (Importadas de Scopus, Web Of Science,etc)', checked: true },
-                { label: 'Otras Producciones (Ingreso Manual)', checked: true },
-                { label: 'Distinciones y Premios', checked: true }
+                { key: 'lininv', label: 'Línea de Investigación', checked: true },
+                { key: 'proyec', label: 'Proyectos', checked: true },
+                { key: 'proorc', label: 'Proyectos Importados de ORCID', checked: true },
+                { key: 'derint', label: 'Derechos de Propiedad Intelectual', checked: true },
+                { key: 'prodin', label: 'Productos de Desarrollo Industrial', checked: true },
+                { key: 'prosci', label: 'Producción Científica (Importadas de Scopus, Web Of Science,etc)', checked: true },
+                { key: 'otrpro', label: 'Otras Producciones (Ingreso Manual)', checked: true },
+                { key: 'distpr', label: 'Distinciones y Premios', checked: true }
             ]
         }
     };
@@ -76,6 +78,7 @@ export class SettingsComponent implements OnInit {
         private authService: AuthService,
         private recaptchaService: RecaptchaService,
         private alertService: AlertService,
+        private cvExportService: CvExportService,
         private cdr: ChangeDetectorRef
     ) {
         this.passwordForm = this.fb.group({
@@ -233,7 +236,36 @@ export class SettingsComponent implements OnInit {
     }
 
     exportPdf() {
-        console.log('Exporting PDF with selected options:', this.exportSections);
-        // Mock export logic
+        const currentUser = this.authService.getCurrentUser();
+        if (!currentUser?.id) {
+            this.alertService.error('Error', 'No se pudo identificar al usuario.');
+            return;
+        }
+
+        const payload: any = { investigadorId: currentUser.id };
+        
+        // Mapear todas las opciones seleccionadas al payload
+        Object.values(this.exportSections).forEach(section => {
+            section.options.forEach(opt => {
+                payload[opt.key] = opt.checked;
+            });
+        });
+
+        this.alertService.loading('Generando CV', 'Obteniendo datos del servidor...');
+        this.cvExportService.getExportData(payload).subscribe({
+            next: (data) => {
+                this.alertService.loading('Generando PDF', 'Preparando documento...');
+                this.cvExportService.generateCvFromBackendData(data, currentUser).then(() => {
+                    this.alertService.success('Éxito', 'CV exportado correctamente.');
+                }).catch(err => {
+                    console.error('Error al generar PDF:', err);
+                    this.alertService.error('Error', 'No se pudo generar el archivo PDF.');
+                });
+            },
+            error: (err) => {
+                console.error('Error al obtener datos de exportación:', err);
+                this.alertService.error('Error', 'No se pudo obtener la información para exportar.');
+            }
+        });
     }
 }

@@ -1,26 +1,27 @@
 export const environment = {
     production: true,
     apiUrl: 'http://176.52.137.31:8080/cti-auth-service/api',
-    userServiceUrl: 'http://176.52.137.31:8080/cti-user-service/api',
-    managementServiceUrl: 'http://176.52.137.31:8080/cti-management-service/api',
-    catalogServiceUrl: 'http://176.52.137.31:8080/cti-catalog-service/api',
-    fileServiceUrl: 'http://176.52.137.31:8080/cti-file-service/api',
-    reniecApiUrl: 'http://176.52.137.31:8080/cti-interop-service/public/api/reniec/validar',
-    reniecPrivateApiUrl: 'http://176.52.137.31:8080/cti-interop-service/api/reniec/validar',
-    suneduApiUrl: 'http://176.52.137.31:8080/cti-interop-service/api/sunedu/grados-titulos',
+    userServiceUrl: '/cti-user-service/api',
+    managementServiceUrl: '/cti-management-service/api',
+    catalogServiceUrl: '/cti-catalog-service/api',
+    fileServiceUrl: '/cti-file-service/api',
+    reniecApiUrl: '/cti-interop-service/public/api/reniec/validar',
+    reniecPrivateApiUrl: '/cti-interop-service/api/reniec/validar',
+    suneduApiUrl: '/cti-interop-service/api/sunedu/grados-titulos',
     interopServiceUrl: 'http://176.52.137.31:8080/cti-interop-service/api',
-    catalogPublicServiceUrl: 'http://176.52.137.31:8080/cti-catalog-service/public/api',
-    landingPublicUrl: 'http://176.52.137.31:8080/cti-management-service/public/api',
+    catalogPublicServiceUrl: '/cti-catalog-service/public/api',
+    landingPublicUrl: '/cti-management-service/public/api',
     baseHref: '/ctivitae/', // En producción, con contexto ctivitae
     recaptchaKey: '6LdoGmgsAAAAAP18jOTutHjDI0FflD90lhV_lA0K',
 
     // External Providers Configuration
     externalProviders: {
         orcid: {
-            clientId: 'APP-GPZ2EDGR6EBFFZRS',
-            redirectUri: 'http://176.52.137.31/ctivitae/auth/orcid-callback',
             apiUrl: 'https://pub.orcid.org/v3.0',
-            authUrl: 'https://orcid.org/oauth/authorize'
+            redirectFix: {
+                search: '176.52.137.31',
+                replaceWith: '176.52.137.31:8080'
+            }
         },
         scopus: {
             apiKey: 'YOUR_SCOPUS_API_KEY',

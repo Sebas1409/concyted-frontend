@@ -10,8 +10,10 @@ import { CommonModule } from '@angular/common';
 })
 export class QualificationBadgeComponent {
     @Input() type: 'renacyt' | 'vinculate' = 'renacyt';
+    @Input() customTooltip: string = '';
 
     get tooltipText(): string {
+        if (this.customTooltip) return this.customTooltip;
         return this.type === 'renacyt'
             ? 'Considerado para calificación en Renacyt'
             : 'Considerado para calificación en Vinculate';

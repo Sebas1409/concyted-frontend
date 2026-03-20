@@ -1,4 +1,5 @@
 import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
+import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActionButtonsComponent } from '../../../../../shared/components/action-buttons/action-buttons.component';
@@ -15,7 +16,7 @@ import { AlertService } from '../../../../../core/services/alert.service';
 import { EducationService } from '../../../../../core/services/education.service';
 import { FileModule, FileType } from '../../../../../core/constants/file-upload.constants';
 import { forkJoin, Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { DateDisplayPipe } from '../../../../../shared/pipes/date-display.pipe';
 
 interface EducationEntry {
@@ -392,12 +393,15 @@ export class EducationComponent implements OnInit {
         if (this.isEditingSunedu) {
             this.educationForm.get('startDate')?.clearValidators();
             this.educationForm.get('endDate')?.clearValidators();
+            this.educationForm.get('institutionId')?.clearValidators();
         } else {
             this.educationForm.get('startDate')?.setValidators([Validators.required]);
             this.educationForm.get('endDate')?.setValidators([Validators.required]);
+            this.educationForm.get('institutionId')?.setValidators([Validators.required]);
         }
         this.educationForm.get('startDate')?.updateValueAndValidity();
         this.educationForm.get('endDate')?.updateValueAndValidity();
+        this.educationForm.get('institutionId')?.updateValueAndValidity();
 
         this.educationForm.patchValue({
             academicLevelId: raw.nivelAcademicoId || item.degreeType,
@@ -901,7 +905,7 @@ export class EducationComponent implements OnInit {
     // --- Sunedu Import (Mock for now, or use service if available) ---
     openImportModal() {
         if (!this.dni) {
-            this.alertService.warning('Advertencia', 'No se encontró el DNI del investigador.');
+            this.alertService.error('Error', 'No se encontró el DNI del usuario para realizar la búsqueda.');
             return;
         }
 
@@ -932,7 +936,7 @@ export class EducationComponent implements OnInit {
             error: (err) => {
                 this.alertService.close();
                 console.error('Error fetching SUNEDU degrees', err);
-                this.alertService.error('Error', 'No se pudo conectar con el servicio de SUNEDU.');
+                this.alertService.error('Error', 'El servicio de SUNEDU no está disponible');
             }
         });
     }
@@ -975,58 +979,96 @@ export class EducationComponent implements OnInit {
 
         this.alertService.confirm('Confirmación', `¿Desea importar los ${selected.length} registros seleccionados?`).then(confirmed => {
             if (confirmed) {
-                this.alertService.loading('Importando', 'Validando instituciones...');
-
-                // Get unique university names to resolve IDs
-                const uniNames = [...new Set(selected.map(x => x.institution))];
-                const searchRequests = uniNames.map(name =>
-                    this.catalogService.searchMasterDetails('UNIVER', name).pipe(
-                        map(results => {
-                            // Try to find exact match or first result
-                            const match = results.find(r => r.nombre.toLowerCase() === name.toLowerCase()) || results[0];
-                            return { name, id: match ? match.codigo : '' };
-                        })
-                    )
-                );
-
-                forkJoin(searchRequests).subscribe({
-                    next: (resolutions) => {
-                        const nameToIdMap = new Map(resolutions.map(r => [r.name, r.id]));
-
-                        const payload = selected.map(item => ({
-                            active: true,
-                            facultad: '',
-                            fechaFin: item.endDate,
-                            fechaInicio: item.startDate || item.endDate,
-                            institucionId: nameToIdMap.get(item.institution) || '',
-                            investigadorId: Number(currentUser.id),
-                            nivelAcademicoId: this.resolveAcademicLevel(item),
-                            nombreTituloGrado: item.degree,
-                            paisId: Number(item.paisId) || 179,
-                            sunedu: true,
-                            tokens: [] as string[]
-                        }));
-
-                        this.alertService.loading('Importando', 'Guardando registros seleccionados...');
-                        this.educationService.createAcademicAll(payload).subscribe({
-                            next: (res) => {
-                                this.alertService.success('Éxito', `Se importaron ${res.success} registros correctamente.`);
-                                this.loadEducation(currentUser.id);
-                                this.closeImportModal();
-                            },
-                            error: (err) => {
-                                this.alertService.close();
-                                console.error('Error importing records', err);
-                                this.alertService.error('Error', 'Ocurrió un error al importar los registros.');
-                            }
-                        });
-                    },
-                    error: (err) => {
-                        this.alertService.close();
-                        console.error('Error resolving institutions', err);
-                        this.alertService.error('Error', 'No se pudieron validar las instituciones.');
-                    }
+                // PRIMERO: Validamos duplicados LOCALMENTE antes de mostrar cualquier cargador
+                const existingRecords = this.educationList;
+                const toImport = selected.filter(item => {
+                    const exists = existingRecords.some(existing => 
+                        existing.isSunedu && 
+                        existing.institution.toLowerCase().trim() === item.institution.toLowerCase().trim() &&
+                        existing.titleName.toLowerCase().trim() === item.degree.toLowerCase().trim()
+                    );
+                    return !exists;
                 });
+
+                const skippedCount = selected.length - toImport.length;
+
+                // Caso 1: Todo está duplicado
+                if (toImport.length === 0) {
+                    this.alertService.info('Información', 'Los registros seleccionados ya se encuentran registrados en su Formación Académica.')
+                        .then(() => {
+                            this.closeImportModal();
+                        });
+                    return;
+                }
+
+                // Caso 2: Hay una mezcla (algunos nuevos, algunos duplicados)
+                if (skippedCount > 0) {
+                    const msg = `Se encontraron ${skippedCount} registros ya registrados y ${toImport.length} nuevos registros por registrar. ¿Está seguro de continuar?`;
+                    this.alertService.confirm('Confirmación de Importación', msg).then(confirmImport => {
+                        if (confirmImport) {
+                            this.executeImport(toImport, currentUser.id, skippedCount);
+                        }
+                    });
+                } else {
+                    // Caso 3: Todo es nuevo
+                    this.executeImport(toImport, currentUser.id, 0);
+                }
+            }
+        });
+    }
+
+    private executeImport(toImport: any[], userId: number, skippedCount: number) {
+        const payload = toImport.map(item => ({
+            active: true,
+            facultad: '',
+            fechaFin: item.endDate,
+            fechaInicio: item.startDate || item.endDate,
+            institucionId: null, // No realizamos búsqueda en el catálogo según lo solicitado
+            nombreInstitucion: item.institution, // Campo estándar en el POST
+            institucionNombre: item.institution, // Campo como llega en el GET
+            investigadorId: userId,
+            nivelAcademicoId: this.resolveAcademicLevel(item),
+            nombreTituloGrado: item.degree,
+            paisId: Number(item.paisId) || 179,
+            sunedu: true,
+            tokens: [] as string[]
+        }));
+
+        // Solo mostramos el cargador de guardado si hay más de un registro
+        if (payload.length > 1) {
+            this.alertService.loading('Importando', 'Guardando registros seleccionados...');
+        }
+
+        this.educationService.createAcademicAll(payload).subscribe({
+            next: (res) => {
+                Swal.close();
+                this.loadEducation(userId);
+                this.closeImportModal();
+
+                const importedCount = res.success || payload.length;
+                if (skippedCount > 0) {
+                    Swal.fire({
+                        title: 'Éxito',
+                        text: `Se importaron ${importedCount} nuevos registros. (${skippedCount} ya existían y fueron omitidos).`,
+                        icon: 'success',
+                        confirmButtonColor: '#005470',
+                        confirmButtonText: 'Aceptar'
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Éxito',
+                        text: toImport.length === 1 
+                            ? 'El registro se importó correctamente.'
+                            : `Se importaron ${importedCount} registros correctamente.`,
+                        icon: 'success',
+                        confirmButtonColor: '#005470',
+                        confirmButtonText: 'Aceptar'
+                    });
+                }
+            },
+            error: (err) => {
+                this.alertService.close();
+                this.alertService.error('Error', 'Ocurrió un error al importar los registros.');
             }
         });
     }

@@ -34,7 +34,17 @@ export class LoginComponent implements OnInit {
             }
 
             if (params['code']) {
-                this.handleOrcidCallback(params['code']);
+                // Si la ventana fue abierta por otra (popup), enviamos el código y cerramos.
+                if (window.opener && window.opener !== window) {
+                    window.opener.postMessage({
+                        type: 'ORCID_CALLBACK',
+                        code: params['code'],
+                        state: params['state']
+                    }, window.location.origin);
+                    window.close();
+                } else {
+                    this.handleOrcidCallback(params['code'], params['state']);
+                }
             }
         });
     }
@@ -143,48 +153,70 @@ export class LoginComponent implements OnInit {
     }
 
     onOrcidLogin() {
-        this.orcidService.loginWithOrcid();
+        this.orcidService.loginWithOrcid(true);
+
+        const listener = (event: MessageEvent) => {
+            if (event.origin !== window.location.origin) return;
+
+            if (event.data?.type === 'ORCID_CALLBACK') {
+                const { code, state } = event.data;
+                this.handleOrcidCallback(code, state);
+                window.removeEventListener('message', listener);
+            }
+        };
+
+        window.addEventListener('message', listener);
     }
 
-    private handleOrcidCallback(code: string) {
+    private handleOrcidCallback(code: string, state: string) {
         this.isLoading = true;
         this.loginError = null;
         console.log('--- Iniciando procesamiento de callback ORCID ---');
         console.log('Código de autorización:', code);
+        console.log('Estado:', state);
 
-        // En un escenario real, aquí se llamaría al backend para intercambiar el código.
-        // Simulamos el ID obtenido del token que devolvería el backend:
-        const researcherOrcidId = '0009-0004-1341-9270'; 
+        this.orcidService.login(code, state).subscribe({
+            next: (response: any) => {
+                console.log('ORCID login response:', response);
 
-        console.log('Obteniendo perfil público para ORCID:', researcherOrcidId);
+                // Si el backend devuelve access_token pero processLoginResponse espera accessToken, lo mapeamos
+                const mappedResponse = {
+                    ...response,
+                    accessToken: response.accessToken || response.access_token,
+                    refreshToken: response.refreshToken || response.refresh_token
+                };
 
-        this.orcidService.getPublicProfile(researcherOrcidId).subscribe({
-            next: (profileData) => {
-                console.log('Datos de perfil recibidos:', profileData);
-
-                // Mapeamos los datos de ORCID al modelo AuthResponse que usa la app
-                const authUser = this.orcidService.mapOrcidToAuthResponse(profileData);
-                
-                // 1. Primero generamos y guardamos el token
-                const simulatedToken = this.orcidService.generateSimulatedToken(authUser.roles || []);
-                localStorage.setItem('accessToken', simulatedToken);
-                console.log('Token de sesión guardado');
-                
-                // 2. Luego establecemos el usuario (esto activará los timers de sesión)
-                this.authService.setCurrentUser(authUser);
-                console.log('Usuario establecido en la sesión:', authUser.nombres);
-
-                setTimeout(() => {
-                    console.log('Redirigiendo al dashboard...');
+                if (mappedResponse.accessToken) {
+                    this.authService.processLoginResponse(mappedResponse).subscribe({
+                        next: (success) => {
+                            if (success) {
+                                console.log('ORCID login successful, redirecting...');
+                                this.isLoading = false;
+                                this.router.navigate(['/app/profile']);
+                                this.cdr.detectChanges();
+                            } else {
+                                this.loginError = 'Error al obtener información del usuario desde ORCID.';
+                                this.isLoading = false;
+                                this.cdr.detectChanges();
+                            }
+                        },
+                        error: (err) => {
+                            console.error('Error detail processing ORCID login:', err);
+                            this.loginError = 'Error procesando inicio de sesión de ORCID.';
+                            this.isLoading = false;
+                            this.cdr.detectChanges();
+                        }
+                    });
+                } else {
+                    this.loginError = 'No se recibió un token de acceso válido de ORCID.';
                     this.isLoading = false;
-                    this.router.navigate(['/app/profile']);
                     this.cdr.detectChanges();
-                }, 1500);
+                }
             },
             error: (err) => {
                 console.error('Error crítico al procesar ORCID:', err);
                 this.isLoading = false;
-                this.loginError = 'No se pudo obtener la información de su perfil ORCID. Verifique su conexión.';
+                this.loginError = err.error?.message || 'No se pudo completar el inicio de sesión con ORCID.';
                 this.cdr.detectChanges();
             }
         });

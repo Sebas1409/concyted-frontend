@@ -5,6 +5,7 @@ import { CatalogService } from '../../../core/services/catalog.service';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, finalize, switchMap, tap } from 'rxjs/operators';
 
+
 @Component({
     selector: 'app-institution-select',
     standalone: true,

@@ -1,8 +1,10 @@
-import { Injectable, Injector } from '@angular/core';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, forkJoin, of, throwError, firstValueFrom } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { forkJoin, of, throwError, firstValueFrom } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
 
 // Services
 import { EducationService } from './education.service';
@@ -39,6 +41,7 @@ export class CvExportService {
     private genders: any[] = [];
 
     constructor(
+        private http: HttpClient,
         private educationService: EducationService,
         private workExperienceService: WorkExperienceService,
         private languageService: LanguageService,
@@ -47,6 +50,13 @@ export class CvExportService {
         private catalogService: CatalogService,
         private ubigeoService: UbigeoService
     ) { }
+
+    /**
+     * Obtiene los datos del CV desde el backend segun las secciones seleccionadas.
+     */
+    getExportData(payload: any): Observable<any> {
+        return this.http.post(`${environment.userServiceUrl}/curriculum-vitae/exportar`, payload);
+    }
 
     /**
      * Facade method to fetch all data and generate PDF.
@@ -95,6 +105,125 @@ export class CvExportService {
             console.error('Error handling Full CV generation', error);
             throw error;
         }
+    }
+
+    /**
+     * Genera el PDF utilizando los datos devueltos por la API de exportación.
+     */
+    async generateCvFromBackendData(apiData: any, userData: any): Promise<void> {
+        try {
+            // 1. Mapear los datos de la API al formato que usa el exportador
+            const exportData = this.mapBackendToExportData(apiData, userData);
+
+            // 2. Ejecutar la exportación PDF existente
+            await this.exportCV(exportData);
+        } catch (error) {
+            console.error('Error en generateCvFromBackendData', error);
+            throw error;
+        }
+    }
+
+    private mapBackendToExportData(data: any, user: any): ExportData {
+        const researcher = {
+            name: `${data.nombres || user.nombres || ''} ${data.apellidoPaterno || user.apellidoPaterno || ''} ${data.apellidoMaterno || user.apellidoMaterno || ''}`.trim().toUpperCase(),
+            bio: user.resumenEjecutivo || 'Sin resumen profesional registrado.',
+            renacytCode: user.codigoUnico || '---',
+            scopusId: data.otride?.scopusAuthorId || user.scopusAuthorId || '---',
+            orcidId: data.otride?.orcid || user.orcid || '---',
+            lastUpdate: user.fechaActualizacion ? new Date(user.fechaActualizacion).toLocaleDateString() : '---'
+        };
+
+        const generalData = {
+            gender: data.datper?.sexo || user.sexo || '---',
+            nationality: data.datper?.paisNacimiento || user.nacionalidad || '---',
+            email: data.email || user.email || '---',
+            phone: data.telefono || user.celular || '---',
+            residence: data.datact ? `${data.datact.paisResidencia} - ${data.datact.departamento}` : '---'
+        };
+
+        // Academic
+        const sunedu = (data.forsun || []).map((item: any) => ({
+            institution: item.institucionNombre,
+            degree: item.gradoAcademico,
+            title: item.titulo,
+            endDate: item.fechaFin,
+            source: 'SUNEDU'
+        }));
+        const manual = (data.forman || []).map((item: any) => ({
+            institution: item.institucionNombre,
+            degree: item.gradoAcademico,
+            title: item.titulo,
+            endDate: item.fechaFin,
+            source: 'MANUAL'
+        }));
+        const academicFormation = [...sunedu, ...manual];
+
+        const technicalFormation = (data.esttec || []).map((item: any) => ({
+            institution: item.institucionNombre,
+            career: item.carreraTecnica,
+            startDate: item.fechaInicio,
+            endDate: item.fechaFin
+        }));
+
+        const workExperience = (data.explab || []).map((item: any) => ({
+            institution: item.nombreInstitucion,
+            position: item.cargo,
+            description: item.descripcionCargo,
+            startDate: item.fechaInicio,
+            endDate: item.actualmenteTrabaja ? 'Actualidad' : item.fechaFin
+        }));
+
+        const docenteExperience = (data.expdoc || []).map((item: any) => ({
+            institution: item.nombreInstitucion,
+            type: item.tipoInstitucion,
+            docenteType: item.tipoDocente,
+            description: item.descripcionCargo || '---',
+            startDate: item.fechaInicio,
+            endDate: item.actualmenteDicta ? 'Actualidad' : item.fechaFin
+        }));
+
+        const projects = (data.proyec || []).map((item: any) => ({
+            title: item.nombreProyecto,
+            type: item.tipoProyecto,
+            role: item.rolDesempenado,
+            amount: item.montoFinanciado,
+            status: '---'
+        }));
+
+        const languages = (data.conidi || []).map((item: any) => ({
+            language: item.idioma,
+            level: item.conversacion,
+            reading: item.lectura,
+            writing: item.escritura,
+            speaking: item.conversacion
+        }));
+
+        const thesisAdvisory = (data.expase || []).map((item: any) => ({
+            student: item.tesistas,
+            thesis: item.titulo,
+            university: item.institucion,
+            year: item.fechaAceptacion ? new Date(item.fechaAceptacion).getFullYear() : '---'
+        }));
+
+        const scientificProduction = [
+            ...(data.prosci || []).map((p: any) => ({ title: p.titulo, type: p.tipoProduccion, year: p.anio })),
+            ...(data.derint || []).map((p: any) => ({ title: p.tituloPropiedadIntelectual, type: p.tipoPi, year: '---' })),
+            ...(data.distpr || []).map((p: any) => ({ title: p.distincion, type: 'Distinción', year: p.fecha ? new Date(p.fecha).getFullYear() : '---' }))
+        ];
+
+        return {
+            researcher,
+            generalData,
+            academicFormation,
+            technicalFormation,
+            workExperience,
+            docenteExperience,
+            ctiManagementExperience: [],
+            projects,
+            scientificProduction,
+            languages,
+            thesisAdvisory
+        };
     }
 
     private fetchAllSections(invId: number) {

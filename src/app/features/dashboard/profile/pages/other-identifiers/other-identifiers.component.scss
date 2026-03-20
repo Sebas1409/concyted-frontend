@@ -76,6 +76,33 @@
     }
 }
 
+.input-with-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .form-input {
+        padding-right: 48px; /* Espacio para el icono */
+    }
+
+    .input-badge {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s ease;
+
+        &:hover {
+            transform: translateY(-50%) scale(1.1);
+        }
+    }
+}
+
 .field-hint {
     margin-top: 0.35rem;
     font-size: 0.75rem;

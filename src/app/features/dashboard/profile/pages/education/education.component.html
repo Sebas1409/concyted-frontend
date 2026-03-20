@@ -298,9 +298,21 @@
 
         <!-- Row 2: Institucion -->
         <div class="form-group">
-            <app-institution-select [control]="$any(educationForm.get('institution'))" label="Institución Educativa *"
-                placeholder="Buscar institución..." (selectionChange)="selectEducationInstitution($event)">
+            <app-institution-select *ngIf="!isEditingSunedu"
+                [control]="$any(educationForm.get('institution'))" 
+                label="Institución Educativa *"
+                placeholder="Buscar institución..." 
+                (selectionChange)="selectEducationInstitution($event)">
             </app-institution-select>
+
+            <ng-container *ngIf="isEditingSunedu">
+                <label>Institución Educativa</label>
+                <input type="text" 
+                    formControlName="institution" 
+                    class="form-input" 
+                    readonly 
+                    style="background-color: #f3f4f6; cursor: not-allowed;">
+            </ng-container>
         </div>
 
         <!-- Row 3: Titulo -->

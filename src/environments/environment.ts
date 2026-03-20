@@ -17,10 +17,11 @@ export const environment = {
     // External Providers Configuration
     externalProviders: {
         orcid: {
-            clientId: 'APP-GPZ2EDGR6EBFFZRS',
-            redirectUri: 'http://127.0.0.1:4200/auth/orcid-callback',
             apiUrl: 'https://pub.orcid.org/v3.0',
-            authUrl: 'https://orcid.org/oauth/authorize'
+            redirectFix: {
+                search: '176.52.137.31',
+                replaceWith: '176.52.137.31:8080'
+            }
         },
         scopus: {
             apiKey: 'YOUR_SCOPUS_API_KEY',

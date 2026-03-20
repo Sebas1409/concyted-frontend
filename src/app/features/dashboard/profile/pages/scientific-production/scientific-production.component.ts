@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { ActionButtonsComponent } from '../../../../../shared/components/action-buttons/action-buttons.component';
 import { IntroCardComponent } from '../../../../../shared/components/intro-card/intro-card.component';
 import { FileUploaderComponent } from '../../../../../shared/components/file-uploader/file-uploader.component';
+import { FileViewerModalComponent, ViewerFile } from '../../../../../shared/components/file-viewer-modal/file-viewer-modal.component';
 import { CatalogService, CatalogItem } from '../../../../../core/services/catalog.service';
 import { UbigeoService } from '../../../../../core/services/ubigeo.service';
 import { AuthService } from '../../../../../core/services/auth.service';
@@ -14,19 +15,24 @@ import { AlertService } from '../../../../../core/services/alert.service';
 import { FileService } from '../../../../../core/services/file.service';
 import { FileModule, FileCategory, FileSection } from '../../../../../core/constants/file-upload.constants';
 import { forkJoin, of, Observable } from 'rxjs';
+import { QualificationBadgeComponent } from '../../../../../shared/components/qualification-badge/qualification-badge.component';
 
 interface Author {
-    id: number;
+    id: number | null;
     paternalSurname: string;
     maternalSurname: string;
     names: string;
     email: string;
+    tipoRegistro?: string;
+    _tempId?: number; // Temporary local ID for tracking
 }
+
+import { DateDisplayPipe } from '../../../../../shared/pipes/date-display.pipe';
 
 @Component({
     selector: 'app-scientific-production',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, FormsModule, ActionButtonsComponent, IntroCardComponent, FileUploaderComponent],
+    imports: [CommonModule, ReactiveFormsModule, FormsModule, ActionButtonsComponent, IntroCardComponent, FileUploaderComponent, FileViewerModalComponent, DateDisplayPipe, QualificationBadgeComponent],
     templateUrl: './scientific-production.component.html',
     styleUrls: ['./scientific-production.component.scss']
 })
@@ -86,6 +92,8 @@ export class ScientificProductionComponent implements OnInit {
     authorshipOrderOptions: CatalogItem[] = [];
     functionOptions: CatalogItem[] = [];
     identificationTypeOptions: CatalogItem[] = [];
+    citationTypeOptions: CatalogItem[] = [];
+    congressTypeOptions: CatalogItem[] = [];
 
     // Add Other Production Modal State
     showAddOtherModal = false;
@@ -99,7 +107,17 @@ export class ScientificProductionComponent implements OnInit {
     showAuthorsModal = false;
     authorsForm: FormGroup;
     authorsList: Author[] = [];
-    currentUserFullName = '';
+    selectedAuthorType: 'ORAU01' | 'ORAU02' = 'ORAU01';
+
+    // File Viewer
+    showFileViewer = false;
+    viewerFiles: ViewerFile[] = [];
+
+    get currentUserFullName(): string {
+        const user = this.authService.getCurrentUser();
+        if (!user) return 'Cargando...';
+        return `${user.nombres} ${user.apellidoPaterno} ${user.apellidoMaterno}`.trim();
+    }
 
     constructor(
         private fb: FormBuilder,
@@ -140,24 +158,26 @@ export class ScientificProductionComponent implements OnInit {
 
         this.otherProductionForm = this.fb.group({
             indexedIn: [''],
-            category: ['', Validators.required],
+            category: ['Otro', Validators.required],
             workType: ['', Validators.required],
             country: [''],
             title: ['', Validators.required],
             subtitle: [''],
             summary: [''],
             date: ['', Validators.required],
-            endDate: [''],
-            institution: [''],
             journal: [''],
             doi: [''],
             volume: [''],
             issue: [''],
             pageRange: [''],
             url: [''],
-            editorial: [''],
             mainAuthor: [''],
-            authorshipOrder: ['']
+            authorshipOrder: [''],
+            function: [''],
+            identificationType: [''],
+            identification: [''],
+            citationType: [''],
+            citation: ['']
         });
 
         // Auto-populate Main Author for Other Production
@@ -167,7 +187,7 @@ export class ScientificProductionComponent implements OnInit {
 
         this.congressForm = this.fb.group({
             congressType: ['Nacional', Validators.required],
-            country: ['', Validators.required],
+            country: [''],
             presentationDate: ['', Validators.required],
             title: ['', Validators.required],
             subtitle: [''],
@@ -175,8 +195,12 @@ export class ScientificProductionComponent implements OnInit {
             presentationType: ['', Validators.required],
             doi: [''],
             url: [''],
+            authorshipOrder: [''],
+            function: [''],
             mainAuthor: [''],
-            authorshipOrder: ['']
+            category: ['', Validators.required],
+            identificationType: [''],
+            identification: ['']
         });
 
         // Auto-populate Main Author for Congress
@@ -195,16 +219,9 @@ export class ScientificProductionComponent implements OnInit {
     ngOnInit() {
         this.loadCatalogs();
         this.updateUserDni();
-        this.setCurrentUserFullName();
         this.loadProductions();
     }
 
-    setCurrentUserFullName() {
-        const user = this.authService.getCurrentUser();
-        if (user) {
-            this.currentUserFullName = `${user.nombres} ${user.apellidoPaterno} ${user.apellidoMaterno}`;
-        }
-    }
 
     private updateUserDni() {
         const user = this.authService.getCurrentUser();
@@ -304,145 +321,144 @@ export class ScientificProductionComponent implements OnInit {
         this.catalogService.getMasterDetailsByCode('TIPIDE').subscribe(data => {
             this.identificationTypeOptions = data;
         });
-    }
 
-    savePublication() {
-        if (this.publicationForm.invalid || this.hasUploadError) {
-            this.publicationForm.markAllAsTouched();
-            return;
-        }
+        // Tipo Cita: TIPCIT
+        this.catalogService.getMasterDetailsByCode('TIPCIT').subscribe(data => {
+            this.citationTypeOptions = data;
+        });
 
-        const user = this.authService.getCurrentUser();
-        const formValues = this.publicationForm.getRawValue();
-
-        const payload = {
-            investigadorId: user?.id || 0,
-            fuente: 'MANUAL',
-            externalId: `MANUAL-${Date.now()}`,
-            fechaImportacion: new Date().toISOString(),
-            metadataImportacion: JSON.stringify({ origen: 'MANUAL', version: '1.0' }),
-            categoriaTrabajo: formValues.category,
-            tipoObra: formValues.workType,
-            funcion: formValues.function,
-            ordenAutoriaCodigo: formValues.authorshipOrder,
-            indexadoEn: formValues.indexedIn,
-            tipoIdentificacion: formValues.identificationType,
-            paisId: parseInt(formValues.country) || 0,
-            descripcion: formValues.description,
-            autorPrincipal: formValues.mainAuthor,
-            titulo: formValues.title,
-            subTitulo: formValues.subtitle,
-            revista: formValues.journal,
-            identificacion: formValues.doi,
-            volumen: formValues.volume,
-            fasciculo: formValues.issue,
-            rangoPaginas: formValues.pageRange,
-            editorial: formValues.publisher,
-            doi: formValues.doi,
-            url: formValues.url,
-            fechaPublicacion: formValues.date,
-            active: true,
-            autores: this.authorsList.map(a => ({
-                id: 0,
-                nombres: a.names,
-                apellidoPaterno: a.paternalSurname,
-                apellidoMaterno: a.maternalSurname,
-                correoContacto: a.email,
-                active: true,
-                tipoRegistro: 'MANUAL'
-            }))
-        };
-
-        this.alertService.loading('Guardando', 'Procesando archivos y registro...');
-
-        forkJoin({
-            archivos: this.uploadFilesCombined(this.publicationFiles, FileSection.PROC01),
-            sustento: this.uploadFilesCombined(this.publicationSustentoFiles, FileSection.PROC02)
-        }).subscribe({
-            next: (tokens) => {
-                const payloadWithFiles = {
-                    ...payload,
-                    archivoTokens: tokens.archivos,
-                    sustentoTokens: tokens.sustento
-                };
-
-                const saveObservable = this.currentProductionId
-                    ? this.spService.updatePublication(this.currentProductionId, payloadWithFiles)
-                    : this.spService.createPublication(payloadWithFiles);
-
-                saveObservable.subscribe({
-                    next: (res) => {
-                        this.alertService.success('Éxito', this.currentProductionId ? 'La publicación ha sido actualizada.' : 'La publicación ha sido registrada correctamente.');
-                        this.closeAddModal();
-                        this.loadProductions();
-                    },
-                    error: (err) => {
-                        console.error('Error saving publication:', err);
-                        this.alertService.error('Error', 'No se pudo guardar la publicación.');
-                    }
-                });
-            },
-            error: (err) => {
-                console.error('Error uploading publication files:', err);
-                this.alertService.error('Error', 'No se pudieron subir los archivos.');
-            }
+        // Tipo Congreso: TIPCON
+        this.catalogService.getMasterDetailsByCode('TIPCON').subscribe(data => {
+            this.congressTypeOptions = data;
         });
     }
 
+    savePublication() {
+        this.saveManualProduction('publication');
+    }
+
     saveOtherProduction() {
-        if (this.otherProductionForm.invalid || this.hasUploadError) {
-            this.otherProductionForm.markAllAsTouched();
+        this.saveManualProduction('other');
+    }
+
+    saveCongress() {
+        this.saveManualProduction('congress');
+    }
+
+    private saveManualProduction(type: 'publication' | 'other' | 'congress') {
+        let form: FormGroup;
+        let files: File[] = [];
+        let sustentoFiles: File[] = [];
+        let closeFn: () => void;
+        let prefix: string;
+
+        if (type === 'publication') {
+            form = this.publicationForm;
+            files = this.publicationFiles;
+            sustentoFiles = this.publicationSustentoFiles;
+            closeFn = () => this.closeAddModal();
+            prefix = 'PUB';
+        } else if (type === 'other') {
+            form = this.otherProductionForm;
+            files = this.otherFiles;
+            sustentoFiles = this.otherSustentoFiles;
+            closeFn = () => this.closeAddOtherModal();
+            prefix = 'OTHER';
+        } else {
+            form = this.congressForm;
+            files = this.congressFiles;
+            sustentoFiles = this.congressSustentoFiles;
+            closeFn = () => this.closeAddCongressModal();
+            prefix = 'CONGRESS';
+        }
+
+        if (form.invalid || this.hasUploadError) {
+            form.markAllAsTouched();
             return;
         }
 
         const user = this.authService.getCurrentUser();
-        const formValues = this.otherProductionForm.getRawValue();
+        const formValues = form.getRawValue();
 
-        const payload = {
+        // 1. Campos Comunes
+        const payload: any = {
             investigadorId: user?.id || 0,
             fuente: 'MANUAL',
-            externalId: `MANUAL-OTHER-${Date.now()}`,
+            externalId: `MANUAL-${prefix}-${Date.now()}`,
             fechaImportacion: new Date().toISOString(),
             metadataImportacion: JSON.stringify({ origen: 'MANUAL', version: '1.0' }),
-            categoriaTrabajo: formValues.category,
-            tipoObra: formValues.workType,
-            ordenAutoriaCodigo: formValues.authorshipOrder,
-            indexadoEn: formValues.indexedIn,
-            paisId: parseInt(formValues.country) || 0,
-            autorPrincipal: formValues.mainAuthor,
-            descripcion: formValues.summary,
             titulo: formValues.title,
             subTitulo: formValues.subtitle,
-            revista: formValues.journal,
-            identificacion: formValues.doi,
-            volumen: formValues.volume,
-            fasciculo: formValues.issue,
-            rangoPaginas: formValues.pageRange,
-            editorial: formValues.editorial,
-            doi: formValues.doi,
+            paisId: parseInt(formValues.country) || 0,
             url: formValues.url,
-            fechaPublicacion: formValues.date,
+            autorPrincipal: formValues.mainAuthor,
+            ordenAutoriaCodigo: formValues.authorshipOrder,
+            doi: formValues.doi,
             active: true,
-            autores: this.authorsList.map(a => ({
-                id: 0,
+            autores: this.authorsList.map((a, index) => ({
+                id: a.id,
+                tipoRegistro: a.tipoRegistro || (type === 'publication' ? 'ORAU01' : 'ORAU02'),
                 nombres: a.names,
                 apellidoPaterno: a.paternalSurname,
                 apellidoMaterno: a.maternalSurname,
                 correoContacto: a.email,
-                active: true,
-                tipoRegistro: 'MANUAL'
+                ordenAutoria: index + 1,
+                active: true
             }))
         };
 
-        this.alertService.loading('Guardando', 'Procesando archivos y registro...');
+        // 2. Mapeo Específico por Tipo
+        if (type === 'publication') {
+            payload.categoriaTrabajo = formValues.category;
+            payload.tipoObra = formValues.workType;
+            payload.funcion = formValues.function;
+            payload.indexadoEn = formValues.indexedIn;
+            payload.tipoIdentificacion = formValues.identificationType;
+            payload.identificacion = formValues.doi; // En publicación, identificación suele ser el DOI
+            payload.descripcion = formValues.description;
+            payload.revista = formValues.journal;
+            payload.volumen = formValues.volume;
+            payload.fasciculo = formValues.issue;
+            payload.rangoPaginas = formValues.pageRange;
+            payload.editorial = formValues.publisher;
+            payload.fechaPublicacion = formValues.date;
+        } else if (type === 'other') {
+            payload.categoriaTrabajo = formValues.category;
+            payload.tipoObra = formValues.workType;
+            payload.funcion = formValues.function;
+            payload.indexadoEn = formValues.indexedIn;
+            payload.tipoIdentificacion = formValues.identificationType;
+            payload.identificacion = formValues.identification;
+            payload.descripcion = formValues.summary;
+            payload.revista = formValues.journal;
+            payload.fechaPublicacion = formValues.date;
+            payload.tipoCita = formValues.citationType;
+            payload.cita = formValues.citation;
+            payload.volumen = formValues.volume;
+            payload.fasciculo = formValues.issue;
+            payload.rangoPaginas = formValues.pageRange;
+        } else if (type === 'congress') {
+            payload.tipoCongreso = formValues.congressType;
+            payload.categoriaTrabajo = formValues.category;
+            payload.tipoObra = formValues.presentationType;
+            payload.funcion = formValues.function;
+            payload.tipoIdentificacion = formValues.identificationType;
+            payload.identificacion = formValues.identification;
+            payload.descripcion = formValues.summary;
+            payload.fechaPublicacion = formValues.presentationDate;
+        }
+
+        const cleanedPayload = Object.fromEntries(
+            Object.entries(payload).filter(([_, v]) => v !== null && v !== undefined && v !== '')
+        );
 
         forkJoin({
-            archivos: this.uploadFilesCombined(this.otherFiles, FileSection.PROC01),
-            sustento: this.uploadFilesCombined(this.otherSustentoFiles, FileSection.PROC02)
+            archivos: this.uploadFilesCombined(files, FileSection.PROC01),
+            sustento: this.uploadFilesCombined(sustentoFiles, FileSection.PROC02)
         }).subscribe({
             next: (tokens) => {
                 const payloadWithFiles = {
-                    ...payload,
+                    ...cleanedPayload as any,
                     archivoTokens: tokens.archivos,
                     sustentoTokens: tokens.sustento
                 };
@@ -454,101 +470,43 @@ export class ScientificProductionComponent implements OnInit {
                 saveObservable.subscribe({
                     next: (res) => {
                         this.alertService.success('Éxito', this.currentProductionId ? 'El registro ha sido actualizado.' : 'El registro ha sido guardado correctamente.');
-                        this.closeAddOtherModal();
-                        this.loadProductions();
+                        closeFn();
+                        setTimeout(() => this.loadProductions(), 500);
                     },
                     error: (err) => {
-                        console.error('Error saving other production:', err);
+                        console.error('Error saving production:', err);
                         this.alertService.error('Error', 'No se pudo guardar el registro.');
                     }
                 });
             },
             error: (err) => {
-                console.error('Error uploading other files:', err);
+                console.error('Error uploading files:', err);
                 this.alertService.error('Error', 'No se pudieron subir los archivos.');
             }
         });
     }
 
-    saveCongress() {
-        if (this.congressForm.invalid || this.hasUploadError) {
-            this.congressForm.markAllAsTouched();
-            return;
-        }
 
-        const user = this.authService.getCurrentUser();
-        const formValues = this.congressForm.getRawValue();
-
-        const payload = {
-            investigadorId: user?.id || 0,
-            fuente: 'MANUAL',
-            externalId: `MANUAL-CONGRESS-${Date.now()}`,
-            fechaImportacion: new Date().toISOString(),
-            metadataImportacion: JSON.stringify({ origen: 'MANUAL', version: '1.0' }),
-            tipoCongreso: formValues.congressType,
-            paisId: parseInt(formValues.country) || 0,
-            fechaPublicacion: formValues.presentationDate,
-            autorPrincipal: formValues.mainAuthor,
-            titulo: formValues.title,
-            subTitulo: formValues.subtitle,
-            descripcion: formValues.summary,
-            tipoObra: formValues.presentationType,
-            doi: formValues.doi,
-            url: formValues.url,
-            ordenAutoriaCodigo: formValues.authorshipOrder,
-            active: true,
-            autores: []
-        };
-
-        this.alertService.loading('Guardando', 'Procesando archivos y registro...');
-
-        forkJoin({
-            archivos: this.uploadFilesCombined(this.congressFiles, FileSection.PROC01),
-            sustento: this.uploadFilesCombined(this.congressSustentoFiles, FileSection.PROC02)
-        }).subscribe({
-            next: (tokens) => {
-                const payloadWithFiles = {
-                    ...payload as any,
-                    archivoTokens: tokens.archivos,
-                    sustentoTokens: tokens.sustento
-                };
-
-                const saveObservable = this.currentProductionId
-                    ? this.spService.updatePublication(this.currentProductionId, payloadWithFiles)
-                    : this.spService.createPublication(payloadWithFiles);
-
-                saveObservable.subscribe({
-                    next: (res) => {
-                        this.alertService.success('Éxito', this.currentProductionId ? 'La participación ha sido actualizada.' : 'La participación en congreso ha sido registrada.');
-                        this.closeAddCongressModal();
-                        this.loadProductions();
-                    },
-                    error: (err) => {
-                        console.error('Error saving congress production:', err);
-                        this.alertService.error('Error', 'No se pudo guardar el registro.');
-                    }
-                });
-            },
-            error: (err) => {
-                console.error('Error uploading congress files:', err);
-                this.alertService.error('Error', 'No se pudieron subir los archivos.');
-            }
-        });
-    }
-
-    openAuthorsModal() {
+    openAuthorsModal(type: 'ORAU01' | 'ORAU02' = 'ORAU01') {
+        console.log('[ScientificProduction] Opening authors modal with type:', type);
+        this.selectedAuthorType = type;
         this.showAuthorsModal = true;
+        this.cdr.detectChanges();
     }
 
     closeAuthorsModal() {
         this.showAuthorsModal = false;
+        // Do not reset authorsList here as it's shared across modals but filtered by type in view
         this.authorsForm.reset();
+        this.cdr.detectChanges();
     }
 
     addAuthorToList() {
         if (this.authorsForm.valid) {
             const author: Author = {
-                id: Date.now(), // Temp ID
+                id: null,
+                _tempId: Date.now(),
+                tipoRegistro: this.selectedAuthorType,
                 ...this.authorsForm.value
             };
             this.authorsList.push(author);
@@ -556,12 +514,53 @@ export class ScientificProductionComponent implements OnInit {
         }
     }
 
-    removeAuthor(id: number) {
-        this.authorsList = this.authorsList.filter(a => a.id !== id);
+    removeAuthor(author: Author) {
+        if (author.id) {
+            this.authorsList = this.authorsList.filter(a => a.id !== author.id);
+        } else if (author._tempId) {
+            this.authorsList = this.authorsList.filter(a => a._tempId !== author._tempId);
+        }
+    }
+
+    getFilteredAuthors(): Author[] {
+        return this.authorsList.filter(a => a.tipoRegistro === this.selectedAuthorType);
+    }
+
+    getAuthorsByType(type: string): Author[] {
+        return this.authorsList.filter(a => a.tipoRegistro === type);
     }
 
     confirmAuthors() {
         this.closeAuthorsModal();
+    }
+
+    onFileSelect(event: any, type: string) {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+        
+        const f = files[0];
+        const fileObj = {
+            code: (this.congressSustentoFiles.length + 1).toString().padStart(2, '0'),
+            name: f.name,
+            file: f
+        };
+
+        if (type === 'sustento') {
+            this.congressSustentoFiles = [fileObj];
+        }
+        this.cdr.detectChanges();
+    }
+
+    getWorkTypeName(code: string | undefined): string {
+        if (!code) return 'N/A';
+        const item = this.workTypeOptions.find(opt => opt.codigo === code);
+        return item ? item.nombre : code;
+    }
+
+    getFunctionName(code: string | undefined): string {
+        if (!code) return 'N/A';
+        const item = this.functionOptions.find(opt => opt.codigo === code);
+        return item ? item.nombre : code;
     }
 
     openAddModal() {
@@ -569,6 +568,8 @@ export class ScientificProductionComponent implements OnInit {
         this.showAddModal = true;
         this.authorsList = []; // Reset authors for new entry
         this.publicationForm.enable(); // Ensure enabled for new
+        this.setFixedCategory(this.publicationForm, 'Publicación');
+        this.cdr.detectChanges();
     }
 
     closeAddModal() {
@@ -583,6 +584,8 @@ export class ScientificProductionComponent implements OnInit {
         this.showAddOtherModal = true;
         this.authorsList = []; // Reset
         this.otherProductionForm.enable();
+        this.setFixedCategory(this.otherProductionForm, 'Otro');
+        this.cdr.detectChanges();
     }
 
     closeAddOtherModal() {
@@ -597,6 +600,33 @@ export class ScientificProductionComponent implements OnInit {
         this.showAddCongressModal = true;
         this.authorsList = []; // Reset
         this.congressForm.enable();
+        this.setFixedCategory(this.congressForm, 'Conferencia');
+        this.cdr.detectChanges();
+    }
+
+    private setFixedCategory(form: FormGroup, label: string) {
+        if (!this.workCategoryOptions || this.workCategoryOptions.length === 0) {
+            // If catalogs not loaded yet, retry in short time or rely on ngOnInit loading 
+            // Usually they are already there.
+            const sub = this.catalogService.getMasterDetailsByCode('CATTRA').subscribe(data => {
+                this.workCategoryOptions = data;
+                this.applyCategory(form, label);
+                sub.unsubscribe();
+            });
+            return;
+        }
+        this.applyCategory(form, label);
+    }
+
+    private applyCategory(form: FormGroup, label: string) {
+        const cat = this.workCategoryOptions.find(o => 
+            o.nombre.toLowerCase().trim() === label.toLowerCase().trim()
+        );
+        if (cat) {
+            form.get('category')?.setValue(cat.codigo);
+            form.get('category')?.disable();
+            this.cdr.detectChanges();
+        }
     }
 
     closeAddCongressModal() {
@@ -864,11 +894,6 @@ export class ScientificProductionComponent implements OnInit {
     }
 
     // Actions
-    deleteImportedProduction(index: number) {
-        if (confirm('¿Estás seguro de eliminar esta producción importada?')) {
-            this.importedList.splice(index, 1);
-        }
-    }
 
     editManualProduction(item: any) {
         this.currentProductionId = item.id;
@@ -877,7 +902,9 @@ export class ScientificProductionComponent implements OnInit {
             names: a.nombres,
             paternalSurname: a.apellidoPaterno,
             maternalSurname: a.apellidoMaterno,
-            email: a.correoContacto
+            email: a.correoContacto,
+            tipoRegistro: a.tipoRegistro,
+            functionId: a.funcionId
         })) : [];
 
         const dateFormatted = item.fechaPublicacion ? item.fechaPublicacion.split('T')[0] : '';
@@ -895,8 +922,13 @@ export class ScientificProductionComponent implements OnInit {
                 doi: item.doi,
                 url: item.url,
                 mainAuthor: item.autorPrincipal,
-                authorshipOrder: item.ordenAutoriaCodigo
+                authorshipOrder: item.ordenAutoriaCodigo,
+                category: item.categoriaTrabajo,
+                function: item.funcion,
+                identificationType: item.tipoIdentificacion,
+                identification: item.identificacion
             }, { emitEvent: false });
+            this.congressForm.get('category')?.disable();
             
             // Explicitly set state of mainAuthor
             const orderVal = item.ordenAutoriaCodigo;
@@ -906,7 +938,7 @@ export class ScientificProductionComponent implements OnInit {
             } else {
                 this.congressForm.get('mainAuthor')?.enable();
             }
-            this.loadExistingProductionFiles(item.id);
+            this.loadExistingProductionFiles(item.id, 'congress');
         } else {
             const isOther = (item.externalId || '').includes('OTHER') || (!item.revista && !item.volumen && item.fuente === 'MANUAL');
 
@@ -921,17 +953,21 @@ export class ScientificProductionComponent implements OnInit {
                     subtitle: item.subTitulo,
                     summary: item.descripcion,
                     date: dateFormatted,
-                    institution: item.editorial,
                     journal: item.revista,
                     doi: item.doi,
                     volume: item.volumen,
                     issue: item.fasciculo,
                     pageRange: item.rangoPaginas,
                     url: item.url,
-                    editorial: item.editorial,
                     mainAuthor: item.autorPrincipal,
-                    authorshipOrder: item.ordenAutoriaCodigo
+                    authorshipOrder: item.ordenAutoriaCodigo,
+                    function: item.funcion,
+                    identificationType: item.tipoIdentificacion,
+                    identification: item.identificacion,
+                    citationType: item.tipoCita,
+                    citation: item.cita
                 }, { emitEvent: false });
+                this.otherProductionForm.get('category')?.disable();
 
                 const orderVal = item.ordenAutoriaCodigo;
                 const selectedOpt = this.authorshipOrderOptions.find(opt => opt.codigo === orderVal);
@@ -963,6 +999,7 @@ export class ScientificProductionComponent implements OnInit {
                     description: item.descripcion,
                     mainAuthor: item.autorPrincipal
                 }, { emitEvent: false });
+                this.publicationForm.get('category')?.disable();
 
                 const orderVal = item.ordenAutoriaCodigo;
                 const selectedOpt = this.authorshipOrderOptions.find(opt => opt.codigo === orderVal);
@@ -972,13 +1009,13 @@ export class ScientificProductionComponent implements OnInit {
                     this.publicationForm.get('mainAuthor')?.enable();
                 }
             }
-            this.loadExistingProductionFiles(item.id);
+            this.loadExistingProductionFiles(item.id, isOther ? 'other' : 'publication');
         }
     }
 
     deleteManualProduction(item: any) {
         if (!item?.id) return;
-        this.alertService.confirm('Eliminar Registro', '¿Estás seguro de que deseas eliminar este registro manualmente?').then(res => {
+        this.alertService.confirm('Eliminar Registro', '¿Estás seguro de que deseas eliminar este registro?').then(res => {
             if (res) {
                 this.spService.deleteProduction(item.id).subscribe({
                     next: () => {
@@ -994,14 +1031,38 @@ export class ScientificProductionComponent implements OnInit {
         });
     }
 
-    private loadExistingProductionFiles(parentId: number) {
-        // Reset local arrays before loading new ones
-        this.publicationFiles = [];
-        this.publicationSustentoFiles = [];
-        this.otherFiles = [];
-        this.otherSustentoFiles = [];
-        this.congressFiles = [];
-        this.congressSustentoFiles = [];
+    deleteImportedProduction(item: any) {
+        if (!item?.id) return;
+        this.alertService.confirm('Eliminar Producción Importada', '¿Estás seguro de que deseas eliminar este registro importado?').then(res => {
+            if (res) {
+                this.spService.deleteProduction(item.id).subscribe({
+                    next: () => {
+                        this.alertService.success('Eliminado', 'El registro importado ha sido eliminado de tu lista.');
+                        this.loadProductions();
+                    },
+                    error: (err) => {
+                        console.error('Error deleting imported production:', err);
+                        this.alertService.error('Error', 'No se pudo eliminar el registro.');
+                    }
+                });
+            }
+        });
+    }
+
+    private loadExistingProductionFiles(parentId: number, type: 'publication' | 'other' | 'congress') {
+        console.log(`[ScientificProduction] Loading files for ${type} with parentId:`, parentId);
+        
+        // Reset only the relevant arrays for this modal
+        if (type === 'publication') {
+            this.publicationFiles = [];
+            this.publicationSustentoFiles = [];
+        } else if (type === 'other') {
+            this.otherFiles = [];
+            this.otherSustentoFiles = [];
+        } else if (type === 'congress') {
+            this.congressFiles = [];
+            this.congressSustentoFiles = [];
+        }
 
         // Files (PROC01)
         this.fileService.listFilesMetadata(FileModule.INVESTIGATOR, FileCategory.PROCIE, FileSection.PROC01, parentId).subscribe({
@@ -1012,11 +1073,14 @@ export class ScientificProductionComponent implements OnInit {
                     token: f.token,
                     file: null
                 }));
-                if (this.showAddModal) this.publicationFiles = mapped;
-                else if (this.showAddOtherModal) this.otherFiles = mapped;
-                else if (this.showAddCongressModal) this.congressFiles = mapped;
+                
+                if (type === 'publication') this.publicationFiles = mapped;
+                else if (type === 'other') this.otherFiles = mapped;
+                else if (type === 'congress') this.congressFiles = mapped;
+                
                 this.cdr.detectChanges();
-            }
+            },
+            error: (err) => console.error('Error loading files PROC01:', err)
         });
 
         // Sustento (PROC02)
@@ -1028,11 +1092,14 @@ export class ScientificProductionComponent implements OnInit {
                     token: f.token,
                     file: null
                 }));
-                if (this.showAddModal) this.publicationSustentoFiles = mapped;
-                else if (this.showAddOtherModal) this.otherSustentoFiles = mapped;
-                else if (this.showAddCongressModal) this.congressSustentoFiles = mapped;
+                
+                if (type === 'publication') this.publicationSustentoFiles = mapped;
+                else if (type === 'other') this.otherSustentoFiles = mapped;
+                else if (type === 'congress') this.congressSustentoFiles = mapped;
+                
                 this.cdr.detectChanges();
-            }
+            },
+            error: (err) => console.error('Error loading files PROC02:', err)
         });
     }
 
@@ -1070,9 +1137,22 @@ export class ScientificProductionComponent implements OnInit {
             map((tokens: string[]) => tokens.filter((t: string) => t !== ''))
         );
     }
-    viewAttachments(item: any) {
-        this.alertService.info('Archivos', `Visualizando archivos para: ${item.titulo}`);
-        // Implement logic to view files from the API if available
+    viewAttachments(item: any, section: string = 'PROC01') {
+        const module = FileModule.INVESTIGATOR;
+        const category = FileCategory.PROCIE;
+
+        this.fileService.fetchFilesForViewer(module, category, section, item.id).subscribe({
+            next: (files) => {
+                if (files && files.length > 0) {
+                    this.viewerFiles = files;
+                    this.showFileViewer = true;
+                    this.cdr.detectChanges();
+                }
+            },
+            error: (err) => {
+                console.error('Error fetching viewer files:', err);
+            }
+        });
     }
 
     isValidatingDoi = false;

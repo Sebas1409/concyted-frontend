@@ -35,6 +35,7 @@ export interface AuthResponse {
     fechaCreacion: string;
     fechaActualizacion: string;
     usuarioId: number;
+    orcidFamilyName?: string; // Nombre verificado de ORCID
 
     // Optional fields for compatibility if needed (though not in JSON)
     username?: string;

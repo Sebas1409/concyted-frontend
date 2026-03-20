@@ -13,12 +13,19 @@
             </div>
             <div class="form-group mb-4">
                 <label class="form-label">ORCID iD 🌐</label>
-                <input type="text" class="form-input" value="0000-0002-1825-0097" readonly
-                    placeholder="0000-0000-0000-0000">
+                <div class="input-with-badge">
+                    <input type="text" class="form-input" [value]="orcidId" placeholder="">
+                    <app-qualification-badge 
+                        type="renacyt" 
+                        customTooltip="Considerado para calificación en Renacyt - Ingrese su ORCID"
+                        class="input-badge">
+                    </app-qualification-badge>
+                </div>
             </div>
             <div class="form-group">
                 <label class="form-label">Verificado como 🌐</label>
-                <input type="text" class="form-input" value="Enzo Francisco Macalupu Herrera" readonly>
+                <input type="text" class="form-input" [value]="orcidName" 
+                    placeholder="" readonly>
             </div>
         </div>
 
@@ -26,7 +33,7 @@
         <div class="right-section">
             <div class="action-grid">
                 <!-- Valida -->
-                <button class="action-card card-orcid">
+                <button class="action-card card-orcid" (click)="onOrcidLogin()">
                     <div class="icon-circle orcid-bg">
                         <span class="logo-text">iD</span>
                     </div>
@@ -37,7 +44,7 @@
                     <div class="arrow">→</div>
                 </button>
                 <!-- Crea -->
-                <button class="action-card card-orcid">
+                <button class="action-card card-orcid" (click)="onCreateOrcid()">
                     <div class="icon-circle orcid-bg">
                         <span class="logo-text">iD</span>
                     </div>
@@ -60,7 +67,7 @@
                     <div class="arrow">→</div>
                 </button>
                 <!-- Elimina -->
-                <button class="action-card card-orcid">
+                <button class="action-card card-orcid" (click)="onOrcidDelete()">
                     <div class="icon-circle orcid-bg">
                         <span class="logo-text">iD</span>
                     </div>

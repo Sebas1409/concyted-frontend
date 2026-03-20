@@ -107,11 +107,13 @@
                 </div>
             </div>
 
-            <!-- Row 3: Descripción -->
             <div class="form-group">
                 <label>Descripción (Opcional)</label>
-                <textarea formControlName="description" rows="3"
+                <textarea formControlName="description" rows="3" maxlength="600"
                     placeholder="Describe brevemente el motivo del reconocimiento..."></textarea>
+                <div class="char-counter">
+                    {{ (distinctionForm.get('description')?.value || '').length }}/600 caracteres
+                </div>
             </div>
 
             <!-- Row 4: Pais y Fecha -->
@@ -146,7 +148,15 @@
             <!-- Row 5: Enlace -->
             <div class="form-group">
                 <label>Enlace de Referencia</label>
-                <input type="text" formControlName="url" placeholder="https://...">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="text" formControlName="url" placeholder="https://..." class="form-input" style="flex: 1;">
+                    <div class="help-badge" data-tooltip="Lugar donde se publicó la distinción o premio.">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" fill="#38BDF8"/>
+                            <path d="M12 17V17.01M12 14C12 14 12 12.5 13 11.5C14 10.5 14.5 9.5 14.5 8.5C14.5 7.11929 13.3807 6 12 6C10.6193 6 9.5 7.11929 9.5 8.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
             </div>
 
             <!-- File Upload Section -->

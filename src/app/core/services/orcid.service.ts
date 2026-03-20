@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, map, switchMap, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthResponse } from '../models/auth.models';
 import { ROLES } from '../constants/roles.constants';
@@ -27,19 +27,93 @@ export class OrcidService {
   }
 
   /**
-   * Inicia el flujo de autenticación de ORCID.
+   * Obtiene la URL de autorización para ORCID desde nuestro backend.
    */
-  loginWithOrcid() {
-    const clientId = this.config?.clientId || '';
-    const redirectUri = this.config?.redirectUri || (window.location.origin + '/auth/orcid-callback');
-    const authUrlBase = this.config?.authUrl || 'https://orcid.org/oauth/authorize';
-    
-    const scope = '/authenticate';
-    const responseType = 'code';
-    const authUrl = `${authUrlBase}?client_id=${clientId}&response_type=${responseType}&scope=${scope}&redirect_uri=${encodeURIComponent(redirectUri)}`;
-    
-    console.log('Redirecting to ORCID Auth:', authUrl);
-    window.location.href = authUrl;
+  getAuthorizationUrl(): Observable<{ authorizationUrl: string; state: string }> {
+    return this.http.get<{ authorizationUrl: string; state: string }>(
+      `${environment.interopServiceUrl}/auth/orcid/authorize`
+    );
+  }
+
+  /**
+   * Completa el inicio de sesión con el código y estado recibidos de ORCID.
+   * Este método se usa en la página de Login principal.
+   */
+  login(code: string, state: string): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/auth/orcid/login`, { code, state });
+  }
+
+  /**
+   * Obtiene la información de ORCID a través del servicio de interoperabilidad.
+   * A diferencia del login, este método se usa para autocompletar campos en el Dashboard
+   * sin afectar la sesión actual del usuario.
+   */
+  getInfo(code: string, state: string): Observable<any> {
+    return this.http.post(`${environment.interopServiceUrl}/auth/orcid/login`, { code, state });
+  }
+
+  /**
+   * Obtiene los datos del perfil público de un investigador por su ORCID iD
+   * a través del servicio de interoperabilidad.
+   */
+  getOrcidProfile(orcidId: string): Observable<any> {
+    return this.http.get(`${environment.interopServiceUrl}/auth/orcid/profile/${orcidId}`);
+  }
+
+  /**
+   * Inicia el flujo de autenticación de ORCID.
+   * Obtiene la URL de autorización y redirige al usuario o abre un popup.
+   * @param isPopup Indica si se debe abrir en una ventana emergente.
+   */
+  loginWithOrcid(isPopup: boolean = false): void {
+    this.getAuthorizationUrl().subscribe({
+      next: (res) => {
+        if (res && res.authorizationUrl) {
+          let finalUrl = res.authorizationUrl;
+          
+          // Aseguramos que el puerto esté presente según la configuración del servidor
+          const redirectFix = this.config?.redirectFix;
+          if (redirectFix && finalUrl.includes(redirectFix.search) && !finalUrl.includes(redirectFix.replaceWith)) {
+            finalUrl = finalUrl.split(redirectFix.search).join(redirectFix.replaceWith);
+          }
+
+          if (isPopup) {
+            const width = 500;
+            const height = 650;
+            const left = window.screenX + (window.outerWidth - width) / 2;
+            const top = window.screenY + (window.outerHeight - height) / 2;
+            const features = `width=${width},height=${height},left=${left},top=${top},location=no,menubar=no,status=no,toolbar=no`;
+            
+            window.open(finalUrl, 'ORCID_Authorization', features);
+          } else {
+            console.log('Redirigiendo a ORCID:', finalUrl);
+            window.location.assign(finalUrl);
+          }
+        } else {
+          console.error('No se recibió la URL de autorización');
+        }
+      },
+      error: (err) => {
+        console.error('Error al obtener URL de autorización de ORCID', err);
+      }
+    });
+  }
+
+  /**
+   * Actualiza el ORCID y el ORCID Family Name del investigador.
+   */
+  updateOrcid(investigatorId: number, payload: { orcid: string, orcidFamilyName: string }): Observable<any> {
+    const url = `${environment.userServiceUrl}/v2/investigadores/${investigatorId}/orcid`;
+    return this.http.put(url, payload);
+  }
+
+  /**
+   * Elimina la vinculación de ORCID de un investigador.
+   * @param investigatorId ID del investigador
+   */
+  deleteOrcid(investigatorId: number): Observable<any> {
+    const url = `${environment.userServiceUrl}/v2/investigadores/${investigatorId}/orcid`;
+    return this.http.delete(url);
   }
 
   /**
@@ -49,11 +123,11 @@ export class OrcidService {
   mapOrcidToAuthResponse(orcidData: any): AuthResponse {
     const person = orcidData?.person;
     const name = person?.name;
-    
+
     // Extraer nombres y apellidos
     const givenNames = name?.['given-names']?.value || '';
     const familyName = name?.['family-name']?.value || '';
-    
+
     // Extraer email (si es público)
     const emails = person?.emails?.email;
     const primaryEmail = Array.isArray(emails) && emails.length > 0 ? emails[0].email : '';

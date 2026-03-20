@@ -20,7 +20,7 @@ import { environment } from '../../../../../environments/environment';
         <div class="form-grid">
             <div class="form-group full-width">
                  <label>Cuenta de Usuario *</label>
-                 <input type="text" [(ngModel)]="data.username" placeholder="Ingresa el usuario (ej. jperez)">
+                 <input type="text" [(ngModel)]="data.username" maxlength="10" placeholder="Ingresa el usuario (ej. jperez)">
             </div>
             
             <div class="form-group full-width">
@@ -43,7 +43,7 @@ import { environment } from '../../../../../environments/environment';
             <div class="form-group full-width" *ngIf="!userData">
                  <label>Contraseña *</label>
                  <div class="password-wrapper">
-                    <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="data.password"
+                    <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="data.password" maxlength="10"
                         placeholder="Ingrese su contraseña">
                     <button class="toggle-pass" (click)="showPassword = !showPassword" type="button">
                         <svg *ngIf="!showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -65,6 +65,7 @@ import { environment } from '../../../../../environments/environment';
                     <input
                         [type]="showConfirmPassword ? 'text' : 'password'"
                         [(ngModel)]="data.confirmPassword"
+                        maxlength="10"
                         placeholder="Repite la contraseña">
                     <button class="toggle-pass" (click)="showConfirmPassword = !showConfirmPassword" type="button">
                          <svg *ngIf="!showConfirmPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
