@@ -516,7 +516,8 @@ export class ProjectsComponent implements OnInit {
             tematicaAmbientalId: formVal.environmentalTheme,
             tipoProyectoId: formVal.projectType,
             vinculacionAcademicaId: formVal.academicContext,
-            gradoTesis: formVal.thesisDegreeId || null
+            gradoTesis: formVal.thesisDegreeId || null,
+            orcid: false
         };
 
         // Sequential process: Upload files, get tokens, then save project (like WorkExperience)

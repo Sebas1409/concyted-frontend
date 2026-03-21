@@ -142,14 +142,14 @@ export class CvExportService {
         };
 
         // Academic
-        const sunedu = (data.forsun || []).map((item: any) => ({
+        const sunedu = (Array.isArray(data.forsun) ? data.forsun : []).map((item: any) => ({
             institution: item.institucionNombre,
             degree: item.gradoAcademico,
             title: item.titulo,
             endDate: item.fechaFin,
             source: 'SUNEDU'
         }));
-        const manual = (data.forman || []).map((item: any) => ({
+        const manual = (Array.isArray(data.forman) ? data.forman : []).map((item: any) => ({
             institution: item.institucionNombre,
             degree: item.gradoAcademico,
             title: item.titulo,
@@ -158,31 +158,33 @@ export class CvExportService {
         }));
         const academicFormation = [...sunedu, ...manual];
 
-        const technicalFormation = (data.esttec || []).map((item: any) => ({
+        const technicalFormation = (Array.isArray(data.esttec) ? data.esttec : []).map((item: any) => ({
             institution: item.institucionNombre,
             career: item.carreraTecnica,
             startDate: item.fechaInicio,
             endDate: item.fechaFin
         }));
 
-        const workExperience = (data.explab || []).map((item: any) => ({
+        const workExperience = (Array.isArray(data.explab) ? data.explab : []).map((item: any) => ({
             institution: item.nombreInstitucion,
             position: item.cargo,
             description: item.descripcionCargo,
             startDate: item.fechaInicio,
-            endDate: item.actualmenteTrabaja ? 'Actualidad' : item.fechaFin
+            endDate: item.actualmenteTrabaja ? 'Actualidad' : item.fechaFin,
+            current: !!item.actualmenteTrabaja
         }));
 
-        const docenteExperience = (data.expdoc || []).map((item: any) => ({
+        const docenteExperience = (Array.isArray(data.expdoc) ? data.expdoc : []).map((item: any) => ({
             institution: item.nombreInstitucion,
             type: item.tipoInstitucion,
             docenteType: item.tipoDocente,
             description: item.descripcionCargo || '---',
             startDate: item.fechaInicio,
-            endDate: item.actualmenteDicta ? 'Actualidad' : item.fechaFin
+            endDate: item.actualmenteDicta ? 'Actualidad' : item.fechaFin,
+            currentlyTeaching: !!item.actualmenteDicta
         }));
 
-        const projects = (data.proyec || []).map((item: any) => ({
+        const projects = (Array.isArray(data.proyec) ? data.proyec : []).map((item: any) => ({
             title: item.nombreProyecto,
             type: item.tipoProyecto,
             role: item.rolDesempenado,
@@ -190,7 +192,7 @@ export class CvExportService {
             status: '---'
         }));
 
-        const languages = (data.conidi || []).map((item: any) => ({
+        const languages = (Array.isArray(data.conidi) ? data.conidi : []).map((item: any) => ({
             language: item.idioma,
             level: item.conversacion,
             reading: item.lectura,
@@ -198,17 +200,20 @@ export class CvExportService {
             speaking: item.conversacion
         }));
 
-        const thesisAdvisory = (data.expase || []).map((item: any) => ({
+        const thesisAdvisory = (Array.isArray(data.expase) ? data.expase : []).map((item: any) => ({
             student: item.tesistas,
+            studentName: item.tesistas, // compatibility
             thesis: item.titulo,
+            title: item.titulo, // compatibility
             university: item.institucion,
+            degree: item.gradoAcademico || '---', // compatibility
             year: item.fechaAceptacion ? new Date(item.fechaAceptacion).getFullYear() : '---'
         }));
 
         const scientificProduction = [
-            ...(data.prosci || []).map((p: any) => ({ title: p.titulo, type: p.tipoProduccion, year: p.anio })),
-            ...(data.derint || []).map((p: any) => ({ title: p.tituloPropiedadIntelectual, type: p.tipoPi, year: '---' })),
-            ...(data.distpr || []).map((p: any) => ({ title: p.distincion, type: 'Distinción', year: p.fecha ? new Date(p.fecha).getFullYear() : '---' }))
+            ...(Array.isArray(data.prosci) ? data.prosci : []).map((p: any) => ({ title: p.titulo, type: p.tipoProduccion, year: p.anio })),
+            ...(Array.isArray(data.derint) ? data.derint : []).map((p: any) => ({ title: p.tituloPropiedadIntelectual, type: p.tipoPi, year: '---' })),
+            ...(Array.isArray(data.distpr) ? data.distpr : []).map((p: any) => ({ title: p.distincion, type: 'Distinción', year: p.fecha ? new Date(p.fecha).getFullYear() : '---' }))
         ];
 
         return {
@@ -304,7 +309,8 @@ export class CvExportService {
             position: item.cargo,
             description: item.descripcion,
             startDate: item.fechaInicio,
-            endDate: item.actualmenteTrabaja ? 'Actualidad' : item.fechaFin
+            endDate: item.actualmenteTrabaja ? 'Actualidad' : item.fechaFin,
+            current: !!item.actualmenteTrabaja
         }));
 
         const docenteExperience = results.docente.map((item: any) => {
@@ -316,7 +322,8 @@ export class CvExportService {
                 docenteType: docType ? docType.nombre : item.tipoDocente,
                 description: item.cargo || '---',
                 startDate: item.fechaInicio,
-                endDate: item.actualmenteDicta ? 'Actualidad' : item.fechaFin
+                endDate: item.actualmenteDicta ? 'Actualidad' : item.fechaFin,
+                currentlyTeaching: !!item.actualmenteDicta
             };
         });
 
@@ -344,8 +351,11 @@ export class CvExportService {
 
         const thesisAdvisory = results.thesis.map((item: any) => ({
             student: item.tesistas || '---',
+            studentName: item.tesistas || '---',
             thesis: item.titulo || '---',
+            title: item.titulo || '---',
             university: item.nombreInstitucion || '---',
+            degree: item.gradoAcademico || '---',
             year: item.fechaAceptacion ? new Date(item.fechaAceptacion).getFullYear() : '---'
         }));
 
@@ -428,6 +438,8 @@ export class CvExportService {
             currentY += 35;
 
             const safeTable = (title: string, head: string[][], body: any[][], emptyMsg: string) => {
+                if (body.length === 0) return;
+
                 const pageHeight = doc.internal.pageSize.getHeight();
                 // If title + header + 1-2 rows won't fit (approx 40 units), jump to next page
                 if (currentY + 40 > pageHeight) {
@@ -438,14 +450,10 @@ export class CvExportService {
                 doc.setFontSize(12).setFont('helvetica', 'bold').text(title, margin, currentY);
                 currentY += 5;
 
-                const finalBody = body.length === 0
-                    ? [[{ content: emptyMsg, colSpan: head[0].length, styles: { halign: 'center', fontStyle: 'normal' } }]]
-                    : body;
-
                 autoTable(doc, {
                     startY: currentY,
                     head: head,
-                    body: finalBody,
+                    body: body,
                     theme: 'grid',
                     headStyles: { fillColor: [0, 78, 90], textColor: [255, 255, 255] },
                     margin: { left: margin, right: margin }

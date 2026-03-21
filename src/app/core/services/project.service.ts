@@ -42,6 +42,7 @@ export interface ProjectPayload {
     tokens?: string[];
     tipoProyectoIdiIds?: number[];
     gradoTesis?: string | null;
+    orcid?: boolean;
 }
 
 @Injectable({
