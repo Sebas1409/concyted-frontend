@@ -91,39 +91,35 @@
                         <th (click)="toggleSort('name')" style="cursor: pointer;">
                             Razón Social {{ sortField === 'name' ? (sortOrder === 'asc' ? '↑' : '↓') : '⇅' }}
                         </th>
-                        <th (click)="toggleSort('url')" style="cursor: pointer;">
-                            URL {{ sortField === 'url' ? (sortOrder === 'asc' ? '↑' : '↓') : '⇅' }}
-                        </th>
-                        <th style="width: 80px; text-align: center;">Acción</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let item of paginatedInstitutions; let i = index">
-                        <td style="text-align: center;">
-                            <label class="checkbox-container">
-                                <input type="checkbox" [(ngModel)]="item.checked">
-                                <span class="checkmark"></span>
-                            </label>
-                        </td>
-                        <td style="text-align: center; font-weight: 500; color: #64748B;">
-                            {{ (currentPage - 1) * pageSize + i + 1 }}
-                        </td>
-                        <td>{{ item.id }}</td>
-                        <td class="name-cell">{{ item.name }}</td>
-                        <td class="url-cell">{{ item.url }}</td>
-                        <td class="action-cell">
-                            <button class="btn-delete" (click)="deleteInstitution(item.id)">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path
-                                        d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6M5 6l1 14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-14"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                            </button>
+                    <!-- Loading State -->
+                    <tr *ngIf="isLoading">
+                        <td colspan="4" style="text-align: center; padding: 60px;">
+                            <div class="loading-spinner-main"></div>
+                            <p style="margin-top: 12px; color: #64748B; font-weight: 500;">Cargando instituciones...</p>
                         </td>
                     </tr>
-                    <tr *ngIf="paginatedInstitutions.length === 0">
-                        <td colspan="5" style="text-align: center; padding: 40px; color: #64748B;">
-                            No se encontraron instituciones que coincidan con la búsqueda.
+
+                    <ng-container *ngIf="!isLoading">
+                        <tr *ngFor="let item of paginatedInstitutions; let i = index">
+                            <td style="text-align: center;">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" [(ngModel)]="item.checked">
+                                    <span class="checkmark"></span>
+                                </label>
+                            </td>
+                            <td style="text-align: center; font-weight: 500; color: #64748B;">
+                                {{ (currentPage - 1) * pageSize + i + 1 }}
+                            </td>
+                            <td>{{ item.id }}</td>
+                            <td class="name-cell">{{ item.name }}</td>
+                        </tr>
+                    </ng-container>
+                    <tr *ngIf="paginatedInstitutions.length === 0 && !isLoading">
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #64748B;">
+                            No se encontraron instituciones.
                         </td>
                     </tr>
                 </tbody>
@@ -154,44 +150,136 @@
             </div>
         </div>
     </div>
-    <!-- Modal Vincular Institución -->
-    <app-form-modal *ngIf="showLinkModal" title="Vincular Institución" (close)="showLinkModal = false">
-        <!-- Content... -->
-        <p class="modal-description">Ingresa el RUC para validar la existencia de la entidad en SUNAT y generar sus
-            credenciales de acceso.</p>
 
-        <div class="form-grid single-col">
-            <div class="form-group">
-                <label>RUC de la Institución *</label>
-                <div class="input-with-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        class="search-icon">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    <input type="text" placeholder="Escribe el RUC..." [(ngModel)]="linkForm.ruc">
+
+    <!-- Modal Vincular Institución (Normalización) -->
+    <app-form-modal *ngIf="showLinkModal" title="Vincular Institución"
+        (close)="showLinkModal = false">
+        <p class="modal-description">Seleccione la institución principal y las instituciones que desea unificar o corregir para mantener la integridad de los datos.</p>
+
+        <div class="normalization-body">
+                        <!-- Paso 1: Institución Principal -->
+            <div class="normalization-section">
+                <div class="section-badge-info">
+                    <span class="step-badge">1</span>
+                    <h4>INSTITUCIÓN PRINCIPAL (MAESTRA)</h4>
+                </div>
+                
+                <div class="search-container-mini">
+                    <div class="form-group mb-3">
+                        <div class="label-with-action">
+                            <label>Buscar Institución para Vincular *</label>
+                            <button class="btn-text-action" (click)="createManualPrincipal()">
+                                + Nueva Institución Manual
+                            </button>
+                        </div>
+                        <div class="search-input-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                            <input type="text" placeholder="Ingrese ID, RUC o Nombre..." [(ngModel)]="normalizationSearchTerm">
+                        </div>
+                    </div>
+
+                    <div class="search-results-overlay" *ngIf="normalizationSearchTerm">
+                        <div *ngFor="let inst of filteredNormalizationData | slice:0:10" class="result-item-enhanced">
+                            <div class="result-info">
+                                <span class="ruc">{{inst.ruc || '[Sin RUC]'}}</span>
+                                <span class="name">{{inst.razonSocial || inst['nombreComercial']}}</span>
+                            </div>
+                            <div class="result-actions-horizontal">
+                                <button (click)="setAsPrincipal(inst)" class="btn-action-primary">MAESTRA</button>
+                                <button (click)="addToCorrection(inst)" class="btn-action-outline">+ REEMPLAZAR</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="selected-principal-box" *ngIf="principalInstitution">
+                        <div class="result-card-mini active editable">
+                            <div class="card-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 21h18M3 7v14M8 21V7m5 14V3m5 18V7" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                </svg>
+                            </div>
+                            <div class="card-details-editing">
+                                <div class="edit-field">
+                                    <label>ID INSTITUCIÓN PRINCIPAL (EDITAR)</label>
+                                    <input type="text" [(ngModel)]="principalInstitution.ruc" class="mini-edit-input" placeholder="ID / RUC">
+                                </div>
+                                <div class="edit-field">
+                                    <label>RUC Y RAZÓN SOCIAL (PINTADO)</label>
+                                    <input type="text" [(ngModel)]="principalInstitution.razonSocial" class="mini-edit-input" placeholder="Nombre completo">
+                                </div>
+                            </div>
+                            <div class="card-actions-mini">
+                                <button class="btn-change" (click)="principalInstitution = null">Cambiar</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="form-group">
-                <label>Razón Social</label>
-                <input type="text" [(ngModel)]="linkForm.socialReason" disabled class="input-disabled filled-bg">
-            </div>
-            <div class="form-group">
-                <label>URL de Acceso (Encriptada)</label>
-                <div class="input-with-icon right">
-                    <input type="text" [(ngModel)]="linkForm.accessUrl" disabled class="input-disabled filled-bg">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        class="copy-icon">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
+
+            <!-- Paso 2: Instituciones a Corregir -->
+            <div class="normalization-section mt-4">
+                <div class="section-badge-info">
+                    <span class="step-badge">2</span>
+                    <h4>INSTITUCIONES QUE SERÁN REEMPLAZADAS</h4>
+                </div>
+
+                <div class="correction-controls-box">
+                    <div class="table-compact-container">
+                        <table class="table-compact">
+                            <thead>
+                                <tr>
+                                    <th>ID Institución a reemplazar</th>
+                                    <th>RUC y Razón Social</th>
+                                    <th style="width: 80px; text-align: center;">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let item of institutionsToCorrect">
+                                    <td class="edit-cell">
+                                        <input type="text" [(ngModel)]="item.ruc" class="mini-inline-input" placeholder="ID / RUC">
+                                    </td>
+                                    <td class="edit-cell">
+                                        <input type="text" [(ngModel)]="item.razonSocial" class="mini-inline-input" placeholder="Datos de entidad">
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <button class="btn-remove-tiny" (click)="removeFromCorrection(item.ruc)">×</button>
+                                    </td>
+                                </tr>
+                                <tr *ngIf="institutionsToCorrect.length === 0">
+                                    <td colspan="3" class="empty-mini">Añada las instituciones que serán reemplazadas</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Suggestions based on search when principal is selected -->
+                <div class="suggestions-area-box" *ngIf="normalizationSearchTerm && principalInstitution">
+                    <div class="suggestion-list">
+                        <ng-container *ngFor="let inst of filteredNormalizationData | slice:0:3">
+                            <div class="suggest-item" 
+                                 (click)="addToCorrection(inst)"
+                                 *ngIf="inst.ruc !== principalInstitution.ruc">
+                                <span class="name">{{inst.razonSocial}}</span>
+                                <span class="plus">+</span>
+                            </div>
+                        </ng-container>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="modal-actions">
             <button class="btn-cancel" (click)="showLinkModal = false">Cancelar</button>
-            <button class="btn-save" (click)="confirmLink()">Confirmar Vinculación</button>
+            <button class="btn-save" [disabled]="isProcessingLink || !principalInstitution || institutionsToCorrect.length === 0" (click)="confirmLink()">
+                <span *ngIf="!isProcessingLink">Confirmar Vinculación</span>
+                <span *ngIf="isProcessingLink" class="spinner-sm"></span>
+            </button>
         </div>
     </app-form-modal>
 

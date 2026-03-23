@@ -142,7 +142,8 @@
                             <th>Centro Estudios</th>
                             <th>Grado/Título</th>
                             <th>Mención/Especialidad</th>
-                            <th>Fecha</th>
+                            <th>Fecha Inicio</th>
+                            <th>Fecha Fin</th>
                             <th>Fuente</th>
                         </tr>
                     </thead>
@@ -151,8 +152,14 @@
                             <td>{{ item.institution }}</td>
                             <td>{{ item.degree }}</td>
                             <td>{{ item.title }}</td>
+                            <td>{{ item.startDate | dateDisplay }}</td>
                             <td>{{ item.endDate | dateDisplay }}</td>
-                            <td><span class="badge-source">{{ item.source || 'SUNEDU' }}</span></td>
+                            <td>
+                                <span class="badge-source" [class.sunedu]="item.source === 'SUNEDU'"
+                                    [class.manual]="item.source === 'MANUAL'">
+                                    {{ item.source }}
+                                </span>
+                            </td>
                         </tr>
                     </tbody>
                 </table>

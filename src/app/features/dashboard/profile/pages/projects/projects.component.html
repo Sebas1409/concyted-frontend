@@ -102,17 +102,18 @@
                         <tr *ngFor="let project of orcidProjects; let i = index">
                             <td>{{ i + 1 }}</td>
                             <td>{{ project.fundingType }}</td>
-                            <td class="w-22 text-wrap">{{ project.title }}</td>
+                            <td class="w-22 text-wrap">
+                                <a *ngIf="project.url" [href]="project.url" target="_blank" class="project-title-link">{{ project.title }}</a>
+                                <span *ngIf="!project.url">{{ project.title }}</span>
+                            </td>
                             <td class="w-22 text-wrap">{{ project.institution }}</td>
                             <td class="w-10">{{ project.startDate | dateDisplay }}</td>
                             <td class="w-10">{{ project.endDate | dateDisplay }}</td>
                             <td>
-                                <div class="source-badge">
-                                    <span *ngIf="project.source !== 'SUNEDU'">S</span>
-                                    <img *ngIf="project.source === 'SUNEDU'" src="assets/images/sunedu-logo.png" alt="S"
-                                        style="width: 100%; height: 100%; border-radius: 50%; display: none;"
-                                        onload="this.style.display='block'">
-                                    <span *ngIf="project.source === 'SUNEDU'" style="font-size: 8px;">SUN</span>
+                                <div class="source-badge" [class.orcid-source]="project.source === 'ORCID'" [class.sunedu-source]="project.source === 'SUNEDU'">
+                                    <span *ngIf="project.source === 'ORCID'">OR</span>
+                                    <span *ngIf="project.source === 'SUNEDU'">SUN</span>
+                                    <span *ngIf="project.source !== 'SUNEDU' && project.source !== 'ORCID'">S</span>
                                 </div>
                             </td>
                             <td class="actions">

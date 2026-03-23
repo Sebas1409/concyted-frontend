@@ -107,7 +107,8 @@ export class ResearcherPublicProfileComponent implements OnInit {
                     nationality: res.nacionalidad || '---',
                     email: res.emailPublico || res.email || '---',
                     phone: res.celular || res.telefono || '---',
-                    residence: '---'
+                    residence: '---',
+                    isValidated: !!res.validado
                 };
 
                 // 3. Fetch names for IDs
@@ -132,7 +133,17 @@ export class ResearcherPublicProfileComponent implements OnInit {
         if (res.sexo) {
             this.catalogService.getPublicMasterDetailsByCode('CATSEX').subscribe(genders => {
                 const gender = genders.find(g => g.codigo === res.sexo || g.id === Number(res.sexo));
-                if (gender) this.generalData.gender = gender.nombre;
+                if (gender) {
+                    this.generalData.gender = gender.nombre;
+                } else {
+                    // Fallback to manual mapping if not found in catalog
+                    const genderMap: any = {
+                        'SEX001': 'MASCULINO',
+                        'SEX002': 'FEMENINO'
+                    };
+                    this.generalData.gender = genderMap[res.sexo] || res.sexo;
+                }
+                this.cdr.detectChanges();
             });
         }
 
@@ -204,8 +215,9 @@ export class ResearcherPublicProfileComponent implements OnInit {
                     institution: item.institucionNombre,
                     degree: item.nivelAcademicoNombre,
                     title: item.nombreTituloGrado,
+                    startDate: item.fechaInicio,
                     endDate: item.fechaFin,
-                    source: item.esSunedu ? 'SUNEDU' : 'MANUAL'
+                    source: item.sunedu ? 'SUNEDU' : 'MANUAL'
                 }));
 
                 // Map Technical

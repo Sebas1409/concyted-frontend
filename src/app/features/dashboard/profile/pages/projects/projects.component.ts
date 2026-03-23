@@ -40,6 +40,7 @@ interface OrcidProject {
     startDate: string;
     endDate: string;
     source: string; // e.g. Sunedu logo or text
+    url?: string;
 }
 
 interface Collaborator {
@@ -310,8 +311,12 @@ export class ProjectsComponent implements OnInit {
                         endDate: p.fechaFin ? p.fechaFin.split('T')[0] : ''
                     }));
 
-                    // Leave orcidProjects empty for now
-                    this.orcidProjects = [];
+                    // Load ORCID projects if orcidId is available
+                    if (currentUser.orcid) {
+                        this.loadOrcidProjects(currentUser.orcid);
+                    } else {
+                        this.orcidProjects = [];
+                    }
 
                     this.cdr.detectChanges();
                 },
@@ -323,6 +328,35 @@ export class ProjectsComponent implements OnInit {
                 }
             });
         }
+    }
+
+    loadOrcidProjects(orcidId: string) {
+        this.projectService.importOrcidWorks(orcidId).subscribe({
+            next: (resp) => {
+                if (resp && resp.data && resp.data.publications) {
+                    this.orcidProjects = resp.data.publications.map((p: any) => ({
+                        id: p.putCode || 0,
+                        code: (p.putCode || '').toString(),
+                        fundingType: p.type || 'Publicación',
+                        title: p.title || 'Sin título',
+                        description: '',
+                        institution: 'ORCID',
+                        startDate: p.year ? p.year.toString() : '---',
+                        endDate: p.year ? p.year.toString() : '---',
+                        source: 'ORCID',
+                        url: p.url || ''
+                    }));
+                } else {
+                    this.orcidProjects = [];
+                }
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                console.error('Error importing ORCID works', err);
+                this.orcidProjects = [];
+                this.cdr.detectChanges();
+            }
+        });
     }
 
     loadAreas() {

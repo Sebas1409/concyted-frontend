@@ -1,14 +1,16 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { finalize } from 'rxjs/operators';
 import { IntroCardComponent } from '../../../../shared/components/intro-card/intro-card.component';
 import { FormModalComponent } from '../../../../shared/components/form-modal/form-modal.component';
 import { AlertService } from '../../../../core/services/alert.service';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { NormalizationService, Institucion, CorregirRequest } from '../../../../core/services/normalization.service';
 
-interface Institution {
+interface InstitutionUI {
     id: string; // RUC
     name: string; // Razon Social
     url: string;
@@ -22,63 +24,230 @@ interface Institution {
     templateUrl: './institution-management.component.html',
     styleUrls: ['./institution-management.component.scss']
 })
-export class InstitutionManagementComponent {
+export class InstitutionManagementComponent implements OnInit {
+    // Search and Pagination
     searchTerm: string = '';
     appliedSearchTerm: string = '';
     pageSize: number = 10;
     currentPage: number = 1;
+    
+    // Core Data
+    institutions: InstitutionUI[] = [];
+    isLoading: boolean = false;
+    
+    // Linking / Normalization Modal State
     showLinkModal: boolean = false;
+    isProcessingLink: boolean = false;
+    normalizationData: Institucion[] = [];
+    normalizationSearchTerm: string = '';
+    principalInstitution: Institucion | null = null;
+    institutionsToCorrect: Institucion[] = [];
 
     // Sorting
     sortField: string = 'name';
     sortOrder: 'asc' | 'desc' = 'asc';
 
-    linkForm = {
-        ruc: '',
-        socialReason: '',
-        accessUrl: ''
-    };
+    constructor(
+        private alertService: AlertService,
+        private normalizationService: NormalizationService,
+        private cdr: ChangeDetectorRef
+    ) { }
 
-    institutions: Institution[] = [
-        { id: '20123456789', name: 'A Universidad', url: 'https://dina.concytec.gob.pe/universidad-nacional-de-ingenie...', checked: true },
-        { id: '20234567890', name: 'B Universitaria', url: 'https://dina.concytec.gob.pe/universidad-nacional-agraria-la-molina', checked: true },
-        { id: '20345678901', name: 'C Centro Académico', url: 'https://dina.concytec.gob.pe/universidad-de-san-marcos', checked: true },
-        { id: '20456789012', name: 'D Instituto de Estudios', url: 'https://dina.concytec.gob.pe/universidad-nacional-de-san-antonio-abad...', checked: true },
-        { id: '20567890123', name: 'E Facultad de Ciencias', url: 'https://dina.concytec.gob.pe/universidad-nacional-de-trujillo', checked: true },
-        { id: '20678901234', name: 'F Escuela Técnica', url: 'https://dina.concytec.gob.pe/universidad-catolica-de-santa-maria', checked: true },
-        { id: '20789012345', name: 'G Universidad Politécnica', url: 'https://dina.concytec.gob.pe/universidad-de-piura', checked: true },
-        { id: '20890123456', name: 'H Academia Superior', url: 'https://dina.concytec.gob.pe/universidad-nacional-de-cajamarca', checked: true },
-    ];
+    ngOnInit() {
+        console.log('[DEBUG] InstitutionManagementComponent initialized');
+        this.loadMainInstitutions();
+    }
 
-    constructor(private alertService: AlertService) { }
+    loadMainInstitutions() {
+        this.isLoading = true;
+        console.log('[DEBUG] Calling getInstitucionesNormalizacion for main table');
+        
+        this.normalizationService.getInstitucionesNormalizacion()
+            .pipe(finalize(() => {
+                this.isLoading = false;
+                console.log('[DEBUG] Loading state cleared');
+            }))
+            .subscribe({
+                next: (res: any) => {
+                    this.isLoading = false;
+                    this.cdr.detectChanges();
+                    console.log('[DEBUG] Response processed:', res);
+                    
+                    if (res && res.instituciones) {
+                        this.institutions = res.instituciones.map((i: any) => ({
+                            id: i.ruc || '[Sin RUC]',
+                            name: i.razonSocial || (i.ruc ? `Institución ${i.ruc}` : '[Sin Nombre]'),
+                            url: '---', 
+                            checked: false
+                        }));
+                    } else {
+                        this.institutions = [];
+                    }
+                    this.cdr.detectChanges();
+                },
+                error: (err) => {
+                    this.isLoading = false;
+                    this.cdr.detectChanges();
+                    console.error('[DEBUG] Error fetching:', err);
+                    this.alertService.error('Error', 'No se pudo cargar la lista de instituciones');
+                }
+            });
+    }
 
-    get filteredInstitutions(): Institution[] {
+    // Modal logic
+    openLinkModal() {
+        this.showLinkModal = true;
+        this.principalInstitution = null;
+        this.normalizationSearchTerm = '';
+        this.isProcessingLink = false;
+        
+        // Auto-select duplicate records from checkboxes
+        this.institutionsToCorrect = this.institutions
+            .filter(i => i.checked)
+            .map(i => ({
+                ruc: i.id === '[Sin RUC]' ? '' : i.id,
+                razonSocial: i.name.startsWith('Institución ') ? '' : i.name
+            }));
+
+        this.loadNormalizationData();
+    }
+
+    loadNormalizationData() {
+        this.normalizationService.getInstitucionesNormalizacion().subscribe({
+            next: (res) => {
+                this.normalizationData = res.instituciones || [];
+            },
+            error: (err) => {
+                console.error('[DEBUG] Error loading normalization data for modal:', err);
+            }
+        });
+    }
+
+    setAsPrincipal(inst: Institucion) {
+        this.principalInstitution = { ...inst };
+        this.normalizationSearchTerm = ''; // Clear search to hide overlay
+        // If it was in correction list, remove it
+        this.institutionsToCorrect = this.institutionsToCorrect.filter(i => i.ruc !== inst.ruc);
+    }
+
+    addToCorrection(inst: Institucion) {
+        // Avoid adding the principal to correction list
+        if (this.principalInstitution && this.principalInstitution.ruc === inst.ruc) {
+            this.alertService.warning('Acción Inválida', 'No puede añadir la misma institución principal a la lista de corrección');
+            return;
+        }
+
+        const exists = this.institutionsToCorrect.some(i => i.ruc === inst.ruc);
+        if (!exists) {
+            this.institutionsToCorrect.push({ ...inst });
+        }
+        this.normalizationSearchTerm = ''; // Clear search to hide overlay
+    }
+
+    createManualPrincipal() {
+        this.principalInstitution = {
+            ruc: '',
+            razonSocial: ''
+        };
+        this.normalizationSearchTerm = ''; // Close any open search overlay
+    }
+
+    removeFromCorrection(ruc: string) {
+        this.institutionsToCorrect = this.institutionsToCorrect.filter(i => i.ruc !== ruc);
+    }
+
+    // Final Action (PUT)
+    confirmLink() {
+        if (!this.principalInstitution || !this.principalInstitution.ruc?.trim()) {
+            this.alertService.warning('Paso 1 Incompleto', 'Defina el RUC/ID de la institución maestra');
+            return;
+        }
+        
+        // Final validation of corrections list
+        const validCorrections = this.institutionsToCorrect.filter(i => i.ruc?.trim());
+        if (validCorrections.length === 0) {
+            this.alertService.warning('Paso 2 Incompleto', 'Añada al menos una institución válida que será reemplazada');
+            return;
+        }
+
+        // Check for conflicts between steps (manual edits might have caused duplicates)
+        const principalRuc = this.principalInstitution.ruc.trim();
+        const conflict = validCorrections.some(i => i.ruc.trim() === principalRuc);
+        if (conflict) {
+            this.alertService.warning('Conflicto detectado', 'La institución principal no puede estar también en la lista de reemplazo');
+            return;
+        }
+
+        const request: CorregirRequest = {
+            institucionPrincipal: { ...this.principalInstitution, ruc: principalRuc },
+            institucionesPorCorregir: validCorrections.map(i => ({ ...i, ruc: i.ruc.trim() }))
+        };
+
+        this.isProcessingLink = true;
+        console.log('[DEBUG] Sending Correction Request:', JSON.stringify(request, null, 2));
+
+        this.normalizationService.corregirInstituciones(request)
+            .pipe(finalize(() => {
+                this.isProcessingLink = false;
+                this.cdr.detectChanges();
+            }))
+            .subscribe({
+                next: (res) => {
+                    const msg = res.totalRegistrosActualizados > 0 
+                        ? `Registros actualizados: ${res.totalRegistrosActualizados}`
+                        : 'No se encontraron investigadores vinculados a estas instituciones para actualizar.';
+                    
+                    this.alertService.success(
+                        res.totalRegistrosActualizados > 0 ? 'Vinculación Exitosa' : 'Proceso Completado',
+                        msg
+                    );
+                    
+                    this.showLinkModal = false;
+                    this.institutions.forEach(i => i.checked = false);
+                    this.loadMainInstitutions();
+                    this.cdr.detectChanges();
+                },
+                error: (err) => {
+                    console.error('[DEBUG] Full error object from API:', err);
+                    const errorMsg = err.error?.message || 'Error inesperado al procesar la vinculación. Por favor, reintente.';
+                    this.alertService.error('Error de Servidor', errorMsg);
+                    this.cdr.detectChanges();
+                }
+            });
+    }
+
+    // Getters for table display
+    get filteredNormalizationData(): Institucion[] {
+        if (!this.normalizationSearchTerm) return this.normalizationData;
+        const term = this.normalizationSearchTerm.toLowerCase();
+        return this.normalizationData.filter(i =>
+            (i.ruc && i.ruc.toLowerCase().includes(term)) ||
+            (i.razonSocial && i.razonSocial.toLowerCase().includes(term))
+        );
+    }
+
+    get filteredInstitutions(): InstitutionUI[] {
         let result = this.institutions;
-
         if (this.appliedSearchTerm) {
             const term = this.appliedSearchTerm.toLowerCase();
             result = result.filter(i =>
                 i.id.toLowerCase().includes(term) ||
-                i.name.toLowerCase().includes(term) ||
-                i.url.toLowerCase().includes(term)
+                i.name.toLowerCase().includes(term)
             );
         }
-
         if (this.sortField) {
             result = [...result].sort((a: any, b: any) => {
                 const valA = a[this.sortField]?.toString().toLowerCase() || '';
                 const valB = b[this.sortField]?.toString().toLowerCase() || '';
-
                 if (valA < valB) return this.sortOrder === 'asc' ? -1 : 1;
                 if (valA > valB) return this.sortOrder === 'asc' ? 1 : -1;
                 return 0;
             });
         }
-
         return result;
     }
 
-    get paginatedInstitutions(): Institution[] {
+    get paginatedInstitutions(): InstitutionUI[] {
         const filtered = this.filteredInstitutions;
         const start = (this.currentPage - 1) * this.pageSize;
         return filtered.slice(start, start + this.pageSize);
@@ -88,7 +257,7 @@ export class InstitutionManagementComponent {
         return Math.ceil(this.filteredInstitutions.length / this.pageSize) || 1;
     }
 
-    get pagesArray() {
+    get pagesArray(): number[] {
         const total = this.totalPages;
         const pages = [];
         for (let i = 1; i <= total; i++) {
@@ -97,6 +266,7 @@ export class InstitutionManagementComponent {
         return pages;
     }
 
+    // Controls
     setPage(page: number) {
         if (page >= 1 && page <= this.totalPages) {
             this.currentPage = page;
@@ -112,100 +282,61 @@ export class InstitutionManagementComponent {
         }
     }
 
-    openLinkModal() {
-        this.linkForm = {
-            ruc: '',
-            socialReason: '(Se llena automáticamente)',
-            accessUrl: '(Generación automática)'
-        };
-        this.showLinkModal = true;
-    }
-
-    deleteInstitution(id: string) {
-        if (confirm('¿Estás seguro de eliminar esta institución?')) {
-            this.institutions = this.institutions.filter(i => i.id !== id);
-        }
-    }
-
     search() {
         this.appliedSearchTerm = this.searchTerm;
         this.currentPage = 1;
     }
 
-    private getSelectedData() {
-        const selected = this.filteredInstitutions.filter(i => i.checked);
-        const dataToExport = selected.length > 0 ? selected : this.filteredInstitutions;
+    deleteInstitution(id: string) {
+        if (confirm('¿Desea desvincular esta institución permanentemente?')) {
+            this.institutions = this.institutions.filter(i => i.id !== id);
+        }
+    }
 
-        return dataToExport.map(i => ({
-            'RUC': i.id,
-            'Razón Social': i.name,
-            'URL': i.url
-        }));
+    // Export Utils
+    private getSelectedDataForExport() {
+        const selected = this.institutions.filter(i => i.checked);
+        const source = selected.length > 0 ? selected : this.institutions;
+        return source.map(i => ({ RUC: i.id, RazónSocial: i.name, URL: i.url }));
     }
 
     copyToClipboard() {
-        const data = this.getSelectedData();
+        const data = this.getSelectedDataForExport();
         if (data.length === 0) return;
-
-        const headers = Object.keys(data[0]).join('\t');
-        const rows = data.map(obj => Object.values(obj).join('\t')).join('\n');
-        const text = `${headers}\n${rows}`;
-
-        navigator.clipboard.writeText(text).then(() => {
-            this.alertService.success('Copiado', 'Datos copiados al portapapeles');
-        });
+        const text = data.map(obj => Object.values(obj).join('\t')).join('\n');
+        navigator.clipboard.writeText(text).then(() => this.alertService.success('Portapapeles', 'Copiado con éxito'));
     }
 
     downloadExcel() {
-        const data = this.getSelectedData();
+        const data = this.getSelectedDataForExport();
         if (data.length === 0) return;
-
-        const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data);
-        const wb: XLSX.WorkBook = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Instituciones');
-        XLSX.writeFile(wb, `Instituciones_${new Date().getTime()}.xlsx`);
+        XLSX.writeFile(wb, `Instituciones_${Date.now()}.xlsx`);
     }
 
     downloadCSV() {
-        const data = this.getSelectedData();
+        const data = this.getSelectedDataForExport();
         if (data.length === 0) return;
-
-        const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data);
+        const ws = XLSX.utils.json_to_sheet(data);
         const csv = XLSX.utils.sheet_to_csv(ws);
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `Instituciones_${new Date().getTime()}.csv`;
+        link.download = `Instituciones_${Date.now()}.csv`;
         link.click();
     }
 
     printPDF() {
-        const data = this.getSelectedData();
+        const data = this.getSelectedDataForExport();
         if (data.length === 0) return;
-
         const doc = new jsPDF();
-        const headers = [Object.keys(data[0])];
-        const rows = data.map(obj => Object.values(obj).map(String));
-
         autoTable(doc, {
-            head: headers,
-            body: rows,
-            theme: 'grid',
+            head: [['RUC', 'Razón Social', 'URL']],
+            body: data.map(i => [i.RUC, i.RazónSocial, i.URL]),
             headStyles: { fillColor: [0, 84, 112] }
         });
-
-        doc.save(`Instituciones_${new Date().getTime()}.pdf`);
-    }
-
-    confirmLink() {
-        if (this.linkForm.ruc) {
-            this.institutions.push({
-                id: this.linkForm.ruc,
-                name: this.linkForm.socialReason || 'Nueva Institución',
-                url: 'https://dina.concytec.gob.pe/...',
-                checked: true
-            });
-        }
-        this.showLinkModal = false;
+        doc.save(`Instituciones_${Date.now()}.pdf`);
     }
 }

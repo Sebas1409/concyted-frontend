@@ -179,6 +179,16 @@
                 color: #004E5A;
                 font-weight: 800;
                 font-size: 1rem;
+
+                &.profile-link {
+                    text-decoration: none;
+                    cursor: pointer;
+
+                    &:hover {
+                        text-decoration: underline;
+                        color: #005470;
+                    }
+                }
             }
 
             /* Logos */
@@ -259,6 +269,7 @@
                 padding: 1rem;
                 text-align: left;
                 border-bottom: 1px solid #ddd;
+                vertical-align: middle;
             }
         }
 
@@ -278,9 +289,9 @@
             }
 
             td {
-                padding: 1rem;
+                padding: 1rem 0.75rem !important;
                 color: #444;
-                vertical-align: top;
+                vertical-align: middle !important;
                 line-height: 1.5;
             }
         }
@@ -319,4 +330,12 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+.reniec-logo-sm {
+    max-height: 35px; // Slightly smaller?
+    width: auto;
+    object-fit: contain;
+    display: block; // Changed back to block for margin auto to work
+    margin: 0 auto;
 }

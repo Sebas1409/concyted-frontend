@@ -74,4 +74,8 @@ export class ProjectService {
     deleteProject(id: number): Observable<any> {
         return this.http.delete(`${this.apiUrl}/proyecto-idi/${id}`);
     }
+
+    importOrcidWorks(orcidId: string): Observable<any> {
+        return this.http.post(`${environment.interopServiceUrl}/auth/orcid/works/import`, { orcidId });
+    }
 }

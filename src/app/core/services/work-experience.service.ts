@@ -96,7 +96,7 @@ export class WorkExperienceService {
     }
 
     getPublicProjects(investigadorId: number): Observable<any[]> {
-        return this.http.get<any[]>(`${this.publicApiUrl}/proyecto-idi/investigador/${investigadorId}`);
+        return this.http.get<any[]>(`${this.publicApiUrl}/proyecto-idi/investigador/${investigadorId}/con-colaboradores`);
     }
 
     createProject(data: any): Observable<any> {

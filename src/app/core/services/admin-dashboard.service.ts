@@ -46,7 +46,22 @@ export class AdminDashboardService {
 
     constructor(private http: HttpClient) { }
 
-    getDashboardStats(): Observable<DashboardData> {
-        return this.http.get<DashboardData>(this.apiUrl);
+    getDashboardStats(filters?: {
+        anio?: number;
+        anioDesde?: number;
+        anioHasta?: number;
+        fechaDesde?: string;
+        fechaHasta?: string;
+    }): Observable<DashboardData> {
+        let params: any = {};
+        if (filters) {
+            Object.keys(filters).forEach(key => {
+                const value = (filters as any)[key];
+                if (value !== null && value !== undefined && value !== '') {
+                    params[key] = value.toString();
+                }
+            });
+        }
+        return this.http.get<DashboardData>(this.apiUrl, { params });
     }
 }
