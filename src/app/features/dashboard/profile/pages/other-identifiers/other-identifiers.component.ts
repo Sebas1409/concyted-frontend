@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
-import { switchMap } from 'rxjs';
+import { finalize, switchMap } from 'rxjs';
 import Swal from 'sweetalert2';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../../core/services/auth.service';
@@ -10,20 +10,24 @@ import { QualificationBadgeComponent } from '../../../../../shared/components/qu
 
 import { AlertService } from '../../../../../core/services/alert.service';
 import { OrcidService } from '../../../../../core/services/orcid.service';
+import { WosService } from '../../../../../core/services/wos.service';
 import { OnInit, ChangeDetectorRef } from '@angular/core';
 
 @Component({
     selector: 'app-other-identifiers',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, QualificationBadgeComponent],
+    imports: [CommonModule, ReactiveFormsModule, FormsModule, QualificationBadgeComponent],
     templateUrl: './other-identifiers.component.html',
     styleUrl: './other-identifiers.component.scss'
 })
 export class OtherIdentifiersComponent implements OnInit {
     orcidId: string = '';
     orcidName: string = '';
+    wosId: string = '';
+
     constructor(
         private orcidService: OrcidService,
+        private wosService: WosService,
         private authService: AuthService,
         private alertService: AlertService,
         private router: Router,
@@ -32,15 +36,14 @@ export class OtherIdentifiersComponent implements OnInit {
 
     ngOnInit() {
         this.authService.currentUser$.subscribe(user => {
-            if (user && user.orcid) {
-                this.orcidId = user.orcid;
-                // Solo asignamos el nombre si tenemos un campo específico para el nombre verificado de ORCID
-                // o si el usuario desea mostrarlo. Por ahora, si no hay orcid, dejamos vacío.
-                // Usamos orcidFamilyName si existe en el modelo, de lo contrario vacío para no mostrar el nombre del logueado.
+            if (user) {
+                this.orcidId = user.orcid || '';
                 this.orcidName = user.orcidFamilyName || '';
+                this.wosId = user.researcherId || '';
             } else {
                 this.orcidId = '';
                 this.orcidName = '';
+                this.wosId = '';
             }
             this.cdr.markForCheck();
         });
@@ -188,5 +191,57 @@ export class OtherIdentifiersComponent implements OnInit {
 
     onCreateOrcid() {
         window.open('https://orcid.org/register', '_blank');
+    }
+
+    onWosSync() {
+        const user = this.authService.getCurrentUser();
+        if (!user || !user.id) return;
+
+        if (!this.wosId || !this.wosId.trim()) {
+            this.alertService.warning('Campo Requerido', 'Por favor ingrese su ResearcherID para sincronizar.');
+            return;
+        }
+
+        this.alertService.loading('Actualizando', 'Sincronizando con Web of Science...');
+        this.wosService.updateWos(user.id, this.wosId.trim()).subscribe({
+            next: () => {
+                this.authService.refreshCurrentUser().subscribe();
+                this.alertService.success('Completado', 'Su ResearcherID ha sido sincronizado correctamente.');
+            },
+            error: (err) => {
+                console.error('Error al sincronizar WoS:', err);
+                this.alertService.error('Error', 'No se pudo sincronizar con Web of Science.');
+            }
+        });
+    }
+
+    onWosDelete() {
+        const user = this.authService.getCurrentUser();
+        if (!user || (!user.researcherId && !this.wosId)) {
+            this.alertService.info('Información', 'No existe un ResearcherID vinculado para eliminar.');
+            return;
+        }
+
+        this.alertService.confirm(
+            'Desvincular Web of Science',
+            '¿Está seguro de que desea eliminar la vinculación con su cuenta de ResearcherID?',
+            'Sí, eliminar',
+            'No, cancelar'
+        ).then(confirmed => {
+            if (confirmed) {
+                this.alertService.loading('Eliminando', 'Desvinculando su cuenta de Web of Science...');
+                this.wosService.deleteWos(user.id).subscribe({
+                    next: () => {
+                        this.authService.refreshCurrentUser().subscribe();
+                        this.wosId = '';
+                        this.alertService.success('Desvinculado', 'Su cuenta de ResearcherID ha sido desvinculada correctamente.');
+                    },
+                    error: (err) => {
+                        console.error('Error al desvincular WoS:', err);
+                        this.alertService.error('Error', 'No se pudo completar la desvinculación con Web of Science.');
+                    }
+                });
+            }
+        });
     }
 }

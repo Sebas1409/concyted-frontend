@@ -263,16 +263,16 @@ export class ResearcherPublicProfileComponent implements OnInit {
 
                 // Map Projects
                 this.projects = results.projects.map(item => {
-                    const roleCode = item.rolDesempenado || item.rol;
-                    const typeCode = item.tipoProyectoCti || item.tipoProyecto;
+                    const roleCode = item.rolDesempenadoId || item.rolDesempenado || item.rol;
+                    const typeCode = item.tipoProyectoId || item.tipoProyectoCti || item.tipoProyecto;
                     const role = this.projectRoles.find(r => r.codigo === roleCode);
                     const type = this.projectTypes.find(t => t.codigo === typeCode);
 
                     return {
-                        title: item.nombreConcurso || '---',
+                        title: item.nombreProyecto || item.nombreConcurso || '---',
                         type: type ? type.nombre : (typeCode || '---'),
                         role: role ? role.nombre : (roleCode || '---'),
-                        amount: item.montoUsd || 0,
+                        amount: item.montoFinanciado || item.montoUsd || 0,
                         status: 'Activo' // Or map from data if available
                     };
                 });

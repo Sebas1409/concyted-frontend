@@ -164,7 +164,7 @@
             </div>
             <div class="form-group mb-4">
                 <label class="form-label">ResearcherID 🌐</label>
-                <input type="text" class="form-input" placeholder="Ej. HKV-7554-2023">
+                <input type="text" class="form-input" placeholder="Ej. HKV-7554-2023" [(ngModel)]="wosId">
             </div>
             <div class="field-hint">Tu ResearcherID suele tener el formato L-XXXX-20XX.</div>
         </div>
@@ -188,7 +188,7 @@
                     <div class="arrow">→</div>
                 </button>
                 <!-- Sincronizar -->
-                <button class="action-card card-wos">
+                <button class="action-card card-wos" (click)="onWosSync()">
                     <div class="icon-circle wos-bg">
                         <img src="assets/images/wos-icon.png" alt="" class="wos-icon-img"
                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
@@ -201,7 +201,7 @@
                     <div class="arrow">→</div>
                 </button>
                 <!-- Desvincular -->
-                <button class="action-card card-wos">
+                <button class="action-card card-wos" (click)="onWosDelete()">
                     <div class="icon-circle wos-bg-pale">
                         <span class="logo-text" style="color: #F97316; font-size: 20px;">●</span>
                     </div>
