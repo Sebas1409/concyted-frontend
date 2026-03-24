@@ -93,29 +93,27 @@
             </div>
             <div class="form-group mb-4">
                 <label class="form-label">Scopus Author ID 🌐</label>
-                <div class="input-with-icon-group" style="position: relative; display: flex; align-items: center;">
-                    <input type="text" class="form-input" placeholder="Ingresa tu ID aquí..."
-                        style="padding-right: 50px;">
-                    <div class="input-badges"
-                        style="position: absolute; right: 12px; display: flex; align-items: center; pointer-events: none;">
-                        <app-qualification-badge type="renacyt"
-                            style="transform: scale(1.0); pointer-events: auto;"></app-qualification-badge>
-                    </div>
+                <div class="input-with-badge">
+                    <input type="text" class="form-input" placeholder="Ingresa tu ID aquí..." [(ngModel)]="scopusId">
+                    <app-qualification-badge 
+                        type="renacyt" 
+                        customTooltip="Considerado para calificación en Renacyt - Ingrese su Scopus Author ID"
+                        class="input-badge">
+                    </app-qualification-badge>
                 </div>
             </div>
             <div class="form-group">
                 <label class="form-label">Índice H 🌐</label>
-                <input type="text" class="form-input" placeholder="Se sincronizará automáticamente" readonly>
-                <div class="field-hint">¿No sabes tu ID? <a href="https://www.scopus.com/pages/home" target="_blank"
-                        class="link-scopus">Búscalo en Scopus</a></div>
+                <input type="text" class="form-input" placeholder="Se sincronizará automáticamente" [(ngModel)]="scopusHIndex" readonly>
             </div>
+            <div class="field-hint">¿No sabes tu ID? <a href="https://www.scopus.com/freelookup/form/author.uri" target="_blank" class="link-wos">Búscalo en Scopus</a></div>
         </div>
 
         <!-- RIGHT -->
         <div class="right-section">
             <div class="action-grid">
                 <!-- Verificar -->
-                <button class="action-card card-scopus">
+                <button class="action-card card-scopus" (click)="onScopusVerify()">
                     <div class="icon-circle scopus-bg">
                         <span class="logo-text">SC</span>
                     </div>
@@ -126,7 +124,7 @@
                     <div class="arrow">→</div>
                 </button>
                 <!-- Sincronizar -->
-                <button class="action-card card-scopus">
+                <button class="action-card card-scopus" (click)="onScopusSync()">
                     <div class="icon-circle scopus-bg">
                         <span class="logo-text">SC</span>
                     </div>
@@ -137,7 +135,7 @@
                     <div class="arrow">→</div>
                 </button>
                 <!-- Desvincular -->
-                <button class="action-card card-scopus">
+                <button class="action-card card-scopus" (click)="onScopusDelete()">
                     <div class="icon-circle scopus-bg-pale">
                         <span class="logo-text" style="color:#FF9100">SC</span>
                     </div>
@@ -164,7 +162,7 @@
             </div>
             <div class="form-group mb-4">
                 <label class="form-label">ResearcherID 🌐</label>
-                <input type="text" class="form-input" placeholder="Ej. HKV-7554-2023" [(ngModel)]="wosId">
+                <input type="text" class="form-input" placeholder="Ej. HKV-7554-2023" [(ngModel)]="wosId" (ngModelChange)="wosExternalName = ''">
             </div>
             <div class="field-hint">Tu ResearcherID suele tener el formato L-XXXX-20XX.</div>
         </div>
@@ -173,10 +171,9 @@
         <div class="right-section">
             <div class="action-grid">
                 <!-- Obtener ID -->
-                <button class="action-card card-wos"
+                <button class="action-card card-wos" (click)="onWosHelp()"
                     title="Después de iniciar sesión, dirigirse al menú lateral izquierdo y hacer clic en la opción Researcher Profile, y ahí encontrara el Web of Science ResearcherID (ejemplo: HKV-7554-2023)">
                     <div class="icon-circle wos-bg">
-                        <!-- Simple dot grid simulation or img -->
                         <img src="assets/images/wos-icon.png" alt="" class="wos-icon-img"
                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                         <span class="logo-text" style="display:none; font-size: 0.6rem;">WOS</span>
@@ -196,7 +193,7 @@
                     </div>
                     <div class="action-text">
                         <span class="action-title title-wos">Sincronizar Perfil</span>
-                        <span class="action-subtitle">Valida el código y descarga tu producción.</span>
+                        <span class="action-subtitle">Sincroniza tu ResearcherID para validar tu perfil.</span>
                     </div>
                     <div class="arrow">→</div>
                 </button>

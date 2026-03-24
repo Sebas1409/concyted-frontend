@@ -567,63 +567,32 @@
             }
         }
 
-        .selected-principal-box {
-            background: white;
-            border: 2px solid #005470;
-            border-radius: 12px;
-            padding: 16px;
+        .selection-summary-mini {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 12px 16px;
             margin-top: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid #005470;
 
-            .inst-info-row {
+            .summary-details {
                 display: flex;
-                align-items: center;
-                gap: 16px;
+                flex-direction: column;
+                gap: 2px;
 
-                .inst-icon-box {
-                    font-size: 24px;
-                    background: #F1F5F9;
-                    width: 48px;
-                    height: 48px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    border-radius: 10px;
-                }
-                .inst-details-box {
-                    flex: 1;
-                    display: flex;
-                    flex-direction: column;
-
-                    .ruc {
-                        font-size: 11px;
-                        font-weight: 700;
-                        color: #005470;
-                        text-transform: uppercase;
-                    }
-
-                    .name {
-                        font-size: 14px;
-                        font-weight: 600;
-                        color: #0F172A;
-                    }
+                .summary-name {
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #0F172A;
+                    line-height: 1.4;
                 }
 
-                .btn-change-box {
-                    background: transparent;
-                    border: 1px solid #CBD5E1;
-                    color: #64748B;
-                    padding: 6px 12px;
-                    border-radius: 6px;
-                    font-size: 12px;
-                    font-weight: 500;
-                    cursor: pointer;
-                    transition: all 0.2s;
-
-                    &:hover {
-                        background: #F1F5F9;
-                        border-color: #94A3B8;
-                        color: #0F172A;
-                    }
+                .summary-ruc {
+                    font-size: 11px;
+                    font-weight: 700;
+                    color: #005470;
+                    letter-spacing: 0.5px;
                 }
             }
         }

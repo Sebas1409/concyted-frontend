@@ -13,6 +13,8 @@ import { AuthService } from '../../../../../core/services/auth.service';
 import { ScientificProductionService, AliciaRequest } from '../../../../../core/services/scientific-production.service';
 import { AlertService } from '../../../../../core/services/alert.service';
 import { FileService } from '../../../../../core/services/file.service';
+import { WosService } from '../../../../../core/services/wos.service';
+import { OrcidService } from '../../../../../core/services/orcid.service';
 import { FileModule, FileCategory, FileSection } from '../../../../../core/constants/file-upload.constants';
 import { forkJoin, of, Observable } from 'rxjs';
 import { QualificationBadgeComponent } from '../../../../../shared/components/qualification-badge/qualification-badge.component';
@@ -72,6 +74,8 @@ export class ScientificProductionComponent implements OnInit {
     currentPageAlicia = 1;
     itemsPerPageAlicia = 10;
     isLoadingAlicia = false;
+    hasSearchedInternational = false;
+    hasSearchedAlicia = false;
 
     // Data for Tables
     importedList: any[] = [];
@@ -127,6 +131,8 @@ export class ScientificProductionComponent implements OnInit {
         private spService: ScientificProductionService,
         private alertService: AlertService,
         private fileService: FileService,
+        private wosService: WosService,
+        private orcidService: OrcidService,
         private cdr: ChangeDetectorRef
     ) {
         this.publicationForm = this.fb.group({
@@ -649,6 +655,8 @@ export class ScientificProductionComponent implements OnInit {
 
     closeImportModal() {
         this.showImportModal = false;
+        this.hasSearchedInternational = false;
+        this.hasSearchedAlicia = false;
     }
 
     resetImportState() {
@@ -671,8 +679,124 @@ export class ScientificProductionComponent implements OnInit {
     }
 
     toggleSync(service: 'orcid' | 'scopus' | 'profile') {
-        this.syncStatus[service] = !this.syncStatus[service];
-        // In real app, this would trigger OAuth flow
+        const user = this.authService.getCurrentUser();
+        if (!user) return;
+
+        // One at a time: clear others if selecting a new one
+        const isCurrentActive = this.syncStatus[service];
+        
+        // Reset all
+        this.syncStatus.orcid = false;
+        this.syncStatus.scopus = false;
+        this.syncStatus.profile = false;
+        this.rawAliciaResults = [];
+        this.applyAliciaFilters();
+
+        if (!isCurrentActive) {
+            this.syncStatus[service] = true;
+            if (service === 'profile') {
+                const wosId = (user as any).researcherId || user.researcherId;
+                if (wosId) {
+                    this.fetchWosPublications(wosId);
+                } else {
+                    this.syncStatus.profile = false;
+                    this.alertService.warning('ResearcherID no vinculado', 'Por favor, vincule su cuenta de Web of Science en la sección de otros identificadores.');
+                }
+            } else if (service === 'orcid') {
+                const orcidId = user.orcid;
+                if (orcidId) {
+                    this.fetchOrcidPublications(orcidId);
+                } else {
+                    this.syncStatus.orcid = false;
+                    this.alertService.warning('ORCID no vinculado', 'Por favor, vincule su cuenta de ORCID en la sección de otros identificadores.');
+                }
+            } else {
+                // Scopus mock or other logic
+                this.syncStatus[service] = true;
+            }
+        }
+    }
+
+    private fetchOrcidPublications(orcidId: string) {
+        this.isLoadingAlicia = true;
+        this.orcidService.importOrcidWorks(orcidId).pipe(
+            finalize(() => {
+                this.isLoadingAlicia = false;
+                this.cdr.detectChanges();
+            })
+        ).subscribe({
+            next: (res: any) => {
+                const results = res?.data?.publications || [];
+                console.log('[ORCID] Works received:', results);
+                
+                this.rawAliciaResults = results.map((item: any) => ({
+                    id: item.putCode || Math.random().toString(36).substr(2, 9),
+                    title: item.title || 'Sin título',
+                    date: item.year || 'N/A',
+                    url: item.url || (item.doi ? `https://doi.org/${item.doi}` : '#'),
+                    type: item.type || 'Publicación',
+                    source: 'ORCID',
+                    journal: 'ORCID',
+                    apiSource: 'ORCID',
+                    alreadyImported: this.manualList.concat(this.importedList).some((p: any) => {
+                         const pTitle = (p.title || p.titulo || '').toString().toLowerCase().trim();
+                         const pExternalId = (p.externalId || '').toString().toLowerCase().trim();
+                         const itemId = (item.putCode || '').toString().toLowerCase().trim();
+                         const itemTitle = (item.title || '').toString().toLowerCase().trim();
+                         return (pExternalId !== '' && pExternalId === itemId) || (pTitle !== '' && pTitle === itemTitle);
+                    })
+                }));
+                this.hasSearchedInternational = true;
+                this.applyAliciaFilters();
+            },
+            error: (err) => {
+                console.error('Error al sincronizar ORCID:', err);
+                this.alertService.error('Error', 'No se pudieron obtener las publicaciones de ORCID.');
+                this.syncStatus.orcid = false;
+                this.hasSearchedInternational = true;
+            }
+        });
+    }
+
+    private fetchWosPublications(wosId: string) {
+        this.isLoadingAlicia = true;
+        this.wosService.getWosPublications(wosId).pipe(
+            finalize(() => {
+                this.isLoadingAlicia = false;
+                this.cdr.detectChanges();
+            })
+        ).subscribe({
+            next: (res: any) => {
+                const results = res?.data?.publications || [];
+                console.log('[WoS] Publications received:', results);
+                
+                this.rawAliciaResults = results.map((item: any) => ({
+                    id: item.uid || Math.random().toString(36).substr(2, 9),
+                    title: item.title || 'Sin título',
+                    date: item.publishYear || 'N/A',
+                    url: item.doi ? `https://doi.org/${item.doi}` : '#',
+                    type: 'Publicación',
+                    source: item.source || 'WOS',
+                    journal: item.source || '',
+                    apiSource: 'Web of Science',
+                    alreadyImported: this.manualList.concat(this.importedList).some((p: any) => {
+                         const pTitle = (p.title || p.titulo || '').toString().toLowerCase().trim();
+                         const itemId = (item.uid || '').toString().toLowerCase().trim();
+                         const pExternalId = (p.externalId || '').toString().toLowerCase().trim();
+                         const itemTitle = (item.title || '').toString().toLowerCase().trim();
+                         return (pExternalId !== '' && (pExternalId === itemId || pExternalId.includes(itemId))) || (pTitle !== '' && pTitle === itemTitle);
+                    })
+                }));
+                this.hasSearchedInternational = true;
+                this.applyAliciaFilters();
+            },
+            error: (err) => {
+                console.error('Error al sincronizar WoS:', err);
+                this.alertService.error('Error', 'No se pudieron obtener las publicaciones de Web of Science.');
+                this.syncStatus.profile = false;
+                this.hasSearchedInternational = true;
+            }
+        });
     }
 
     searchInternational() {
@@ -743,15 +867,18 @@ export class ScientificProductionComponent implements OnInit {
                                 return pTitle !== '' && pTitle === itemTitle;
                             })
                         }));
+                        this.hasSearchedAlicia = true;
                         this.applyAliciaFilters();
                     }
                 } catch (e) {
                     console.error('[Alicia] Error processing results:', e);
+                    this.hasSearchedAlicia = true;
                 }
             },
             error: (err) => {
                 console.error('[Alicia] Error searching in Alicia:', err);
                 this.rawAliciaResults = [];
+                this.hasSearchedAlicia = true;
                 this.applyAliciaFilters();
             }
         });

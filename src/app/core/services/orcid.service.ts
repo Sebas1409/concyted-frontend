@@ -117,6 +117,13 @@ export class OrcidService {
   }
 
   /**
+   * Importa las publicaciones (works) de ORCID para un investigador.
+   */
+  importOrcidWorks(orcidId: string): Observable<any> {
+    return this.http.post(`${environment.interopServiceUrl}/auth/orcid/works/import`, { orcidId });
+  }
+
+  /**
    * Mapea la respuesta compleja de ORCID al modelo AuthResponse de nuestra app
    * para evitar que el sistema se caiga por falta de campos obligatorios.
    */

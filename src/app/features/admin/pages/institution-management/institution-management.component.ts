@@ -1,9 +1,10 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
 import { IntroCardComponent } from '../../../../shared/components/intro-card/intro-card.component';
 import { FormModalComponent } from '../../../../shared/components/form-modal/form-modal.component';
+import { InstitutionSelectComponent } from '../../../../shared/components/institution-select/institution-select.component';
 import { AlertService } from '../../../../core/services/alert.service';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -20,7 +21,7 @@ interface InstitutionUI {
 @Component({
     selector: 'app-institution-management',
     standalone: true,
-    imports: [CommonModule, FormsModule, IntroCardComponent, FormModalComponent],
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, IntroCardComponent, FormModalComponent, InstitutionSelectComponent],
     templateUrl: './institution-management.component.html',
     styleUrls: ['./institution-management.component.scss']
 })
@@ -42,6 +43,9 @@ export class InstitutionManagementComponent implements OnInit {
     normalizationSearchTerm: string = '';
     principalInstitution: Institucion | null = null;
     institutionsToCorrect: Institucion[] = [];
+
+    // Form Control for the reusable institution-select
+    principalFormControl = new FormControl();
 
     // Sorting
     sortField: string = 'name';
@@ -76,7 +80,7 @@ export class InstitutionManagementComponent implements OnInit {
                     if (res && res.instituciones) {
                         this.institutions = res.instituciones.map((i: any) => ({
                             id: i.ruc || '[Sin RUC]',
-                            name: i.razonSocial || (i.ruc ? `Institución ${i.ruc}` : '[Sin Nombre]'),
+                            name: i.razonSocial || '[Sin Razón Social]',
                             url: '---', 
                             checked: false
                         }));
@@ -100,13 +104,14 @@ export class InstitutionManagementComponent implements OnInit {
         this.principalInstitution = null;
         this.normalizationSearchTerm = '';
         this.isProcessingLink = false;
+        this.principalFormControl.reset('', { emitEvent: false });
         
         // Auto-select duplicate records from checkboxes
         this.institutionsToCorrect = this.institutions
             .filter(i => i.checked)
             .map(i => ({
                 ruc: i.id === '[Sin RUC]' ? '' : i.id,
-                razonSocial: i.name.startsWith('Institución ') ? '' : i.name
+                razonSocial: i.name === '[Sin Razón Social]' ? '' : i.name
             }));
 
         this.loadNormalizationData();
@@ -123,33 +128,19 @@ export class InstitutionManagementComponent implements OnInit {
         });
     }
 
-    setAsPrincipal(inst: Institucion) {
-        this.principalInstitution = { ...inst };
-        this.normalizationSearchTerm = ''; // Clear search to hide overlay
-        // If it was in correction list, remove it
-        this.institutionsToCorrect = this.institutionsToCorrect.filter(i => i.ruc !== inst.ruc);
-    }
-
-    addToCorrection(inst: Institucion) {
-        // Avoid adding the principal to correction list
-        if (this.principalInstitution && this.principalInstitution.ruc === inst.ruc) {
-            this.alertService.warning('Acción Inválida', 'No puede añadir la misma institución principal a la lista de corrección');
-            return;
-        }
-
-        const exists = this.institutionsToCorrect.some(i => i.ruc === inst.ruc);
-        if (!exists) {
-            this.institutionsToCorrect.push({ ...inst });
-        }
-        this.normalizationSearchTerm = ''; // Clear search to hide overlay
-    }
-
-    createManualPrincipal() {
-        this.principalInstitution = {
-            ruc: '',
-            razonSocial: ''
+    setAsPrincipal(inst: any) {
+        // Adaptation for both current list items and master catalog items
+        const mapping: Institucion = {
+            ruc: inst.ruc || inst.codigo || '',
+            razonSocial: inst.razonSocial || inst.nombre || ''
         };
-        this.normalizationSearchTerm = ''; // Close any open search overlay
+
+        this.principalInstitution = mapping;
+        this.normalizationSearchTerm = ''; 
+        this.principalFormControl.setValue(mapping.razonSocial, { emitEvent: false });
+
+        // If it was in correction list, remove it
+        this.institutionsToCorrect = this.institutionsToCorrect.filter(i => i.ruc !== mapping.ruc);
     }
 
     removeFromCorrection(ruc: string) {
@@ -193,6 +184,8 @@ export class InstitutionManagementComponent implements OnInit {
             }))
             .subscribe({
                 next: (res) => {
+                    this.isProcessingLink = false;
+                    
                     const msg = res.totalRegistrosActualizados > 0 
                         ? `Registros actualizados: ${res.totalRegistrosActualizados}`
                         : 'No se encontraron investigadores vinculados a estas instituciones para actualizar.';
@@ -208,6 +201,7 @@ export class InstitutionManagementComponent implements OnInit {
                     this.cdr.detectChanges();
                 },
                 error: (err) => {
+                    this.isProcessingLink = false;
                     console.error('[DEBUG] Full error object from API:', err);
                     const errorMsg = err.error?.message || 'Error inesperado al procesar la vinculación. Por favor, reintente.';
                     this.alertService.error('Error de Servidor', errorMsg);

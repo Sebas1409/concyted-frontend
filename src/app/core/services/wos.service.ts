@@ -27,4 +27,18 @@ export class WosService {
     const url = `${environment.userServiceUrl}/v2/investigadores/${investigatorId}/wos`;
     return this.http.delete(url);
   }
+
+  /**
+   * Obtiene la URL de búsqueda/vinculación de Web of Science.
+   */
+  getWosLink(): Observable<any> {
+    return this.http.get(`${environment.interopServiceUrl}/wos/login`);
+  }
+
+  /**
+   * Obtiene las publicaciones de Web of Science por ResearcherID.
+   */
+  getWosPublications(researchId: string): Observable<any> {
+    return this.http.get(`${environment.interopServiceUrl}/wos/publications/${researchId}`);
+  }
 }

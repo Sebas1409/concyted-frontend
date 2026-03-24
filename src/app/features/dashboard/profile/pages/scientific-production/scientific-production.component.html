@@ -161,11 +161,11 @@
                 <span *ngIf="syncStatus.scopus" class="check">✓</span>
             </button>
 
-            <!-- Profile/Alicia -->
+            <!-- Web of Science -->
             <button class="btn-sync" [class.connected]="syncStatus.profile" (click)="toggleSync('profile')">
-                <div class="icon-circle profile">●</div>
-                <span *ngIf="!syncStatus.profile">Sincronizar Perfil</span>
-                <span *ngIf="syncStatus.profile">Perfil Sincronizado</span>
+                <div class="icon-circle profile">WOS</div>
+                <span *ngIf="!syncStatus.profile">Sincronizar con Web of Science</span>
+                <span *ngIf="syncStatus.profile">Sincronizado con WoS</span>
                 <span *ngIf="syncStatus.profile" class="check">✓</span>
             </button>
         </div>
@@ -232,8 +232,35 @@
                         <td>{{ item.journal }}</td>
                         <td>{{ item.apiSource }}</td>
                     </tr>
+                    
+                    <!-- Loading State International -->
+                    <tr *ngIf="isLoadingAlicia">
+                        <td colspan="8" class="empty-state-cell">
+                            <div class="empty-state-info">
+                                <div class="loader-circle"></div>
+                                <p>Buscando registros académicos...</p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Empty/Initial State International -->
                     <tr *ngIf="filteredResults.length === 0 && !isLoadingAlicia">
-                        <td colspan="8" class="empty-message">Realiza una búsqueda para ver resultados.</td>
+                        <td colspan="8" class="empty-state-cell">
+                            <div class="empty-state-info" *ngIf="!hasSearchedInternational">
+                                <div class="empty-icon-circle">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                                </div>
+                                <h4>Sincroniza tu perfil para ver resultados</h4>
+                                <p>Usa los botones superiores para conectar con ORCID, Scopus o WoS.</p>
+                            </div>
+                            <div class="empty-state-info" *ngIf="hasSearchedInternational">
+                                <div class="empty-icon-circle warning">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                </div>
+                                <h4 style="color: #6a7280;">No se encontraron publicaciones</h4>
+                                <p>No hay publicaciones nuevas disponibles para importar desde esta fuente.</p>
+                            </div>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -266,13 +293,34 @@
                         <td>{{ item.institution }}</td>
                         <td>{{ item.apiSource }}</td>
                     </tr>
-                    <tr *ngIf="filteredResults.length === 0 && !isLoadingAlicia">
-                        <td colspan="7" class="empty-message">No se encontraron resultados en Alicia.</td>
-                    </tr>
+                    
+                    <!-- Loading State Alicia -->
                     <tr *ngIf="isLoadingAlicia">
-                        <td colspan="7" class="empty-message">
-                            <div class="loader-inline"></div>
-                            Buscando en Alicia...
+                        <td colspan="7" class="empty-state-cell">
+                            <div class="empty-state-info">
+                                <div class="loader-circle"></div>
+                                <p>Consultando en el Repositorio Nacional Alicia...</p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Empty/Initial State Alicia -->
+                    <tr *ngIf="filteredResults.length === 0 && !isLoadingAlicia">
+                        <td colspan="7" class="empty-state-cell">
+                            <div class="empty-state-info" *ngIf="!hasSearchedAlicia">
+                                <div class="empty-icon-circle">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                </div>
+                                <h4>Búsqueda en Alicia</h4>
+                                <p>Haz clic en el botón Buscar para consultar tus producciones en Alicia.</p>
+                            </div>
+                            <div class="empty-state-info" *ngIf="hasSearchedAlicia">
+                                <div class="empty-icon-circle warning">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                </div>
+                                <h4 style="color: #6a7280;">Sin resultados</h4>
+                                <p>No se encontraron producciones en Alicia para los criterios de este investigador.</p>
+                            </div>
                         </td>
                     </tr>
                 </tbody>

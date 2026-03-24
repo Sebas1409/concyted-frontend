@@ -26,7 +26,8 @@ export const environment = {
         scopus: {
             apiKey: 'YOUR_SCOPUS_API_KEY',
             apiUrl: 'https://api.elsevier.com/content',
-            insttoken: 'YOUR_INSTITUTION_TOKEN'
+            insttoken: 'YOUR_INSTITUTION_TOKEN',
+            loginUrl: 'https://id.elsevier.com/as/authorization.oauth2?state=08ffc720-7d61-45f8-bde4-6197febabe8a&ui_locales=en-US&redirect_uri=https://www.scopus.com/pages/callback/url&client_id=SCOPUS&platSite=SC/scopus&response_type=code&scope=openid+profile+email+els_auth_info+els_analytics_info+urn:com:elsevier:idp:policy:product:indv_identity&prompt=login&authType=SINGLE_SIGN_IN'
         },
         wos: {
             apiKey: 'YOUR_WOS_API_KEY',
