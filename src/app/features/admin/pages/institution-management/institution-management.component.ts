@@ -100,6 +100,16 @@ export class InstitutionManagementComponent implements OnInit {
 
     // Modal logic
     openLinkModal() {
+        const selectedCount = this.institutions.filter(i => i.checked).length;
+        
+        if (selectedCount === 0) {
+            this.alertService.warning(
+                'Sin Selección', 
+                'Debe seleccionar al menos una institución de la tabla para iniciar el proceso de vinculación.'
+            );
+            return;
+        }
+
         this.showLinkModal = true;
         this.principalInstitution = null;
         this.normalizationSearchTerm = '';
@@ -139,8 +149,7 @@ export class InstitutionManagementComponent implements OnInit {
         this.normalizationSearchTerm = ''; 
         this.principalFormControl.setValue(mapping.razonSocial, { emitEvent: false });
 
-        // If it was in correction list, remove it
-        this.institutionsToCorrect = this.institutionsToCorrect.filter(i => i.ruc !== mapping.ruc);
+        // User requested to keep all selected items even if picked as principal
     }
 
     removeFromCorrection(ruc: string) {
@@ -149,29 +158,25 @@ export class InstitutionManagementComponent implements OnInit {
 
     // Final Action (PUT)
     confirmLink() {
-        if (!this.principalInstitution || !this.principalInstitution.ruc?.trim()) {
-            this.alertService.warning('Paso 1 Incompleto', 'Defina el RUC/ID de la institución maestra');
+        // Relax check: Principal must have at least a Name
+        if (!this.principalInstitution || (!this.principalInstitution.ruc?.trim() && !this.principalInstitution.razonSocial?.trim())) {
+            this.alertService.warning('Paso 1 Incompleto', 'Seleccione una institución maestra válida');
             return;
         }
         
-        // Final validation of corrections list
-        const validCorrections = this.institutionsToCorrect.filter(i => i.ruc?.trim());
+        // Final validation of corrections list: must have at least one record (with ruc or name)
+        const validCorrections = this.institutionsToCorrect.filter(i => i.ruc?.trim() || i.razonSocial?.trim());
         if (validCorrections.length === 0) {
-            this.alertService.warning('Paso 2 Incompleto', 'Añada al menos una institución válida que será reemplazada');
+            this.alertService.warning('Paso 2 Incompleto', 'Seleccione al menos una institución para ser reemplazada');
             return;
         }
 
-        // Check for conflicts between steps (manual edits might have caused duplicates)
-        const principalRuc = this.principalInstitution.ruc.trim();
-        const conflict = validCorrections.some(i => i.ruc.trim() === principalRuc);
-        if (conflict) {
-            this.alertService.warning('Conflicto detectado', 'La institución principal no puede estar también en la lista de reemplazo');
-            return;
-        }
+        const principalRuc = this.principalInstitution.ruc?.trim() || '';
+        // Conflict check removed by user request: Allow linking even if principal is in corrections list
 
         const request: CorregirRequest = {
             institucionPrincipal: { ...this.principalInstitution, ruc: principalRuc },
-            institucionesPorCorregir: validCorrections.map(i => ({ ...i, ruc: i.ruc.trim() }))
+            institucionesPorCorregir: validCorrections.map(i => ({ ...i, ruc: i.ruc?.trim() || '' }))
         };
 
         this.isProcessingLink = true;
@@ -186,14 +191,12 @@ export class InstitutionManagementComponent implements OnInit {
                 next: (res) => {
                     this.isProcessingLink = false;
                     
-                    const msg = res.totalRegistrosActualizados > 0 
-                        ? `Registros actualizados: ${res.totalRegistrosActualizados}`
-                        : 'No se encontraron investigadores vinculados a estas instituciones para actualizar.';
+                    const count = validCorrections.length;
+                    const msg = count === 1 
+                        ? `Se ha vinculado 1 institución correctamente a la entidad maestra.`
+                        : `Se han vinculado ${count} instituciones correctamente a la entidad maestra.`;
                     
-                    this.alertService.success(
-                        res.totalRegistrosActualizados > 0 ? 'Vinculación Exitosa' : 'Proceso Completado',
-                        msg
-                    );
+                    this.alertService.success('Vinculación Exitosa', msg);
                     
                     this.showLinkModal = false;
                     this.institutions.forEach(i => i.checked = false);
@@ -281,6 +284,21 @@ export class InstitutionManagementComponent implements OnInit {
         this.currentPage = 1;
     }
 
+    clearSearch() {
+        this.searchTerm = '';
+        this.appliedSearchTerm = '';
+        this.currentPage = 1;
+    }
+
+    toggleSelectAll(checked: boolean) {
+        this.filteredInstitutions.forEach(i => i.checked = checked);
+    }
+
+    get isAllSelected(): boolean {
+        const visible = this.filteredInstitutions;
+        return visible.length > 0 && visible.every(i => i.checked);
+    }
+
     deleteInstitution(id: string) {
         if (confirm('¿Desea desvincular esta institución permanentemente?')) {
             this.institutions = this.institutions.filter(i => i.id !== id);
@@ -290,8 +308,13 @@ export class InstitutionManagementComponent implements OnInit {
     // Export Utils
     private getSelectedDataForExport() {
         const selected = this.institutions.filter(i => i.checked);
-        const source = selected.length > 0 ? selected : this.institutions;
-        return source.map(i => ({ RUC: i.id, RazónSocial: i.name, URL: i.url }));
+        // If nothing is explicitly selected via checkbox, export all that match the CURRENT FILTER
+        const source = selected.length > 0 ? selected : this.filteredInstitutions;
+        return source.map((i, index) => ({ 
+            'N°': index + 1,
+            RUC: i.id, 
+            RazónSocial: i.name 
+        }));
     }
 
     copyToClipboard() {
@@ -327,8 +350,8 @@ export class InstitutionManagementComponent implements OnInit {
         if (data.length === 0) return;
         const doc = new jsPDF();
         autoTable(doc, {
-            head: [['RUC', 'Razón Social', 'URL']],
-            body: data.map(i => [i.RUC, i.RazónSocial, i.URL]),
+            head: [['N°', 'RUC', 'Razón Social']],
+            body: data.map(i => [i['N°'], i.RUC, i.RazónSocial]),
             headStyles: { fillColor: [0, 84, 112] }
         });
         doc.save(`Instituciones_${Date.now()}.pdf`);

@@ -66,6 +66,38 @@
                         background: #003a3f;
                     }
                 }
+
+                .btn-clear-main {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    background: #FFF5F5;
+                    color: #C53030;
+                    border: 1px solid #FEB2B2;
+                    padding: 0 20px;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+                    &:hover {
+                        background: #FED7D7;
+                        border-color: #FC8181;
+                        color: #9B2C2C;
+                        transform: translateY(-1px);
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                    }
+
+                    &:active {
+                        transform: translateY(0);
+                    }
+
+                    svg {
+                        width: 16px;
+                        height: 16px;
+                        stroke-width: 2.5px;
+                    }
+                }
             }
 
             .actions-row-grid {
@@ -575,11 +607,27 @@
             margin-top: 12px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             border-left: 4px solid #005470;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+
+            .summary-icon {
+                background: #F1F5F9;
+                color: #005470;
+                width: 42px;
+                height: 42px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
 
             .summary-details {
                 display: flex;
                 flex-direction: column;
                 gap: 2px;
+                flex: 1;
 
                 .summary-name {
                     font-size: 14px;
