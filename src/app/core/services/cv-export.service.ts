@@ -129,6 +129,7 @@ export class CvExportService {
         const researcher = {
             name: `${data.nombres || user.nombres || ''} ${data.apellidoPaterno || user.apellidoPaterno || ''} ${data.apellidoMaterno || user.apellidoMaterno || ''}`.trim().toUpperCase(),
             bio: user.resumenEjecutivo || 'Sin resumen profesional registrado.',
+            fotoToken: data.fotoToken || user.fotoToken,
             renacytCode: user.codigoUnico || '---',
             scopusId: data.otride?.scopusAuthorId || user.scopusAuthorId || '---',
             orcidId: data.otride?.orcid || user.orcid || '---',
@@ -275,7 +276,8 @@ export class CvExportService {
         const researcher = {
             name: `${user.nombres || ''} ${user.apellidoPaterno || ''} ${user.apellidoMaterno || ''}`.trim().toUpperCase(),
             bio: user.resumenEjecutivo || 'Sin resumen profesional registrado.',
-            photo: null,
+            photo: user.fotoToken ? this.fileService.getFileUrl(user.fotoToken, true) : null,
+            fotoToken: user.fotoToken,
             renacytCode: user.codigoUnico || '---',
             scopusId: user.scopusAuthorId || '---',
             orcidId: user.orcid || '---',
@@ -399,10 +401,11 @@ export class CvExportService {
             const logo = await this.getLogoBase64();
             let profilePhotoBase64: string | null = null;
 
-            // Try to load profile photo
-            if (userData?.fotoToken) {
+            // Try to load profile photo from userData or data.researcher
+            const photoToken = userData?.fotoToken || data.researcher?.fotoToken;
+            if (photoToken) {
                 try {
-                    profilePhotoBase64 = await this.getProfilePhotoBase64(userData.fotoToken);
+                    profilePhotoBase64 = await this.getProfilePhotoBase64(photoToken);
                 } catch (e) {
                     console.warn('Could not load profile photo for PDF', e);
                 }
@@ -424,19 +427,23 @@ export class CvExportService {
             const photoY = 35;
 
             if (profilePhotoBase64) {
-                // Draw circular clipped photo
-                doc.addImage(profilePhotoBase64, 'JPEG', photoX, photoY, photoSize, photoSize);
+                try {
+                    // Pre-processed circular photo as PNG
+                    doc.addImage(profilePhotoBase64, 'PNG', photoX, photoY, photoSize, photoSize);
+                    
+                    // Add a professional border around the circle
+                    const centerX = photoX + photoSize / 2;
+                    const centerY = photoY + photoSize / 2;
+                    const radius = photoSize / 2;
+                    doc.setDrawColor(0, 78, 90);
+                    doc.setLineWidth(0.5);
+                    doc.circle(centerX, centerY, radius, 'S');
+                } catch (e) {
+                    console.error('Error adding photo to PDF', e);
+                    this.drawInitials(doc, data.researcher.name, photoX, photoY, photoSize);
+                }
             } else {
-                // Draw a circle with initials
-                const centerX = photoX + photoSize / 2;
-                const centerY = photoY + photoSize / 2;
-                const radius = photoSize / 2;
-                doc.setFillColor(0, 78, 90);
-                doc.circle(centerX, centerY, radius, 'F');
-                // Draw initials
-                const initials = this.getInitialsFromName(data.researcher.name);
-                doc.setFontSize(14).setFont('helvetica', 'bold').setTextColor(255, 255, 255);
-                doc.text(initials, centerX, centerY + 1.5, { align: 'center' });
+                this.drawInitials(doc, data.researcher.name, photoX, photoY, photoSize);
             }
 
             // Name next to photo
@@ -613,12 +620,18 @@ export class CvExportService {
                 canvas.height = size;
                 const ctx = canvas.getContext('2d');
                 if (ctx) {
-                    // Crop to square from center
+                    // 1. Define circular clip on canvas
+                    ctx.beginPath();
+                    ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+                    ctx.clip();
+
+                    // 2. Crop to square from center and draw
                     const sx = (img.width - size) / 2;
                     const sy = (img.height - size) / 2;
                     ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
                 }
-                resolve(canvas.toDataURL('image/jpeg', 0.85));
+                // Use PNG to preserve transparency around the circle
+                resolve(canvas.toDataURL('image/png', 1.0));
             };
             img.onerror = () => reject('No se pudo cargar la foto de perfil');
         });
@@ -631,5 +644,17 @@ export class CvExportService {
             return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
         }
         return parts[0].charAt(0).toUpperCase();
+    }
+
+    private drawInitials(doc: jsPDF, name: string, x: number, y: number, size: number) {
+        const centerX = x + size / 2;
+        const centerY = y + size / 2;
+        const radius = size / 2;
+        doc.setFillColor(0, 78, 90);
+        doc.circle(centerX, centerY, radius, 'F');
+        // Draw initials
+        const initials = this.getInitialsFromName(name);
+        doc.setFontSize(14).setFont('helvetica', 'bold').setTextColor(255, 255, 255);
+        doc.text(initials, centerX, centerY + 1.5, { align: 'center' });
     }
 }

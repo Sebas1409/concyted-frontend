@@ -94,6 +94,7 @@ export class ResearcherPublicProfileComponent implements OnInit {
                     name: `${res.nombres || ''} ${res.apellidoPaterno || ''} ${res.apellidoMaterno || ''}`.trim().toUpperCase() || 'INVESTIGADOR',
                     bio: res.resumenEjecutivo || 'Sin resumen profesional registrado.',
                     photo: res.fotoToken ? this.fileService.getFileUrl(res.fotoToken, true) : null,
+                    fotoToken: res.fotoToken,
                     renacytCode: res.codigoUnico || '---',
                     scopusId: res.scopusAuthorId || '---',
                     orcidId: res.orcid || '---',
