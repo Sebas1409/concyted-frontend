@@ -45,7 +45,17 @@
                 </div>
                 <div class="meta-item">
                     <label>ORCID ID</label>
-                    <div class="value">{{ user.orcid || '---' }}</div>
+                    <div class="value">
+                        <a *ngIf="user.orcid; else noOrcid" [href]="'https://orcid.org/' + user.orcid" target="_blank"
+                            class="link-orcid">
+                            {{ user.orcid }}
+                        </a>
+                        <ng-template #noOrcid>
+                            <a routerLink="identifiers" class="link-vincular">
+                                Vincular ORCID <span class="arrow">➜</span>
+                            </a>
+                        </ng-template>
+                    </div>
                 </div>
             </div>
         </div>
@@ -58,7 +68,11 @@
                     <button class="btn btn-outline small" (click)="exportCV()" [disabled]="isExporting">
                         {{ isExporting ? 'Generando...' : 'Exportar CV' }}
                     </button>
-                    <button class="btn btn-primary-teal small">Solicitar Clasificación</button>
+                    <a [href]="manualUrl" target="_blank" class="btn btn-primary-teal small"
+                        style="text-decoration: none; display: inline-flex; align-items: center;">
+                        Manual de Uso
+                    </a>
+                    <button *ngIf="false" class="btn btn-primary-teal small" (click)="solicitarIncorporacion()">Solicitar Incorporación</button>
                 </div>
             </div>
         </ng-container>

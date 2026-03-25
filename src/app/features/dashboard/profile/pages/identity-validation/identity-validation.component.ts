@@ -66,7 +66,7 @@ export class IdentityValidationComponent implements OnInit {
         }
 
         forkJoin({
-            docTypes: this.catalogService.getMasterDetails(1),
+            docTypes: this.catalogService.getMasterDetailsByCode('TIPDOC'),
             userData: this.authService.getInvestigatorByUserId(currentUser.usuarioId)
         }).subscribe({
             next: (results: any) => {

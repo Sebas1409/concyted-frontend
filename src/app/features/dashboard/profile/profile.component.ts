@@ -9,6 +9,7 @@ import { CvExportService } from '../../../core/services/cv-export.service';
 import { AlertService } from '../../../core/services/alert.service';
 import { UbigeoService } from '../../../core/services/ubigeo.service';
 import { environment } from '../../../../environments/environment';
+import Swal from 'sweetalert2';
 
 @Component({
     selector: 'app-profile-layout',
@@ -22,6 +23,7 @@ export class ProfileLayoutComponent implements OnInit {
     user$: Observable<AuthResponse | null>;
     fullLocation$: Observable<string>;
     isExporting = false;
+    manualUrl = (environment as any).manualUrl;
 
     constructor(
         private router: Router,
@@ -68,7 +70,7 @@ export class ProfileLayoutComponent implements OnInit {
     }
 
     getPublicProfileUrl(user: any): string {
-        const id = user.researcherId || user.idInvestigador || user.id;
+        const id = user.idInvestigador || user.id || user.researcherId;
         const url = `/search/researcher/${id}`;
 
         // In production, we need the /ctivitae context if it's not already handled by the server
@@ -118,6 +120,40 @@ export class ProfileLayoutComponent implements OnInit {
             } finally {
                 this.isExporting = false;
                 this.cdr.detectChanges();
+            }
+        });
+    }
+
+    solicitarIncorporacion() {
+        this.user$.pipe(take(1)).subscribe(user => {
+            if (!user) return;
+            const uuid = user.codigoUnico || user.id?.toString();
+
+            this.alertService.info(
+                'No olvidar',
+                'No olvidar actualizar su información de producción científica recientemente, para que pueda ser correctamente evaluada.'
+            ).then(() => {
+                const url = `https://renacyt.concytec.gob.pe/renacyt-ui/#/postulacion/${uuid}?categoriaSolicitud=INCORPORACION&subCategoriaSolicitud=`;
+                this.openIframeModal(url);
+            });
+        });
+    }
+
+    private openIframeModal(url: string) {
+        Swal.fire({
+            html: `
+                <div style="width: 100%; height: 85vh; border-radius: 8px; overflow: hidden; background: #f8fafc;">
+                    <iframe src="${url}" style="width: 100%; height: 100%; border: none;"></iframe>
+                </div>
+            `,
+            width: '98%',
+            showCloseButton: true,
+            showConfirmButton: false,
+            padding: '10px',
+            background: '#ffffff',
+            backdrop: 'rgba(0,0,0,0.6)',
+            customClass: {
+                popup: 'iframe-portal-modal'
             }
         });
     }

@@ -13,7 +13,8 @@ export const environment = {
     landingPublicUrl: '/cti-management-service/public/api',
     baseHref: '/', // En desarrollo, sin contexto
     recaptchaKey: '6LdoGmgsAAAAAP18jOTutHjDI0FflD90lhV_lA0K',
-    
+    manualUrl: '/docs/manual.pdf',
+
     // External Providers Configuration
     externalProviders: {
         orcid: {

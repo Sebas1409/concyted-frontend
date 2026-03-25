@@ -41,6 +41,7 @@ export interface AuthResponse {
     username?: string;
     recaptchaStatus?: boolean;
     roles?: string[]; // Para compatibilidad con ORCID y otros logins
+    idInvestigador?: number;
 }
 
 export interface LoginRequest {

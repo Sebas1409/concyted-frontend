@@ -191,6 +191,44 @@
     }
 }
 
+.link-orcid {
+    color: var(--g-900);
+    text-decoration: none;
+    transition: color 0.2s;
+
+    &:hover {
+        color: var(--primary-600);
+        text-decoration: underline;
+    }
+}
+
+.link-vincular {
+    color: var(--primary-600);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: all 0.2s;
+    cursor: pointer;
+    margin-top: -2px;
+
+    .arrow {
+        font-size: 0.85rem;
+        transition: transform 0.2s;
+    }
+
+    &:hover {
+        color: var(--primary-700);
+        text-decoration: underline;
+
+        .arrow {
+            transform: translateX(3px);
+        }
+    }
+}
+
 /* TABS SYSTEM */
 .profile-tabs {
     display: flex;

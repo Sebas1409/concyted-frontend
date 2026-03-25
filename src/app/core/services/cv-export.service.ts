@@ -253,7 +253,7 @@ export class CvExportService {
             types: this.catalogService.getMasterDetailsByCode('TIPPRO'),
             instTypes: this.catalogService.getMasterDetailsByCode('TIPINS'),
             docTypes: this.catalogService.getMasterDetailsByCode('TIPDOC'),
-            genders: this.catalogService.getMasterDetails(2)
+            genders: this.catalogService.getMasterDetailsByCode('CATSEX')
         };
 
         const res = await firstValueFrom(forkJoin(reqs));

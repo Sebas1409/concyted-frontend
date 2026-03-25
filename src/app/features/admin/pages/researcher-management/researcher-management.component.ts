@@ -180,10 +180,10 @@ export class ResearcherManagementComponent {
                 this.ubigeoService.getDepartments(peru.id).subscribe(deps => this.departments = deps);
             }
         });
-        this.catalogService.getMasterDetails(2).subscribe(data => {
+        this.catalogService.getMasterDetailsByCode('CATSEX').subscribe(data => {
             this.genders = data;
         });
-        this.catalogService.getMasterDetails(1).subscribe(data => {
+        this.catalogService.getMasterDetailsByCode('TIPDOC').subscribe(data => {
             this.documentTypes = data;
         });
     }

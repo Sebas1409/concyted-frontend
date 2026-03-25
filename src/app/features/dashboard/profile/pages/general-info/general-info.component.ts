@@ -163,8 +163,8 @@ export class GeneralInfoComponent implements OnInit {
     }
 
     loadSexOptions() {
-        // Master ID 2 for Sex/Gender
-        this.catalogService.getMasterDetails(2).subscribe({
+        // Master Code 'CATSEX' for Sex/Gender
+        this.catalogService.getMasterDetailsByCode('CATSEX').subscribe({
             next: (data) => {
                 this.sexOptions = data;
                 console.log('Sex Options Loaded:', data);
@@ -179,8 +179,8 @@ export class GeneralInfoComponent implements OnInit {
     }
 
     loadDocumentTypes() {
-        // Master ID 1 for Document Types
-        this.catalogService.getMasterDetails(1).subscribe({
+        // Master Code 'TIPDOC' for Document Types
+        this.catalogService.getMasterDetailsByCode('TIPDOC').subscribe({
             next: (data) => {
                 this.documentTypes = data;
                 console.log('Document Types Loaded:', data);

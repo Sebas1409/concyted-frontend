@@ -64,5 +64,11 @@
             "Origin": "http://176.52.137.31:8080",
             "Referer": "http://176.52.137.31:8080/"
         }
+    },
+    "/docs": {
+        "target": "http://176.52.137.31:8080",
+        "secure": false,
+        "changeOrigin": true,
+        "logLevel": "debug"
     }
 }
