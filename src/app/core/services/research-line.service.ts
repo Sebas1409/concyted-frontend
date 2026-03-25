@@ -48,4 +48,8 @@ export class ResearchLineService {
     deleteResearchLine(id: number): Observable<void> {
         return this.http.delete<void>(`${this.apiUrl}/${id}`);
     }
+
+    setPrincipal(id: number): Observable<any> {
+        return this.http.put(`${this.apiUrl}/${id}/principal`, {});
+    }
 }

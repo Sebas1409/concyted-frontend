@@ -95,7 +95,6 @@
                             <th class="w-10">Fecha inicio</th>
                             <th class="w-10">Fecha fin</th>
                             <th class="w-10 text-center">Fuente</th>
-                            <th class="w-9 text-center">Acción</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -116,13 +115,9 @@
                                     <span *ngIf="project.source !== 'SUNEDU' && project.source !== 'ORCID'">S</span>
                                 </div>
                             </td>
-                            <td class="actions">
-                                <app-action-buttons (edit)="editProject(project.id)"
-                                    (delete)="deleteProject(project.id)"></app-action-buttons>
-                            </td>
                         </tr>
                         <tr *ngIf="orcidProjects.length === 0">
-                            <td colspan="9" class="text-center p-4 text-gray-500">No hay proyectos importados.</td>
+                            <td colspan="7" class="text-center p-4 text-gray-500">No hay proyectos importados.</td>
                         </tr>
                     </tbody>
                 </table>

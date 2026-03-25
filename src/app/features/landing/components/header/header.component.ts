@@ -21,7 +21,7 @@ export class HeaderComponent implements OnChanges, OnInit {
     public openMobile = false;
     public ctaHeader: LandingHeader | null = null;
     public currentUser: AuthResponse | null = null;
-    public manualUrl = (environment as any).manualUrl || '/docs/manual.pdf';
+    public manualUrl = (environment as any).manualUserUrl || '/docs/manual_user.pdf';
     public showUserMenu = false;
     public userPhotoUrl: string | null = null;
 

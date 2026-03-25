@@ -82,7 +82,7 @@ export class ResearchLinesComponent implements OnInit {
         this.researchLineService.getResearchLines(this.userId).subscribe({
             next: (data: any) => {
                 // Ensure we handle both direct array and wrapped response
-                this.researchList = data;
+                this.researchList = (data || []).sort((a: any, b: any) => a.id - b.id);
                 console.log('Research Lines Data (Mapped):', this.researchList);
                 this.cdr.detectChanges(); // Force view update immediately
             },
@@ -302,7 +302,7 @@ export class ResearchLinesComponent implements OnInit {
                 comparteMinam: formVal.shareMinam || false,
                 disciplinaOcdeId: Number(formVal.discipline),
                 investigadorId: this.userId,
-                principal: true,
+                principal: this.isEditMode ? (this.researchList.find(x => x.id === this.currentResearchLineId)?.principal || false) : false,
                 subareaOcdeId: Number(formVal.subArea),
                 tematicaAmbientalCodigo: formVal.environmentalTheme || '',
                 tematicaSaludCodigo: formVal.medicalTheme || ''
@@ -354,6 +354,32 @@ export class ResearchLinesComponent implements OnInit {
                     error: (err) => {
                         console.error(err);
                         this.alertService.error('Error', 'No se pudo eliminar la línea de investigación.');
+                    }
+                });
+            }
+        });
+    }
+
+    onPrincipalChange(item: ResearchLine) {
+        if (item.principal) return; // Skip if already principal
+
+        const lineName = item.areaOcdeNombre || 'esta línea de investigación';
+
+        this.alertService.confirm(
+            'Confirmación',
+            `¿Está seguro que desea grabar la Linea de investigacion: ${lineName.toUpperCase()} como Linea de investigación principal?`,
+            'Aceptar',
+            'Cancelar'
+        ).then(confirmed => {
+            if (confirmed) {
+                this.researchLineService.setPrincipal(item.id).subscribe({
+                    next: () => {
+                        this.alertService.success('Cambio Guardado', 'Se ha actualizado la línea de investigación principal.');
+                        this.loadResearchLines();
+                    },
+                    error: (err) => {
+                        console.error(err);
+                        this.alertService.error('Error', 'No se pudo actualizar la línea principal.');
                     }
                 });
             }

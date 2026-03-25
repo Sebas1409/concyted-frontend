@@ -223,11 +223,11 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr *ngFor="let item of institutionsToCorrect">
+                                <tr *ngFor="let item of institutionsToCorrect; let idx = index">
                                     <td>{{item.ruc}}</td>
                                     <td>{{item.razonSocial}}</td>
                                     <td style="text-align: center;">
-                                        <button class="btn-remove-tiny" (click)="removeFromCorrection(item.ruc)">×</button>
+                                        <button class="btn-remove-tiny" (click)="removeFromCorrection(idx)">×</button>
                                     </td>
                                 </tr>
                                 <tr *ngIf="institutionsToCorrect.length === 0">

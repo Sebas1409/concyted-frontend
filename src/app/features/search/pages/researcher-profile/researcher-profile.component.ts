@@ -58,13 +58,9 @@ export class ResearcherPublicProfileComponent implements OnInit {
     thesisJury: any[] = [];
 
     // Catalogs for translation
-    projectRoles: any[] = [];
-    projectTypes: any[] = [];
-    institutionTypes: any[] = [];
-    docentTypes: any[] = [];
+
 
     ngOnInit(): void {
-        this.loadCatalogs();
         this.route.paramMap.subscribe(params => {
             const id = params.get('id');
             if (id) {
@@ -74,12 +70,7 @@ export class ResearcherPublicProfileComponent implements OnInit {
         });
     }
 
-    private loadCatalogs() {
-        this.catalogService.getPublicMasterDetailsByCode('TIPEXP').subscribe(data => this.projectRoles = data);
-        this.catalogService.getPublicMasterDetailsByCode('TIPPRO').subscribe(data => this.projectTypes = data);
-        this.catalogService.getPublicMasterDetailsByCode('TIPINS').subscribe(data => this.institutionTypes = data);
-        this.catalogService.getPublicMasterDetailsByCode('TIPDOC').subscribe(data => this.docentTypes = data);
-    }
+
 
     loadResearcherData(investigatorId: number) {
         this.isLoading = true;
@@ -98,7 +89,7 @@ export class ResearcherPublicProfileComponent implements OnInit {
                     renacytCode: res.codigoUnico || '---',
                     scopusId: res.scopusAuthorId || '---',
                     orcidId: res.orcid || '---',
-                    conductDate: res.fechaValidacion || '---',
+                    conductDate: res.fechaValidacion ? new Date(res.fechaValidacion).toLocaleDateString('es-PE') : '---',
                     lastUpdate: res.fechaActualizacion ? new Date(res.fechaActualizacion).toLocaleDateString() : (res.updatedAt ? new Date(res.updatedAt).toLocaleDateString() : '---')
                 };
 
@@ -201,7 +192,12 @@ export class ResearcherPublicProfileComponent implements OnInit {
             projects: this.workExperienceService.getPublicProjects(investigatorId).pipe(catchError(() => of([]))),
             thesis: this.workExperienceService.getPublicThesisAdvisors(investigatorId).pipe(catchError(() => of([]))),
             ip: this.ipService.getPublicIntellectualPropertiesByInvestigator(investigatorId).pipe(catchError(() => of([]))),
-            distinctions: this.distinctionService.getPublicDistinctions(investigatorId).pipe(catchError(() => of([])))
+            distinctions: this.distinctionService.getPublicDistinctions(investigatorId).pipe(catchError(() => of([]))),
+            // Essential catalogs for mapping
+            catProjectRoles: this.catalogService.getPublicMasterDetailsByCode('TIPEXP').pipe(catchError(() => of([]))),
+            catProjectTypes: this.catalogService.getPublicMasterDetailsByCode('TIPPRO').pipe(catchError(() => of([]))),
+            catInstitutionTypes: this.catalogService.getPublicMasterDetailsByCode('TIPINS').pipe(catchError(() => of([]))),
+            catDocentTypes: this.catalogService.getPublicMasterDetailsByCode('TIPDOC').pipe(catchError(() => of([])))
         };
 
         forkJoin(sections$).pipe(
@@ -240,13 +236,13 @@ export class ResearcherPublicProfileComponent implements OnInit {
 
                 // Map Docente
                 this.docenteExperience = results.docente.map(item => {
-                    const instType = this.institutionTypes.find(t => t.codigo === item.tipoInstitucion);
-                    const docType = this.docentTypes.find(t => t.codigo === item.tipoDocente);
+                    const instType = results.catInstitutionTypes.find(t => t.codigo === item.tipoInstitucion || t.id === item.tipoInstitucion);
+                    const docType = results.catDocentTypes.find(t => t.codigo === item.tipoDocente || t.id === item.tipoDocente);
 
                     return {
                         institution: item.nombreInstitucion,
                         type: instType ? instType.nombre : item.tipoInstitucion,
-                        docenteType: docType ? docType.nombre : item.tipoDocente,
+                        docenteType: docType ? docType.nombre : (item.tipoDocente || '---'),
                         description: item.cargo || '---',
                         startDate: item.fechaInicio,
                         endDate: item.actualmenteDicta ? 'Actualidad' : item.fechaFin
@@ -264,17 +260,12 @@ export class ResearcherPublicProfileComponent implements OnInit {
 
                 // Map Projects
                 this.projects = results.projects.map(item => {
-                    const roleCode = item.rolDesempenadoId || item.rolDesempenado || item.rol;
-                    const typeCode = item.tipoProyectoId || item.tipoProyectoCti || item.tipoProyecto;
-                    const role = this.projectRoles.find(r => r.codigo === roleCode);
-                    const type = this.projectTypes.find(t => t.codigo === typeCode);
-
                     return {
                         title: item.nombreProyecto || item.nombreConcurso || '---',
-                        type: type ? type.nombre : (typeCode || '---'),
-                        role: role ? role.nombre : (roleCode || '---'),
+                        type: item.tipoProyectoNombre || item.tipoProyectoId || item.tipoProyecto || '---',
+                        role: item.rolDesempenadoNombre || item.rolDesempenadoId || item.rolDesempenado || '---',
                         amount: item.montoFinanciado || item.montoUsd || 0,
-                        status: 'Activo' // Or map from data if available
+                        status: 'Activo'
                     };
                 });
 

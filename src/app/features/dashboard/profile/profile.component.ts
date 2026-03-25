@@ -23,7 +23,7 @@ export class ProfileLayoutComponent implements OnInit {
     user$: Observable<AuthResponse | null>;
     fullLocation$: Observable<string>;
     isExporting = false;
-    manualUrl = (environment as any).manualUrl;
+    manualUrl = (environment as any).manualUserUrl;
 
     constructor(
         private router: Router,

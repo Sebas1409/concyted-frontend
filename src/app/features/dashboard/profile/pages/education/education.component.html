@@ -530,14 +530,13 @@
                 </span>
             </div>
             <div class="form-group">
-                <label>Fecha de Fin</label>
+                <label>Fecha de Fin (Opcional)</label>
                 <input type="date" formControlName="endDate" class="form-input"
                     [class.is-invalid]="inProgressForm.get('endDate')?.invalid && inProgressForm.get('endDate')?.touched"
                     [min]="inProgressForm.get('startDate')?.value">
                 <span class="error-message"
                     *ngIf="inProgressForm.get('endDate')?.invalid && inProgressForm.get('endDate')?.touched">
-                    <span *ngIf="inProgressForm.get('endDate')?.hasError('futureDate')">La fecha no puede ser mayor a
-                        hoy.</span>
+                    <span *ngIf="inProgressForm.get('endDate')?.hasError('dateOrder')">La fecha de fin debe ser posterior a la de inicio.</span>
                 </span>
             </div>
         </div>

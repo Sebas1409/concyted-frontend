@@ -13,7 +13,8 @@ export const environment = {
     landingPublicUrl: '/cti-management-service/public/api',
     baseHref: '/ctivitae/', // En producción, con contexto ctivitae
     recaptchaKey: '6LdoGmgsAAAAAP18jOTutHjDI0FflD90lhV_lA0K',
-    manualUrl: '/docs/manual.pdf',
+    manualAdminUrl: '/docs/manual_admin.pdf',
+    manualUserUrl: '/docs/manual_user.pdf',
 
     // External Providers Configuration
     externalProviders: {

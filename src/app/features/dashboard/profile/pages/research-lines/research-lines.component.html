@@ -27,7 +27,7 @@
                     <thead>
                         <tr>
                             <th class="w-5 text-center">Principal</th>
-                            <th class="w-5">Código</th>
+                            <th class="w-5">N°</th>
                             <th class="w-15">Área</th>
                             <th class="w-20">Sub área</th>
                             <th class="w-15">Disciplina</th>
@@ -40,11 +40,12 @@
                         <tr *ngFor="let item of researchList; let i = index; trackBy: trackByFn">
                             <td class="text-center">
                                 <label class="custom-chk">
-                                    <input type="checkbox" [checked]="item.principal" disabled>
+                                    <input type="checkbox" [checked]="item.principal"
+                                        (click)="onPrincipalChange(item); $event.preventDefault(); $event.stopPropagation()">
                                     <span class="checkmark"></span>
                                 </label>
                             </td>
-                            <td>{{ item.id }}</td>
+                            <td>{{ i + 1 }}</td>
                             <td>{{ item.areaOcdeNombre }}</td>
                             <td>{{ item.subareaOcdeNombre }}</td>
                             <td>{{ item.disciplinaOcdeNombre }}</td>

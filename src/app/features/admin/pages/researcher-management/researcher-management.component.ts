@@ -173,18 +173,39 @@ export class ResearcherManagementComponent {
     }
 
     loadCatalogs() {
-        this.catalogService.getAreas().subscribe(data => this.areas = data);
-        this.ubigeoService.getCountries().subscribe(countries => {
-            const peru = countries.find(c => c.nombre.toUpperCase() === 'PERÚ' || c.nombre.toUpperCase() === 'PERU');
-            if (peru) {
-                this.ubigeoService.getDepartments(peru.id).subscribe(deps => this.departments = deps);
-            }
+        // Load OECD Areas
+        this.catalogService.getPublicAreas().subscribe({
+            next: (data) => this.areas = data,
+            error: (err) => console.error('Failed to load areas', err)
         });
-        this.catalogService.getMasterDetailsByCode('CATSEX').subscribe(data => {
-            this.genders = data;
+
+        // Load Countries and their departments (Perú by default)
+        this.ubigeoService.getPublicCountries().subscribe({
+            next: (countries) => {
+                const peru = countries.find(c => c.nombre.toUpperCase() === 'PERÚ' || c.nombre.toUpperCase() === 'PERU');
+                if (peru) {
+                    this.ubigeoService.getPublicDepartments(peru.id).subscribe(deps => this.departments = deps);
+                }
+            },
+            error: (err) => console.error('Failed to load countries', err)
         });
-        this.catalogService.getMasterDetailsByCode('TIPDOC').subscribe(data => {
-            this.documentTypes = data;
+
+        // Load Genders ('CATSEX')
+        this.catalogService.getPublicMasterDetailsByCode('CATSEX').subscribe({
+            next: (data) => {
+                this.genders = data;
+                console.log('Genders loaded:', data.length);
+            },
+            error: (err) => console.error('Failed to load genders', err)
+        });
+
+        // Load Document Types ('TIPDOC') - User explicitly requested this
+        this.catalogService.getPublicMasterDetailsByCode('TIPDOC').subscribe({
+            next: (data) => {
+                this.documentTypes = data;
+                console.log('Document Types loaded (TIPDOC):', data.length);
+            },
+            error: (err) => console.error('Failed to load document types (TIPDOC)', err)
         });
     }
 

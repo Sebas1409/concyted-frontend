@@ -152,8 +152,8 @@ export class InstitutionManagementComponent implements OnInit {
         // User requested to keep all selected items even if picked as principal
     }
 
-    removeFromCorrection(ruc: string) {
-        this.institutionsToCorrect = this.institutionsToCorrect.filter(i => i.ruc !== ruc);
+    removeFromCorrection(index: number) {
+        this.institutionsToCorrect.splice(index, 1);
     }
 
     // Final Action (PUT)

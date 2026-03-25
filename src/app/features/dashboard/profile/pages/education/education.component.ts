@@ -219,10 +219,14 @@ export class EducationComponent implements OnInit {
 
         // In Progress Form
         this.inProgressForm.get('startDate')?.valueChanges.subscribe(val => {
-            if (val > this.today) this.inProgressForm.get('startDate')?.setErrors({ futureDate: true });
+            if (val && val > this.today) {
+                this.inProgressForm.get('startDate')?.setErrors({ futureDate: true });
+            }
+            this.validateDateOrder(this.inProgressForm);
         });
         this.inProgressForm.get('endDate')?.valueChanges.subscribe(val => {
-            if (val > this.today) this.inProgressForm.get('endDate')?.setErrors({ futureDate: true });
+            // End date in progress can be in the future, so we don't set futureDate error here
+            this.validateDateOrder(this.inProgressForm);
         });
 
         // Complementary Form
@@ -331,6 +335,7 @@ export class EducationComponent implements OnInit {
                     courseName: item.carreraTecnica,
                     studyType: item.nivelAcademicoNombre || item.tipoEstudio,
                     startDate: item.fechaInicio,
+                    endDate: item.fechaFin || item.fechaFinEstudios || null,
                     originalItem: item
                 }));
                 this.cdr.markForCheck();
@@ -351,7 +356,7 @@ export class EducationComponent implements OnInit {
                     measureUnit: item.unidadMedidaNombre,
                     totalHours: item.cantidadTotal,
                     startDate: item.fechaInicio,
-                    endDate: item.fechaFin,
+                    endDate: item.fechaFin || item.fechaFinEstudios || null,
                     originalItem: item
                 }));
                 this.cdr.markForCheck();
@@ -451,6 +456,7 @@ export class EducationComponent implements OnInit {
             nivelAcademicoId: val.academicLevelId,
             nombreTituloGrado: val.degreeName,
             paisId: Number(val.countryId),
+            sunedu: false,
             tokens: [] as string[]
         };
 
@@ -631,7 +637,8 @@ export class EducationComponent implements OnInit {
             institutionId: raw.institucionId || '',
             studyType: raw.nivelAcademicoId || raw.tipoEstudio || item.studyType,
             courseName: raw.carreraTecnica || item.courseName,
-            startDate: item.startDate
+            startDate: item.startDate,
+            endDate: item.endDate
         });
 
         this.inProgressFiles = [];
@@ -668,6 +675,7 @@ export class EducationComponent implements OnInit {
             carreraTecnica: val.courseName,
             nivelAcademicoId: val.studyType,
             fechaInicio: val.startDate,
+            fechaFin: val.endDate,
             enCurso: true,
             enCourse: true,
             paisId: 0,
@@ -797,6 +805,23 @@ export class EducationComponent implements OnInit {
     }
 
     // --- Helpers ---
+    private validateDateOrder(form: FormGroup) {
+        const start = form.get('startDate')?.value;
+        const end = form.get('endDate')?.value;
+
+        if (start && end && end <= start) {
+            form.get('endDate')?.setErrors({ dateOrder: true });
+        } else {
+            // Be careful not to clear other errors like 'required'
+            const currentErrors = form.get('endDate')?.errors;
+            if (currentErrors && currentErrors['dateOrder']) {
+                delete currentErrors['dateOrder'];
+                const remainingErrors = Object.keys(currentErrors).length > 0 ? currentErrors : null;
+                form.get('endDate')?.setErrors(remainingErrors);
+            }
+        }
+    }
+
     uploadFiles(files: any[], module: string, type: string, category: string, section: string, isPublic: boolean = false): Observable<any[]> {
         if (!files || files.length === 0) return of([]);
 

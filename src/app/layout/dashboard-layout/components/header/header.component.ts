@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { FileService } from '../../../../core/services/file.service';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
     selector: 'app-dashboard-header',
@@ -15,6 +16,17 @@ export class HeaderComponent {
     @Output() toggle = new EventEmitter<void>();
     @Input() isSidebarClosed = false;
     user: any = null;
+
+    get manualUrl(): string {
+        const isAdmin = this.authService.isAdmin();
+        return isAdmin 
+            ? (environment as any).manualAdminUrl 
+            : (environment as any).manualUserUrl;
+    }
+
+    get isAdmin(): boolean {
+        return this.authService.isAdmin();
+    }
 
     constructor(
         private authService: AuthService,

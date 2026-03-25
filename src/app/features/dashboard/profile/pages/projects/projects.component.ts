@@ -777,14 +777,20 @@ export class ProjectsComponent implements OnInit {
     }
 
     deleteProject(id: number) {
-        if (confirm('¿Estás seguro de eliminar este proyecto?')) {
-            this.projectService.deleteProject(id).subscribe({
-                next: () => {
-                    this.alertService.success('Eliminado', 'Proyecto eliminado correctamente');
-                    this.loadProjects();
-                },
-                error: (err) => console.error('Error deleting', err)
-            });
-        }
+        if (!id) return;
+        this.alertService.confirm('Eliminar', '¿Está seguro de eliminar este proyecto?').then(confirmed => {
+            if (confirmed) {
+                this.projectService.deleteProject(id).subscribe({
+                    next: () => {
+                        this.alertService.success('Éxito', 'Proyecto eliminado correctamente');
+                        this.loadProjects();
+                    },
+                    error: (err) => {
+                        console.error('Error deleting project', err);
+                        this.alertService.error('Error', 'No se pudo eliminar el proyecto');
+                    }
+                });
+            }
+        });
     }
 }
