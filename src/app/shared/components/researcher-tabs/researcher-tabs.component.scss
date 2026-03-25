@@ -91,6 +91,65 @@
         min-width: 700px;
         font-size: 0.9rem;
 
+        @media (max-width: 768px) {
+            display: block;
+            min-width: 0;
+
+            thead {
+                display: none;
+            }
+
+            tbody {
+                display: block;
+
+                tr {
+                    display: block;
+                    padding: 1.25rem 0.75rem;
+                    border-bottom: 1px solid #eee;
+
+                    &:hover {
+                        background: white;
+                    }
+                }
+
+                td {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                    padding: 0.5rem 0 !important;
+                    border-bottom: 1px solid #f9f9f9 !important;
+                    text-align: left;
+                    gap: 0.25rem;
+
+                    &:last-child {
+                        border-bottom: none !important;
+                    }
+
+                    &::before {
+                        content: attr(data-label);
+                        font-weight: 700;
+                        text-align: left;
+                        color: #004E5A;
+                        font-size: 0.85rem; /* Increased size */
+                        text-transform: uppercase;
+                        min-width: 0;
+                        width: 100%;
+                        display: block;
+                        margin-bottom: 4px;
+                        letter-spacing: 0.02em;
+                    }
+
+                    /* Content inside td */
+                    span, div, p {
+                        font-size: 0.825rem; /* Slightly smaller content to highlight label */
+                        width: 100%;
+                        word-wrap: break-word;
+                        color: #1a1a1a;
+                    }
+                }
+            }
+        }
+
         thead {
             tr {
                 border-bottom: 2px solid #eee;
@@ -133,23 +192,30 @@
 
         .badge-source {
             font-weight: 700;
-            display: inline-flex;
+            display: inline-flex !important;
             align-items: center;
             justify-content: center;
             text-transform: uppercase;
+            align-self: flex-start !important;
+            width: fit-content !important;
 
             &.sunedu {
                 background: #00CFFF;
-                color: white;
-                width: 48px;
-                height: 48px;
-                border-radius: 50%;
-                font-size: 8px;
+                color: white !important;
+                width: 44px !important;
+                height: 44px !important;
+                min-width: 44px !important;
+                min-height: 44px !important;
+                border-radius: 50% !important;
+                font-size: 7px !important;
                 line-height: 1;
                 border: 2px solid #94A3B8;
                 box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                padding: 0;
+                padding: 0 !important;
                 font-weight: 900;
+                text-align: center;
+                flex-shrink: 0 !important;
+                overflow: hidden;
             }
 
             &.manual {
@@ -165,10 +231,15 @@
         .badge-status {
             background: #e8f5e9;
             color: #2e7d32;
-            padding: 4px 8px;
-            border-radius: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
             font-size: 0.75rem;
             font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            align-self: flex-start; /* Prevent stretching */
+            margin-top: 4px;
         }
     }
 

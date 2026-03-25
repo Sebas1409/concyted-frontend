@@ -83,11 +83,12 @@ export class HeaderComponent implements OnChanges, OnInit {
 
     logout() {
         this.showUserMenu = false;
-        // Clear session without letting AuthService redirect to /auth/login
-        localStorage.clear();
-        this.currentUser = null;
-        this.userPhotoUrl = null;
-        // Navigate to landing page so the header shows 'Iniciar sesión'
+        this.openMobile = false; // Close mobile drawer
+        
+        // Notify AuthService to clear memory and local storage
+        this.authService.logout(false);
+        
+        // Navigating to landing page so the header updates accordingly
         this.router.navigate(['/']);
     }
 

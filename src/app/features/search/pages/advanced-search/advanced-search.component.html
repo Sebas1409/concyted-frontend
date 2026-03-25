@@ -18,7 +18,7 @@
                             </svg>
                         </span>
                         <input type="text" formControlName="searchText"
-                            placeholder="Buscar por nombres, apellidos, código Renacyt o DNI..."
+                            placeholder="Buscar nombres, código Renacyt o DNI..."
                             class="main-search-input" (keyup.enter)="search()">
                     </div>
                     <button type="button" class="btn-search" (click)="search()" [disabled]="isLoading">
@@ -29,7 +29,7 @@
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
-                        </span> {{ isLoading ? 'Buscando...' : 'Buscar' }}
+                        </span> {{ isLoading ? 'Buscando' : 'Buscar' }}
                     </button>
                 </div>
 
@@ -136,10 +136,10 @@
                             <!-- Real Results -->
                             <ng-container *ngIf="!isLoading">
                                 <tr *ngFor="let item of researchers; let i = index">
-                                    <td class="text-center" style="font-weight: 600; color: #1E293B;">
+                                    <td class="text-center w-num" data-label="N°" style="font-weight: 600; color: #1E293B;">
                                         {{ padNumber((currentPage - 1) * pageSize + i + 1) }}
                                     </td>
-                                    <td class="text-center">
+                                    <td class="text-center w-sex" data-label="Sexo">
                                         <div [ngClass]="['sex-icon', item.gender === 'M' ? 'male' : 'female']">
                                             <!-- Mars Symbol (Male) -->
                                             <svg *ngIf="item.gender === 'M'" width="20" height="20" viewBox="0 0 24 24"
@@ -163,7 +163,7 @@
                                             {{ item.sexName }}
                                         </span>
                                     </td>
-                                    <td>
+                                    <td data-label="Nombre y Datos">
                                         <div class="researcher-info">
                                             <a [routerLink]="['/search/researcher', item.id]" class="name-link"
                                                 title="Hacer click para visualizar su detalles">
@@ -206,9 +206,8 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td>
-                                        <p class="summary-text"
-                                            style="display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                                    <td data-label="Resumen Profesional">
+                                        <p class="summary-text line-clamp">
                                             {{ item.summary }}
                                         </p>
                                     </td>

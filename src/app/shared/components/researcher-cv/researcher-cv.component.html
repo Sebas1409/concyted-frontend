@@ -82,12 +82,12 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>{{ researcher?.name | capitalize }}</td>
-                        <td>{{ generalData?.gender }}</td>
-                        <td>{{ generalData?.nationality }}</td>
-                        <td>{{ generalData?.email }}</td>
-                        <td>{{ generalData?.residence }}</td>
-                        <td *ngIf="generalData?.isValidated" class="text-center">
+                        <td data-label="Nombres y Apellidos">{{ researcher?.name | capitalize }}</td>
+                        <td data-label="Género">{{ generalData?.gender }}</td>
+                        <td data-label="Nacionalidad">{{ generalData?.nationality }}</td>
+                        <td data-label="Email/Web">{{ generalData?.email }}</td>
+                        <td data-label="País Residencia">{{ generalData?.residence }}</td>
+                        <td *ngIf="generalData?.isValidated" data-label="Fuente" class="text-center">
                             <img src="assets/Datos%20Generales/logo_reniec.png" alt="RENIEC" class="reniec-logo-sm">
                         </td>
                     </tr>

@@ -14,12 +14,14 @@
         </a>
     </div>
 
-    <!-- Reusable CV Component -->
-    <app-researcher-cv [researcher]="researcher" [generalData]="generalData" [academicFormation]="academicFormation"
-        [technicalFormation]="technicalFormation" [workExperience]="workExperience"
-        [docenteExperience]="docenteExperience" [ctiManagementExperience]="ctiManagementExperience"
-        [boardExperience]="boardExperience" [projects]="projects" [scientificProduction]="scientificProduction"
-        [languages]="languages" [thesisAdvisory]="thesisAdvisory" [thesisJury]="thesisJury"></app-researcher-cv>
+    <div class="cv-wrapper-card">
+        <!-- Reusable CV Component -->
+        <app-researcher-cv [researcher]="researcher" [generalData]="generalData" [academicFormation]="academicFormation"
+            [technicalFormation]="technicalFormation" [workExperience]="workExperience"
+            [docenteExperience]="docenteExperience" [ctiManagementExperience]="ctiManagementExperience"
+            [boardExperience]="boardExperience" [projects]="projects" [scientificProduction]="scientificProduction"
+            [languages]="languages" [thesisAdvisory]="thesisAdvisory" [thesisJury]="thesisJury"></app-researcher-cv>
+    </div>
 </div>
 
 <app-footer></app-footer>

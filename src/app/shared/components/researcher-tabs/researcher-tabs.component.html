@@ -34,10 +34,10 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let item of workExperience">
-                            <td>{{ item.institution }}</td>
-                            <td>{{ item.position }}</td>
-                            <td>{{ item.description }}</td>
-                            <td>{{ item.startDate | dateDisplay }} - {{ item.endDate | dateDisplay:item.current }}</td>
+                            <td data-label="Institución">{{ item.institution }}</td>
+                            <td data-label="Cargo">{{ item.position }}</td>
+                            <td data-label="Descripción">{{ item.description }}</td>
+                            <td data-label="Periodo">{{ item.startDate | dateDisplay }} - {{ item.endDate | dateDisplay:item.current }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -62,10 +62,10 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let item of docenteExperience">
-                            <td>{{ item.institution }}</td>
-                            <td>{{ item.type }} / {{ item.docenteType }}</td>
-                            <td>{{ item.description }}</td>
-                            <td>{{ item.startDate | dateDisplay }} - {{ item.endDate |
+                            <td data-label="Institución">{{ item.institution }}</td>
+                            <td data-label="Tipo">{{ item.type }} / {{ item.docenteType }}</td>
+                            <td data-label="Cargo/Descripción">{{ item.description }}</td>
+                            <td data-label="Periodo">{{ item.startDate | dateDisplay }} - {{ item.endDate |
                                 dateDisplay:item.currentlyTeaching }}</td>
                         </tr>
                     </tbody>
@@ -90,9 +90,9 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let item of ctiManagementExperience">
-                            <td>{{ item.institution }}</td>
-                            <td>{{ item.position }}</td>
-                            <td>{{ item.period }}</td>
+                            <td data-label="Institución">{{ item.institution }}</td>
+                            <td data-label="Cargo">{{ item.position }}</td>
+                            <td data-label="Periodo">{{ item.period }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -117,10 +117,10 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let item of boardExperience">
-                            <td>{{ item.institution }}</td>
-                            <td>{{ item.councilType }}</td>
-                            <td>{{ item.position }}</td>
-                            <td>{{ item.period }}</td>
+                            <td data-label="Institución">{{ item.institution }}</td>
+                            <td data-label="Tipo Consejo">{{ item.councilType }}</td>
+                            <td data-label="Cargo">{{ item.position }}</td>
+                            <td data-label="Periodo">{{ item.period }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -149,12 +149,12 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let item of academicFormation">
-                            <td>{{ item.institution }}</td>
-                            <td>{{ item.degree }}</td>
-                            <td>{{ item.title }}</td>
-                            <td>{{ item.startDate | dateDisplay }}</td>
-                            <td>{{ item.endDate | dateDisplay }}</td>
-                            <td>
+                            <td data-label="Centro Estudios">{{ item.institution }}</td>
+                            <td data-label="Grado/Título">{{ item.degree }}</td>
+                            <td data-label="Mención/Especialidad">{{ item.title }}</td>
+                            <td data-label="Fecha Inicio">{{ item.startDate | dateDisplay }}</td>
+                            <td data-label="Fecha Fin">{{ item.endDate | dateDisplay }}</td>
+                            <td data-label="Fuente">
                                 <span class="badge-source" [class.sunedu]="item.source === 'SUNEDU'"
                                     [class.manual]="item.source === 'MANUAL'">
                                     {{ item.source }}
@@ -182,9 +182,9 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let item of technicalFormation">
-                            <td>{{ item.institution }}</td>
-                            <td>{{ item.career }}</td>
-                            <td>{{ item.startDate | dateDisplay }} - {{ item.endDate | dateDisplay }}</td>
+                            <td data-label="Institución">{{ item.institution }}</td>
+                            <td data-label="Carrera">{{ item.career }}</td>
+                            <td data-label="Periodo">{{ item.startDate | dateDisplay }} - {{ item.endDate | dateDisplay }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -212,11 +212,11 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let item of projects">
-                            <td>{{ item.title }}</td>
-                            <td>{{ item.type }}</td>
-                            <td>{{ item.role }}</td>
-                            <td>{{ item.amount | number:'1.0-0' }}</td>
-                            <td><span class="badge-status">{{ item.status }}</span></td>
+                            <td data-label="Título">{{ item.title }}</td>
+                            <td data-label="Tipo">{{ item.type }}</td>
+                            <td data-label="Rol">{{ item.role }}</td>
+                            <td data-label="Monto (USD)">{{ item.amount | number:'1.0-0' }}</td>
+                            <td data-label="Estado"><span class="badge-status">{{ item.status }}</span></td>
                         </tr>
                     </tbody>
                 </table>
@@ -243,10 +243,10 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let item of scientificProduction">
-                            <td>{{ item.type }}</td>
-                            <td>{{ item.title }}</td>
-                            <td>{{ item.details }}</td>
-                            <td>{{ item.year }}</td>
+                            <td data-label="Tipo">{{ item.type }}</td>
+                            <td data-label="Título">{{ item.title }}</td>
+                            <td data-label="Detalle">{{ item.details }}</td>
+                            <td data-label="Año">{{ item.year }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -273,10 +273,10 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let item of thesisAdvisory">
-                            <td>{{ item.student }}</td>
-                            <td>{{ item.thesis }}</td>
-                            <td>{{ item.university }}</td>
-                            <td>{{ item.year }}</td>
+                            <td data-label="Tesista">{{ item.student }}</td>
+                            <td data-label="Tesis">{{ item.thesis }}</td>
+                            <td data-label="Institución">{{ item.university }}</td>
+                            <td data-label="Año">{{ item.year }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -300,10 +300,10 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let item of thesisJury">
-                            <td>{{ item.student }}</td>
-                            <td>{{ item.thesis }}</td>
-                            <td>{{ item.university }}</td>
-                            <td>{{ item.year }}</td>
+                            <td data-label="Tesista">{{ item.student }}</td>
+                            <td data-label="Tesis">{{ item.thesis }}</td>
+                            <td data-label="Institución">{{ item.university }}</td>
+                            <td data-label="Año">{{ item.year }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -331,11 +331,11 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let item of languages">
-                            <td>{{ item.language }}</td>
-                            <td>{{ item.level }}</td>
-                            <td>{{ item.reading }}</td>
-                            <td>{{ item.writing }}</td>
-                            <td>{{ item.speaking }}</td>
+                            <td data-label="Idioma">{{ item.language }}</td>
+                            <td data-label="Nivel">{{ item.level }}</td>
+                            <td data-label="Lectura">{{ item.reading }}</td>
+                            <td data-label="Escritura">{{ item.writing }}</td>
+                            <td data-label="Habla">{{ item.speaking }}</td>
                         </tr>
                     </tbody>
                 </table>

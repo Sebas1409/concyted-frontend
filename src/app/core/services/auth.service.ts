@@ -173,7 +173,7 @@ export class AuthService {
         }
     }
 
-    logout() {
+    logout(shouldRedirect: boolean = true) {
         console.log('AuthService: Logging out...');
 
         if (this.logoutTimer) {
@@ -187,7 +187,9 @@ export class AuthService {
 
         // Reset state
         this.currentUserSubject.next(null);
-        this.router.navigate(['/auth/login']);
+        if (shouldRedirect) {
+            this.router.navigate(['/auth/login']);
+        }
     }
     processLoginResponse(response: any): Observable<boolean> {
         if (response && response.accessToken) {
