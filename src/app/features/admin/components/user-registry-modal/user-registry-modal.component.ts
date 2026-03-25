@@ -123,6 +123,12 @@ import { environment } from '../../../../../environments/environment';
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 16px;
+        width: 100%;
+        box-sizing: border-box;
+
+        @media (max-width: 768px) {
+            grid-template-columns: 1fr;
+        }
     }
     .full-width { grid-column: 1 / -1; }
     
@@ -132,6 +138,8 @@ import { environment } from '../../../../../environments/environment';
         gap: 6px;
         label { font-size: 13px; font-weight: 500; color: #334155; }
         input, select {
+            width: 100%;
+            box-sizing: border-box;
             padding: 10px; border: 1px solid #E2E8F0; border-radius: 6px; font-size: 14px;
             &:focus { outline: none; border-color: #005470; }
         }

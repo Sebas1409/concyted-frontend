@@ -95,7 +95,7 @@
                                 <span class="checkmark"></span>
                             </label>
                         </th>
-                        <th style="width: 60px; text-align: center;">N°</th>
+                        <th style="width: 60px; text-align: center;" class="hide-on-mobile">N°</th>
                         <th (click)="toggleSort('id')" style="cursor: pointer;">
                             RUC {{ sortField === 'id' ? (sortOrder === 'asc' ? '↑' : '↓') : '⇅' }}
                         </th>
@@ -121,7 +121,7 @@
                                     <span class="checkmark"></span>
                                 </label>
                             </td>
-                            <td style="text-align: center; font-weight: 500; color: #64748B;">
+                            <td style="text-align: center; font-weight: 500; color: #64748B;" class="hide-on-mobile">
                                 {{ (currentPage - 1) * pageSize + i + 1 }}
                             </td>
                             <td>{{ item.id }}</td>

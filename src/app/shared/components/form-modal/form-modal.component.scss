@@ -54,12 +54,14 @@
     padding: 20px;
     border-radius: 8px;
     border: 1px solid #E5E7EB;
-    /* Allow content to handle its own flex layout if needed, but defaults are good */
-    display: block;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
     .modal-container {
         width: 100%;
+        padding: 1.25rem;
     }
 }

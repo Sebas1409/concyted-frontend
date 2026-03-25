@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { AdminSidebarComponent } from '../../components/admin-sidebar/admin-sidebar.component';
@@ -12,11 +12,21 @@ import { HeaderComponent } from '../../../../layout/dashboard-layout/components/
     styleUrl: './admin-layout.component.scss'
 })
 export class AdminLayoutComponent implements OnInit {
-    isSidebarOpen = true;
+    isSidebarOpen = window.innerWidth > 992;
 
     ngOnInit() {
         // Remove any orphaned modal overlays that might be blocking the UI
         this.removeOrphanedOverlays();
+    }
+
+    @HostListener('window:resize', ['$event'])
+    onResize(event: any) {
+        // Automatically hide sidebar on mobile/tablet when resizing
+        if (event.target.innerWidth <= 992 && this.isSidebarOpen) {
+            this.isSidebarOpen = false;
+        } else if (event.target.innerWidth > 992 && !this.isSidebarOpen) {
+            this.isSidebarOpen = true;
+        }
     }
 
     removeOrphanedOverlays() {

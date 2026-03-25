@@ -2,6 +2,11 @@
     padding: 32px;
     max-width: 1600px;
     margin: 0 auto;
+    overflow-x: hidden;
+
+    @media (max-width: 768px) {
+        padding: 16px;
+    }
 
     /* Tabs */
     .tabs-container {
@@ -10,6 +15,17 @@
         border-bottom: 1px solid #E2E8F0;
         margin-bottom: 32px;
         margin-top: 24px;
+        overflow-x: auto;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            gap: 20px;
+        }
 
         .tab-btn {
             background: none;
@@ -62,6 +78,11 @@
                 grid-template-columns: 280px 1fr;
                 gap: 32px;
                 align-items: flex-start;
+
+                @media (max-width: 992px) {
+                    grid-template-columns: 1fr;
+                    gap: 16px;
+                }
 
                 .section-info {
                     h3 {
@@ -386,6 +407,11 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 24px;
+
+        @media (max-width: 640px) {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
     }
 
     .form-group {

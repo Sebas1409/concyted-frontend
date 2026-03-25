@@ -35,7 +35,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th (click)="toggleSort('account')" style="cursor: pointer;">
+                        <th (click)="toggleSort('account')" style="cursor: pointer;" class="hide-on-mobile">
                             Cuenta de usuario
                             <span class="sort-icon" [class.active]="sortColumn === 'account'">
                                 {{ sortColumn === 'account' ? (sortDirection === 'asc' ? '↑' : '↓') : '⇅' }}
@@ -48,13 +48,13 @@
                             </span>
                         </th>
                         <ng-container *ngIf="activeTab === 'users'">
-                            <th (click)="toggleSort('email')" style="cursor: pointer;">
+                            <th (click)="toggleSort('email')" style="cursor: pointer;" class="hide-on-mobile">
                                 Correos
                                 <span class="sort-icon" [class.active]="sortColumn === 'email'">
                                     {{ sortColumn === 'email' ? (sortDirection === 'asc' ? '↑' : '↓') : '⇅' }}
                                 </span>
                             </th>
-                            <th (click)="toggleSort('area')" style="cursor: pointer;">
+                            <th (click)="toggleSort('area')" style="cursor: pointer;" class="hide-on-mobile">
                                 Área
                                 <span class="sort-icon" [class.active]="sortColumn === 'area'">
                                     {{ sortColumn === 'area' ? (sortDirection === 'asc' ? '↑' : '↓') : '⇅' }}
@@ -63,7 +63,7 @@
                         </ng-container>
                         <ng-container *ngIf="activeTab === 'roles'">
                             <th>Roles</th>
-                            <th (click)="toggleSort('area')" style="cursor: pointer;">
+                            <th (click)="toggleSort('area')" style="cursor: pointer;" class="hide-on-mobile">
                                 Área
                                 <span class="sort-icon" [class.active]="sortColumn === 'area'">
                                     {{ sortColumn === 'area' ? (sortDirection === 'asc' ? '↑' : '↓') : '⇅' }}
@@ -81,12 +81,12 @@
                 </thead>
                 <tbody>
                     <tr *ngFor="let user of paginatedUsers">
-                        <td>{{ user.account }}</td>
+                        <td class="hide-on-mobile">{{ user.account }}</td>
                         <td>{{ user.name }}</td>
 
                         <ng-container *ngIf="activeTab === 'users'">
-                            <td>{{ user.email }}</td>
-                            <td>{{ user.area }}</td>
+                            <td class="hide-on-mobile">{{ user.email }}</td>
+                            <td class="hide-on-mobile">{{ user.area }}</td>
                         </ng-container>
 
                         <ng-container *ngIf="activeTab === 'roles'">
@@ -96,7 +96,7 @@
                                         class="role-badge">{{ getRoleDisplayName(role) }}</span>
                                 </div>
                             </td>
-                            <td>{{ user.area }}</td>
+                            <td class="hide-on-mobile">{{ user.area }}</td>
                         </ng-container>
 
                         <td>

@@ -96,28 +96,28 @@
                         <th (click)="toggleSort('userId')" style="cursor: pointer;">Usuario
                             {{ sortField === 'userId' ? (sortOrder === 'asc' ? '↑' : '↓') : '⇅' }}
                         </th>
-                        <th (click)="toggleSort('gender')" style="cursor: pointer; text-align: center;">Género
+                        <th (click)="toggleSort('gender')" style="cursor: pointer; text-align: center;" class="hide-on-tablet">Género
                             {{ sortField === 'gender' ? (sortOrder === 'asc' ? '↑' : '↓') : '⇅' }}
                         </th>
                         <th (click)="toggleSort('name')" style="cursor: pointer;">Investigador
                             {{ sortField === 'name' ? (sortOrder === 'asc' ? '↑' : '↓') : '⇅' }}
                         </th>
-                        <th (click)="toggleSort('email')" style="cursor: pointer;">Correo
+                        <th (click)="toggleSort('email')" style="cursor: pointer;" class="hide-on-mobile">Correo
                             {{ sortField === 'email' ? (sortOrder === 'asc' ? '↑' : '↓') : '⇅' }}
                         </th>
-                        <th (click)="toggleSort('degree')" style="cursor: pointer;">Grado
+                        <th (click)="toggleSort('degree')" style="cursor: pointer;" class="hide-on-tablet">Grado
                             {{ sortField === 'degree' ? (sortOrder === 'asc' ? '↑' : '↓') : '⇅' }}
                         </th>
-                        <th (click)="toggleSort('region')" style="cursor: pointer;">Región
+                        <th (click)="toggleSort('region')" style="cursor: pointer;" class="hide-on-tablet">Región
                             {{ sortField === 'region' ? (sortOrder === 'asc' ? '↑' : '↓') : '⇅' }}
                         </th>
-                        <th (click)="toggleSort('institution')" style="cursor: pointer;">Institución Principal
+                        <th (click)="toggleSort('institution')" style="cursor: pointer;" class="hide-on-tablet">Institución Principal
                             {{ sortField === 'institution' ? (sortOrder === 'asc' ? '↑' : '↓') : '⇅' }}
                         </th>
                         <th (click)="toggleSort('status')" style="cursor: pointer;">Estado
                             {{ sortField === 'status' ? (sortOrder === 'asc' ? '↑' : '↓') : '⇅' }}
                         </th>
-                        <th class="text-center">Doc.</th>
+                        <th class="text-center hide-on-mobile">Doc.</th>
                         <th style="width: 40px;"></th>
                     </tr>
                 </thead>
@@ -127,7 +127,7 @@
                         <td>
                             <span class="user-id-text">{{ item.userId }}</span>
                         </td>
-                        <td class="text-center">
+                        <td class="text-center hide-on-tablet">
                             <div class="gender-display"
                                 style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
                                 <div class="gender-icon" [style.color]="item.gender === 'M' ? '#3B82F6' : '#EC4899'">
@@ -159,17 +159,17 @@
                                     capitalize }}</span>
                             </div>
                         </td>
-                        <td>{{ item.email || '---' }}</td>
-                        <td>{{ item.degree || '---' }}</td>
-                        <td>{{ item.region || '---' }}</td>
-                        <td>{{ item.institution || '---' }}</td>
+                        <td class="hide-on-mobile">{{ item.email || '---' }}</td>
+                        <td class="hide-on-tablet">{{ item.degree || '---' }}</td>
+                        <td class="hide-on-tablet">{{ item.region || '---' }}</td>
+                        <td class="hide-on-tablet">{{ item.institution || '---' }}</td>
                         <td>
                             <span class="status-chip" [class.active]="item.status === 'Activo'"
                                 [class.inactive]="item.status === 'Inactivo'">
                                 {{ item.status }}
                             </span>
                         </td>
-                        <td class="text-center">
+                        <td class="text-center hide-on-mobile">
                             <button *ngIf="item.docToken" (click)="viewDocument(item)" class="btn-file-preview"
                                 title="Haz click para visualizar">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -275,22 +275,22 @@
             <table class="modern-table">
                 <thead>
                     <tr>
-                        <th style="width: 100px;">N°</th>
-                        <th>Fecha</th>
+                        <th style="width: 100px;" class="hide-on-mobile">N°</th>
+                        <th class="hide-on-tablet">Fecha</th>
                         <th>Investigador</th>
-                        <th>Motivo</th>
+                        <th class="hide-on-tablet">Motivo</th>
                         <th class="text-center">Estado</th>
                         <th class="text-center" style="width: 120px;">Acción</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr *ngFor="let req of paginatedRequests; let i = index">
-                        <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
-                        <td>{{ req.date | dateFormat }}</td>
+                        <td class="hide-on-mobile">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+                        <td class="hide-on-tablet">{{ req.date | dateFormat }}</td>
                         <td class="name-cell">
                             <span class="full-name">{{ req.researcherName }}</span>
                         </td>
-                        <td>{{ req.reason }}</td>
+                        <td class="hide-on-tablet">{{ req.reason }}</td>
                         <td class="text-center">
                             <span class="status-badge"
                                 [class.pending]="req.status === 'Pendiente' || req.status === 'PENDIENTE'"

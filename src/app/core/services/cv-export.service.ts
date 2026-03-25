@@ -14,6 +14,7 @@ import { IntellectualPropertyService } from './intellectual-property.service';
 import { DistinctionService } from './distinction.service';
 import { CatalogService } from './catalog.service';
 import { UbigeoService } from './ubigeo.service';
+import { FileService } from './file.service';
 
 export interface ExportData {
     researcher: any;
@@ -48,7 +49,8 @@ export class CvExportService {
         private ipService: IntellectualPropertyService,
         private distinctionService: DistinctionService,
         private catalogService: CatalogService,
-        private ubigeoService: UbigeoService
+        private ubigeoService: UbigeoService,
+        private fileService: FileService
     ) { }
 
     /**
@@ -100,7 +102,7 @@ export class CvExportService {
             const exportData = this.mapToExportData(userData, sections, locationName);
 
             // 5. Generate PDF
-            await this.exportCV(exportData);
+            await this.exportCV(exportData, userData);
         } catch (error) {
             console.error('Error handling Full CV generation', error);
             throw error;
@@ -116,7 +118,7 @@ export class CvExportService {
             const exportData = this.mapBackendToExportData(apiData, userData);
 
             // 2. Ejecutar la exportación PDF existente
-            await this.exportCV(exportData);
+            await this.exportCV(exportData, userData);
         } catch (error) {
             console.error('Error en generateCvFromBackendData', error);
             throw error;
@@ -390,11 +392,22 @@ export class CvExportService {
         };
     }
 
-    async exportCV(data: ExportData) {
+    async exportCV(data: ExportData, userData?: any) {
         if (!data.researcher) return;
 
         try {
             const logo = await this.getLogoBase64();
+            let profilePhotoBase64: string | null = null;
+
+            // Try to load profile photo
+            if (userData?.fotoToken) {
+                try {
+                    profilePhotoBase64 = await this.getProfilePhotoBase64(userData.fotoToken);
+                } catch (e) {
+                    console.warn('Could not load profile photo for PDF', e);
+                }
+            }
+
             const doc = new jsPDF();
             const pageWidth = doc.internal.pageSize.getWidth();
             const margin = 15;
@@ -405,11 +418,41 @@ export class CvExportService {
             doc.setFontSize(7).setFont('helvetica', 'normal').text('CONSEJO NACIONAL DE CIENCIA, TECNOLOGÍA E INNOVACIÓN TECNOLÓGICA', margin + 30, 23);
             doc.setDrawColor(0, 78, 90).line(margin, 30, pageWidth - margin, 30);
 
-            // Identification
-            doc.setFontSize(16).setFont('helvetica', 'bold').setTextColor(0, 0, 0).text(data.researcher.name || 'INVESTIGADOR', pageWidth / 2, 45, { align: 'center' });
+            // Profile photo or initials
+            const photoSize = 28;
+            const photoX = margin;
+            const photoY = 35;
+
+            if (profilePhotoBase64) {
+                // Draw circular clipped photo
+                doc.addImage(profilePhotoBase64, 'JPEG', photoX, photoY, photoSize, photoSize);
+            } else {
+                // Draw a circle with initials
+                const centerX = photoX + photoSize / 2;
+                const centerY = photoY + photoSize / 2;
+                const radius = photoSize / 2;
+                doc.setFillColor(0, 78, 90);
+                doc.circle(centerX, centerY, radius, 'F');
+                // Draw initials
+                const initials = this.getInitialsFromName(data.researcher.name);
+                doc.setFontSize(14).setFont('helvetica', 'bold').setTextColor(255, 255, 255);
+                doc.text(initials, centerX, centerY + 1.5, { align: 'center' });
+            }
+
+            // Name next to photo
+            const nameX = photoX + photoSize + 8;
+            doc.setFontSize(14).setFont('helvetica', 'bold').setTextColor(0, 0, 0);
+            doc.text(data.researcher.name || 'INVESTIGADOR', nameX, photoY + 12);
+
+            // Bio below name (if exists)
+            if (data.researcher.bio && data.researcher.bio !== 'Sin resumen profesional registrado.') {
+                doc.setFontSize(8).setFont('helvetica', 'normal').setTextColor(80, 80, 80);
+                const bioLines = doc.splitTextToSize(data.researcher.bio, pageWidth - nameX - margin);
+                doc.text(bioLines.slice(0, 2), nameX, photoY + 19);
+            }
 
             // Identifiers box
-            let currentY = 55;
+            let currentY = photoY + photoSize + 8;
             doc.setFillColor(240, 240, 240).rect(margin, currentY, pageWidth - margin * 2, 7, 'F');
             doc.setFontSize(10).text('Identificadores', pageWidth / 2, currentY + 5, { align: 'center' });
             currentY += 12;
@@ -555,5 +598,38 @@ export class CvExportService {
             };
             img.onerror = () => reject('No se pudo cargar el logo');
         });
+    }
+
+    private async getProfilePhotoBase64(fotoToken: string): Promise<string> {
+        const url = this.fileService.getFileUrl(fotoToken, true);
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.src = url;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const size = Math.min(img.width, img.height);
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    // Crop to square from center
+                    const sx = (img.width - size) / 2;
+                    const sy = (img.height - size) / 2;
+                    ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
+                }
+                resolve(canvas.toDataURL('image/jpeg', 0.85));
+            };
+            img.onerror = () => reject('No se pudo cargar la foto de perfil');
+        });
+    }
+
+    private getInitialsFromName(name: string): string {
+        if (!name) return '?';
+        const parts = name.trim().split(/\s+/);
+        if (parts.length >= 2) {
+            return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+        }
+        return parts[0].charAt(0).toUpperCase();
     }
 }

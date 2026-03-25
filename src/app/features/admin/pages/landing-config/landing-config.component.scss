@@ -2,6 +2,11 @@
     padding: 32px;
     max-width: 1600px;
     margin: 0 auto;
+    overflow-x: hidden;
+
+    @media (max-width: 768px) {
+        padding: 16px;
+    }
 
     /* Checkbox Styles (Custom) */
     .checkbox-container {
@@ -153,15 +158,24 @@
         display: flex;
         flex-direction: column;
         gap: 40px;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
 
         .config-section {
             display: grid;
-            grid-template-columns: 300px 1fr;
+            grid-template-columns: 300px minmax(0, 1fr);
             gap: 32px;
             align-items: flex-start;
+            width: 100%;
+
+            @media (max-width: 1200px) {
+                grid-template-columns: 1fr !important;
+                gap: 20px;
+            }
 
             &.full-width {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr !important;
             }
 
             .section-info {
@@ -491,6 +505,12 @@
                     align-items: center;
                     margin-bottom: 24px;
 
+                    @media (max-width: 576px) {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 16px;
+                    }
+
                     .avatar-box {
                         width: 60px;
                         height: 60px;
@@ -539,6 +559,10 @@
                     gap: 24px;
                     align-items: start;
                     margin-bottom: 24px;
+
+                    @media (max-width: 576px) {
+                        grid-template-columns: 1fr;
+                    }
 
                     .hint-text-sm {
                         display: block;
@@ -637,11 +661,75 @@
                 }
             }
 
+            /* Flex Grid for internal card content (Benefits) */
+            .card-content-grid {
+                display: flex;
+                gap: 32px;
+                align-items: stretch;
+
+                @media (max-width: 992px) {
+                    flex-direction: column;
+                    gap: 20px;
+                }
+
+                .image-column {
+                    width: 300px;
+                    flex-shrink: 0;
+                    height: 230px;
+
+                    @media (max-width: 992px) {
+                        width: 100%;
+                        height: auto;
+                        min-height: 200px;
+                    }
+                }
+
+                .inputs-column {
+                    flex-grow: 1;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 16px;
+
+                    input[type="text"],
+                    textarea {
+                        border: 1px solid #D1D5DB !important;
+                    }
+
+                    .actions-row-flex {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-end;
+                        margin-top: auto;
+                        gap: 16px;
+
+                        @media (max-width: 640px) {
+                            flex-direction: column;
+                            align-items: stretch;
+                        }
+
+                        .state-group {
+                            margin-bottom: 0;
+                        }
+
+                        .btn-primary {
+                            @media (max-width: 640px) {
+                                width: 100%;
+                            }
+                        }
+                    }
+                }
+            }
+
             /* Cards Grid 2 Cols for Profiles */
             .cards-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 32px;
+
+                @media (max-width: 992px) {
+                    grid-template-columns: 1fr;
+                    gap: 20px;
+                }
             }
         }
     }
@@ -657,6 +745,10 @@
             border: 1px solid #E2E8F0;
             border-radius: 8px;
             padding: 24px;
+
+            @media (max-width: 576px) {
+                padding: 16px;
+            }
 
             .form-group {
                 display: flex;
@@ -689,6 +781,10 @@
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 20px;
+
+                @media (max-width: 576px) {
+                    grid-template-columns: 1fr;
+                }
 
                 .radio-group {
                     display: flex;
@@ -812,6 +908,13 @@
     gap: 24px;
     align-items: center;
     margin-bottom: 24px;
+
+    @media (max-width: 576px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 16px;
+    }
 
     .avatar-placeholder {
         width: 64px;

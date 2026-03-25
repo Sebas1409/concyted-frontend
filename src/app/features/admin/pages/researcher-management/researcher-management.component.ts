@@ -669,7 +669,8 @@ export class ResearcherManagementComponent {
         this.selectedItemForMenu = null;
         // Usar baseHref del environment para construir la URL correcta
         const baseHref = environment.baseHref || '/';
-        const url = `${window.location.origin}${baseHref}search/researcher/${item.raw.id}`;
+        const profileId = item.idInvestigador || item.raw?.id || item.id;
+        const url = `${window.location.origin}${baseHref}search/researcher/${profileId}`;
         window.open(url, '_blank');
     }
 

@@ -3,6 +3,10 @@
     max-width: 1600px;
     margin: 0 auto;
 
+    @media (max-width: 768px) {
+        padding: 16px;
+    }
+
     .page-header {
         margin-bottom: 24px;
 
@@ -31,6 +35,12 @@
             background: #F1F5F9;
             border-radius: 10px;
             width: fit-content;
+            overflow-x: auto;
+            max-width: 100%;
+
+            &::-webkit-scrollbar {
+                display: none;
+            }
 
             .mode-btn {
                 background: transparent;
@@ -42,6 +52,7 @@
                 cursor: pointer;
                 border-radius: 7px;
                 transition: all 0.2s;
+                white-space: nowrap;
 
                 &:hover {
                     color: #0F172A;
@@ -62,11 +73,22 @@
             gap: 24px;
             flex-wrap: wrap;
 
+            @media (max-width: 768px) {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 16px;
+            }
+
             .filter-row {
                 display: flex;
                 gap: 20px;
                 flex: 1;
                 min-width: min-content;
+
+                @media (max-width: 576px) {
+                    flex-direction: column;
+                    gap: 12px;
+                }
 
                 &.animate-px {
                     animation: fadeIn 0.3s ease-out;
@@ -107,6 +129,15 @@
                 display: flex;
                 gap: 12px;
                 margin-left: auto;
+
+                @media (max-width: 768px) {
+                    margin-left: 0;
+                    width: 100%;
+
+                    .btn-filter, .btn-clear {
+                        flex: 1;
+                    }
+                }
 
                 .btn-filter {
                     background: #005470;

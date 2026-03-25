@@ -282,9 +282,9 @@
         <div class="publico-layout">
             <div class="cards-grid" style="grid-template-columns: 1fr;">
                 <div class="card-large" *ngFor="let item of benefits">
-                    <div style="display: flex; gap: 32px; align-items: stretch;">
+                    <div class="card-content-grid">
                         <!-- Column 1: Image -->
-                        <div style="width: 300px; flex-shrink: 0; height: 230px;">
+                        <div class="image-column">
                             <app-single-image-upload [currentToken]="item.image" placeholderText="IMG"
                                 accept=".webp,.jpg,.jpeg,.png,.svg" [maxSizeBytes]="512000"
                                 hintText="JPG, PNG, SVG o WEBP (300px). Máx 500KB." module="ADMIN" category="LANDING"
@@ -294,23 +294,20 @@
                         </div>
 
                         <!-- Column 2: Inputs -->
-                        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 16px;">
+                        <div class="inputs-column">
 
                             <div class="form-group">
                                 <label>Título de la Tarjeta *</label>
-                                <input type="text" [(ngModel)]="item.title" required
-                                    style="width: 100%; border: 1px solid #D1D5DB; padding: 10px; border-radius: 6px;">
+                                <input type="text" [(ngModel)]="item.title" required>
                             </div>
 
                             <div class="form-group">
                                 <label>Descripción Corta *</label>
-                                <textarea rows="4" [(ngModel)]="item.description" required
-                                    style="width: 100%; border: 1px solid #D1D5DB; padding: 10px; border-radius: 6px; resize: vertical;"></textarea>
+                                <textarea rows="4" [(ngModel)]="item.description" required></textarea>
                             </div>
 
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto;">
-                                <div class="form-group state-group" style="margin-bottom: 0;">
+                            <div class="actions-row-flex">
+                                <div class="form-group state-group">
                                     <label>Estado de Visualización</label>
                                     <div class="toggle-row">
                                         <label class="switch">

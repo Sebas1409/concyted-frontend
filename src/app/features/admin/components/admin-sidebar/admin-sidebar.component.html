@@ -1,8 +1,10 @@
 <aside class="sidebar">
     <!-- Logo Area -->
     <div class="sidebar-logo">
-        <img src="assets/images/landing/logo-white.png" alt="CTI Vitae"
-            onerror="this.src='https://placehold.co/150x40/004E5A/FFF?text=CTI+Vitae'">
+        <a routerLink="/" class="logo-link">
+            <img src="assets/images/landing/logo-white.png" alt="CTI Vitae"
+                onerror="this.src='https://placehold.co/150x40/004E5A/FFF?text=CTI+Vitae'">
+        </a>
 
         <button class="btn-toggle-sidebar" (click)="toggle.emit()">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -2,6 +2,11 @@
     padding: 32px;
     max-width: 1600px;
     margin: 0 auto;
+    overflow-x: hidden;
+
+    @media (max-width: 768px) {
+        padding: 16px;
+    }
 
     .content-area {
         background: white;
@@ -17,6 +22,11 @@
             .search-row {
                 display: flex;
                 gap: 12px;
+
+                @media (max-width: 768px) {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
 
                 .search-wrapper {
                     flex: 1;
@@ -52,11 +62,13 @@
                 .btn-search-main {
                     display: flex;
                     align-items: center;
+                    justify-content: center;
                     gap: 8px;
                     background: #004F56;
                     color: white;
                     border: none;
                     padding: 0 24px;
+                    height: 42px;
                     border-radius: 8px;
                     font-weight: 600;
                     cursor: pointer;
@@ -70,11 +82,13 @@
                 .btn-clear-main {
                     display: flex;
                     align-items: center;
+                    justify-content: center;
                     gap: 8px;
                     background: #FFF5F5;
                     color: #C53030;
                     border: 1px solid #FEB2B2;
                     padding: 0 20px;
+                    height: 42px;
                     border-radius: 8px;
                     font-weight: 600;
                     cursor: pointer;
@@ -104,15 +118,28 @@
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                gap: 16px;
+
+                @media (max-width: 992px) {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
 
                 .left-actions {
                     display: flex;
                     align-items: center;
                     gap: 16px;
+                    width: 100%;
+
+                    @media (max-width: 576px) {
+                        flex-direction: column;
+                        align-items: stretch;
+                    }
 
                     .export-buttons {
                         display: flex;
                         gap: 8px;
+                        flex-wrap: wrap;
 
                         .btn-export {
                             display: flex;
@@ -140,6 +167,11 @@
                     font-size: 14px;
                     color: #64748B;
                     font-weight: 500;
+                    margin-left: auto;
+
+                    @media (max-width: 992px) {
+                        margin-left: 0;
+                    }
 
                     .count {
                         color: #0F172A;
@@ -151,15 +183,31 @@
 
         /* Table */
         .table-responsive {
-            overflow-x: auto;
+            overflow-x: auto !important;
             border: 1px solid #E2E8F0;
             border-radius: 8px;
             margin-bottom: 24px;
             min-height: 400px;
+            max-width: 100%;
+
+            @media (max-width: 768px) {
+                margin-left: -12px;
+                margin-right: -12px;
+                width: calc(100% + 24px);
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+            }
 
             table {
                 width: 100%;
                 border-collapse: collapse;
+
+                .hide-on-mobile {
+                    @media (max-width: 768px) {
+                        display: none !important;
+                    }
+                }
 
                 th,
                 td {
@@ -216,6 +264,14 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+
+            @media (max-width: 768px) {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
 
             .items-per-page {
                 display: flex;
@@ -475,6 +531,10 @@
             padding: 20px;
             border: 1px solid #E2E8F0;
 
+            @media (max-width: 576px) {
+                padding: 12px;
+            }
+
             &.mt-4 {
                 margin-top: 24px;
             }
@@ -621,6 +681,11 @@
                 align-items: center;
                 justify-content: center;
                 flex-shrink: 0;
+
+                @media (max-width: 576px) {
+                    width: 32px;
+                    height: 32px;
+                }
             }
 
             .summary-details {
